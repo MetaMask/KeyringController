@@ -35,7 +35,6 @@ class KeyringController extends EventEmitter {
       keyrings: [],
       identities: {},
     })
-    this.ethStore = opts.ethStore
     this.encryptor = opts.encryptor || encryptor
     this.keyrings = []
     this.getNetwork = opts.getNetwork
@@ -314,21 +313,17 @@ class KeyringController extends EventEmitter {
   // makes that account the selected account,
   // faucets that account on testnet,
   // puts the current seed words into the state tree.
-  createFirstKeyTree () {
-    this.clearKeyrings()
-    return this.addNewKeyring('HD Key Tree', { numberOfAccounts: 1 })
-    .then((keyring) => {
-      return keyring.getAccounts()
-    })
-    .then((accounts) => {
-      const firstAccount = accounts[0]
-      if (!firstAccount) throw new Error('KeyringController - No account found on keychain.')
-      const hexAccount = normalizeAddress(firstAccount)
-      this.emit('newAccount', hexAccount)
-      this.emit('newVault', hexAccount)
-      return this.setupAccounts(accounts)
-    })
-    .then(this.persistAllKeyrings.bind(this))
+  async createFirstKeyTree () {
+    await this.clearKeyrings()
+    const keyring = await this.addNewKeyring('HD Key Tree', { numberOfAccounts: 1 })
+    const accounts = await keyring.getAccounts()
+    const firstAccount = accounts[0]
+    if (!firstAccount) throw new Error('KeyringController - No account found on keychain.')
+    const hexAccount = normalizeAddress(firstAccount)
+    this.emit('newAccount', hexAccount)
+    this.emit('newVault', hexAccount)
+    await this.setupAccounts(accounts)
+    return this.persistAllKeyrings()
   }
 
   // Setup Accounts
@@ -337,8 +332,7 @@ class KeyringController extends EventEmitter {
   // returns @Promise(@object account)
   //
   // Initializes the provided account array
-  // Gives them numerically incremented nicknames,
-  // and adds them to the ethStore for regular balance checking.
+  // Gives them numerically incremented nicknames.
   setupAccounts (accounts) {
     return this.getAccounts()
     .then((loadedAccounts) => {
@@ -361,7 +355,7 @@ class KeyringController extends EventEmitter {
       throw new Error('Problem loading account.')
     }
     const address = normalizeAddress(account)
-    this.ethStore.addAccount(address)
+    this.emit('newAccount', address)
     return this.createNickname(address)
   }
 
@@ -564,15 +558,10 @@ class KeyringController extends EventEmitter {
   //
   // Deallocates all currently managed keyrings and accounts.
   // Used before initializing a new vault.
-  clearKeyrings () {
-    let accounts
-    try {
-      accounts = Object.keys(this.ethStore.getState())
-    } catch (e) {
-      accounts = []
-    }
+  async clearKeyrings () {
+    const accounts = await this.getAccounts()
     accounts.forEach((address) => {
-      this.ethStore.removeAccount(address)
+      this.emit('removedAccount', address)
     })
 
     // clear keyrings from memory
