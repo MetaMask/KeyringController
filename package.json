@@ -1,0 +1,47 @@
+{
+  "name": "eth-keyring-controller",
+  "version": "1.0.0",
+  "description": "A module for managing various keyrings of Ethereum accounts, encrypting them, and using them.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --require test/helper.js test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/MetaMask/KeyringController.git"
+  },
+  "keywords": [
+    "ethereum",
+    "metamask",
+    "accounts",
+    "keys"
+  ],
+  "author": "Dan Finlay <dan@danfinlay.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MetaMask/KeyringController/issues"
+  },
+  "homepage": "https://github.com/MetaMask/KeyringController#readme",
+  "devDependencies": {
+    "clone": "^2.1.1",
+    "eslint-plugin-mocha": "^4.11.0",
+    "jsdom": "^11.2.0",
+    "jsdom-global": "^3.0.2",
+    "mocha": "^3.5.3",
+    "mocha-sinon": "^2.0.0",
+    "polyfill-crypto.getrandomvalues": "^1.0.0",
+    "sinon": "^3.3.0"
+  },
+  "dependencies": {
+    "bip39": "^2.4.0",
+    "bluebird": "^3.5.0",
+    "browser-passworder": "^2.0.3",
+    "eth-hd-keyring": "^1.2.0",
+    "eth-sig-util": "^1.2.2",
+    "eth-simple-keyring": "^1.1.1",
+    "ethereumjs-util": "^5.1.2",
+    "loglevel": "^1.5.0",
+    "obs-store": "^2.4.1",
+    "promise-filter": "^1.1.0"
+  }
+}
