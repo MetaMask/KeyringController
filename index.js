@@ -27,7 +27,7 @@ class KeyringController extends EventEmitter {
   constructor (opts) {
     super()
     const initState = opts.initState || {}
-    this.keyringTypes = opts.keyringTypes || keyringTypes
+    this.keyringTypes = keyringTypes
     this.store = new ObservableStore(initState)
     this.memStore = new ObservableStore({
       isUnlocked: false,
@@ -35,6 +35,8 @@ class KeyringController extends EventEmitter {
       keyrings: [],
       identities: {},
     })
+
+    this.accountTracker = opts.accountTracker
     this.encryptor = opts.encryptor || encryptor
     this.keyrings = []
     this.getNetwork = opts.getNetwork
@@ -104,8 +106,6 @@ class KeyringController extends EventEmitter {
     .then((accounts) => {
       const firstAccount = accounts[0]
       if (!firstAccount) throw new Error('KeyringController - First Account not found.')
-      const hexAccount = normalizeAddress(firstAccount)
-      this.emit('newAccount', hexAccount)
       return this.setupAccounts(accounts)
     })
     .then(this.persistAllKeyrings.bind(this, password))
@@ -205,6 +205,12 @@ class KeyringController extends EventEmitter {
   // and then saves those changes.
   addNewAccount (selectedKeyring) {
     return selectedKeyring.addAccounts(1)
+    .then((accounts) => {
+      accounts.forEach((hexAccount) => {
+        this.emit('newAccount', hexAccount)
+      })
+      return accounts
+    })
     .then(this.setupAccounts.bind(this))
     .then(this.persistAllKeyrings.bind(this))
     .then(this._updateMemStoreKeyrings.bind(this))
@@ -313,17 +319,20 @@ class KeyringController extends EventEmitter {
   // makes that account the selected account,
   // faucets that account on testnet,
   // puts the current seed words into the state tree.
-  async createFirstKeyTree () {
-    await this.clearKeyrings()
-    const keyring = await this.addNewKeyring('HD Key Tree', { numberOfAccounts: 1 })
-    const accounts = await keyring.getAccounts()
-    const firstAccount = accounts[0]
-    if (!firstAccount) throw new Error('KeyringController - No account found on keychain.')
-    const hexAccount = normalizeAddress(firstAccount)
-    this.emit('newAccount', hexAccount)
-    this.emit('newVault', hexAccount)
-    await this.setupAccounts(accounts)
-    return this.persistAllKeyrings()
+  createFirstKeyTree () {
+    this.clearKeyrings()
+    return this.addNewKeyring('HD Key Tree', { numberOfAccounts: 1 })
+    .then((keyring) => {
+      return keyring.getAccounts()
+    })
+    .then((accounts) => {
+      const firstAccount = accounts[0]
+      if (!firstAccount) throw new Error('KeyringController - No account found on keychain.')
+      const hexAccount = normalizeAddress(firstAccount)
+      this.emit('newVault', hexAccount)
+      return this.setupAccounts(accounts)
+    })
+    .then(this.persistAllKeyrings.bind(this))
   }
 
   // Setup Accounts
@@ -332,7 +341,8 @@ class KeyringController extends EventEmitter {
   // returns @Promise(@object account)
   //
   // Initializes the provided account array
-  // Gives them numerically incremented nicknames.
+  // Gives them numerically incremented nicknames,
+  // and adds them to the accountTracker for regular balance checking.
   setupAccounts (accounts) {
     return this.getAccounts()
     .then((loadedAccounts) => {
@@ -355,7 +365,7 @@ class KeyringController extends EventEmitter {
       throw new Error('Problem loading account.')
     }
     const address = normalizeAddress(account)
-    this.emit('newAccount', address)
+    this.accountTracker.addAccount(address)
     return this.createNickname(address)
   }
 
@@ -558,10 +568,15 @@ class KeyringController extends EventEmitter {
   //
   // Deallocates all currently managed keyrings and accounts.
   // Used before initializing a new vault.
-  async clearKeyrings () {
-    const accounts = await this.getAccounts()
+  clearKeyrings () {
+    let accounts
+    try {
+      accounts = Object.keys(this.accountTracker.store.getState())
+    } catch (e) {
+      accounts = []
+    }
     accounts.forEach((address) => {
-      this.emit('removedAccount', address)
+      this.accountTracker.removeAccount(address)
     })
 
     // clear keyrings from memory

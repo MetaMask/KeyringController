@@ -20,11 +20,11 @@ describe('KeyringController', function () {
 
     keyringController = new KeyringController({
       configManager: configManagerGen(),
-      txManager: {
+      tcxManager: {
         getTxList: () => [],
         getUnapprovedTxList: () => [],
       },
-      ethStore: {
+      accountTracker: {
         addAccount (acct) { accounts.push(ethUtil.addHexPrefix(acct)) },
       },
       encryptor: mockEncryptor,
