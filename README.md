@@ -5,7 +5,7 @@ A module for managing groups of Ethereum accounts called "Keyrings", defined ori
 To add new account types to a `KeyringController`, just make sure it follows [The Keyring Class Protocol](./docs/keyring.md).
 
 The KeyringController has three main responsibilities:
-- Initializing & using groups of Ethereum accounts ("keyrings").
+- Initializing & using (signing with) groups of Ethereum accounts ("keyrings").
 - Keeping track of local nicknames for those individual accounts.
 - Providing password-encryption persisting & restoring of secret information.
 
