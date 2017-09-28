@@ -305,6 +305,15 @@ class KeyringController extends EventEmitter {
     })
   }
 
+  // Sign Typed Message (EIP712 https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454)
+  signTypedMessage (msgParams) {
+    const address = normalizeAddress(msgParams.from)
+    return this.getKeyringForAccount(address)
+      .then((keyring) => {
+      return keyring.signTypedData(address, msgParams.data)
+    })
+  }
+
   // PRIVATE METHODS
   //
   // THESE METHODS ARE ONLY USED INTERNALLY TO THE KEYRING-CONTROLLER
