@@ -36,7 +36,6 @@ class KeyringController extends EventEmitter {
       identities: {},
     })
 
-    this.accountTracker = opts.accountTracker
     this.encryptor = opts.encryptor || encryptor
     this.keyrings = []
     this.getNetwork = opts.getNetwork
@@ -54,7 +53,7 @@ class KeyringController extends EventEmitter {
   //
   // Not all methods end with this, that might be a nice refactor.
   fullUpdate () {
-    this.emit('update')
+    this.emit('update', this.memStore.getState())
     return Promise.resolve(this.memStore.getState())
   }
 
@@ -68,8 +67,7 @@ class KeyringController extends EventEmitter {
   // randomly creates a new HD wallet with 1 account,
   // faucets that account on the testnet.
   createNewVaultAndKeychain (password) {
-    return this.persistAllKeyrings(password)
-    .then(this.createFirstKeyTree.bind(this))
+    return this.createFirstKeyTree()
     .then(this.fullUpdate.bind(this))
   }
 
@@ -351,7 +349,6 @@ class KeyringController extends EventEmitter {
   //
   // Initializes the provided account array
   // Gives them numerically incremented nicknames,
-  // and adds them to the accountTracker for regular balance checking.
   setupAccounts (accounts) {
     return this.getAccounts()
     .then((loadedAccounts) => {
@@ -374,7 +371,6 @@ class KeyringController extends EventEmitter {
       throw new Error('Problem loading account.')
     }
     const address = normalizeAddress(account)
-    this.accountTracker.addAccount(address)
     return this.createNickname(address)
   }
 
@@ -504,14 +500,15 @@ class KeyringController extends EventEmitter {
   //
   // Returns the public addresses of all current accounts
   // managed by all currently unlocked keyrings.
-  getAccounts () {
+  async getAccounts () {
     const keyrings = this.keyrings || []
-    return Promise.all(keyrings.map(kr => kr.getAccounts()))
+    const addrs = await Promise.all(keyrings.map(kr => kr.getAccounts()))
     .then((keyringArrays) => {
       return keyringArrays.reduce((res, arr) => {
         return res.concat(arr)
       }, [])
     })
+    return addrs.map(normalizeAddress)
   }
 
   // Get Keyring For Account
@@ -555,7 +552,7 @@ class KeyringController extends EventEmitter {
     .then((accounts) => {
       return {
         type: keyring.type,
-        accounts: accounts,
+        accounts: accounts.map(normalizeAddress),
       }
     })
   }
@@ -577,17 +574,7 @@ class KeyringController extends EventEmitter {
   //
   // Deallocates all currently managed keyrings and accounts.
   // Used before initializing a new vault.
-  clearKeyrings () {
-    let accounts
-    try {
-      accounts = Object.keys(this.accountTracker.store.getState())
-    } catch (e) {
-      accounts = []
-    }
-    accounts.forEach((address) => {
-      this.accountTracker.removeAccount(address)
-    })
-
+  async clearKeyrings () {
     // clear keyrings from memory
     this.keyrings = []
     this.memStore.updateState({
