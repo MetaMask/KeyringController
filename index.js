@@ -67,8 +67,9 @@ class KeyringController extends EventEmitter {
   // randomly creates a new HD wallet with 1 account,
   // faucets that account on the testnet.
   createNewVaultAndKeychain (password) {
-    return this.createFirstKeyTree()
-    .then(this.fullUpdate.bind(this))
+    return this.persistAllKeyrings(password)
+      .then(this.createFirstKeyTree.bind(this))
+      .then(this.fullUpdate.bind(this))
   }
 
   // CreateNewVaultAndRestore
