@@ -1,6 +1,6 @@
 {
   "name": "eth-keyring-controller",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "A module for managing various keyrings of Ethereum accounts, encrypting them, and using them.",
   "main": "index.js",
   "scripts": {
@@ -36,9 +36,9 @@
     "bip39": "^2.4.0",
     "bluebird": "^3.5.0",
     "browser-passworder": "^2.0.3",
-    "eth-hd-keyring": "^1.2.1",
+    "eth-hd-keyring": "^1.2.2",
     "eth-sig-util": "^1.4.0",
-    "eth-simple-keyring": "^1.2.0",
+    "eth-simple-keyring": "^1.2.1",
     "ethereumjs-util": "^5.1.2",
     "loglevel": "^1.5.0",
     "obs-store": "^2.4.1",
