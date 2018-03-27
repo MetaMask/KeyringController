@@ -1,3 +1,9 @@
+/**
+ * @file      KeyringController Class
+ * @copyright Copyright (c) 2018 MetaMask
+ * @license   MIT
+ */
+
 const ethUtil = require('ethereumjs-util')
 const BN = ethUtil.BN
 const bip39 = require('bip39')
@@ -7,7 +13,11 @@ const filter = require('promise-filter')
 const encryptor = require('browser-passworder')
 const sigUtil = require('eth-sig-util')
 const normalizeAddress = sigUtil.normalize
-// Keyrings:
+
+// Keyrings are wrappers around ethereumjs-wallet
+// TODO: this should be renamed to "wallet"
+//       https://github.com/MetaMask/metamask-extension/issues/3738
+
 const SimpleKeyring = require('eth-simple-keyring')
 const HdKeyring = require('eth-hd-keyring')
 const keyringTypes = [
@@ -15,15 +25,24 @@ const keyringTypes = [
   HdKeyring,
 ]
 
+const keyringProviders = {}
+
+/**
+ * Controller a Collection of KeyringProviders
+ */
 class KeyringController extends EventEmitter {
 
-  // PUBLIC METHODS
-  //
-  // THE FIRST SECTION OF METHODS ARE PUBLIC-FACING,
-  // MEANING THEY ARE USED BY CONSUMERS OF THIS CLASS.
-  //
-  // THEIR SURFACE AREA SHOULD BE CHANGED WITH GREAT CARE.
 
+  /**
+   * Creates a new Keyring Controller Object
+   * 
+   * @constructor
+   * @param {Object} opts
+   * @param opts.initState
+   * @param opts.encryptor
+   * @param opts.getNetwork
+   * 
+   */
   constructor (opts) {
     super()
     const initState = opts.initState || {}
@@ -34,11 +53,35 @@ class KeyringController extends EventEmitter {
       keyringTypes: this.keyringTypes.map(krt => krt.type),
       keyrings: [],
       identities: {},
+      keyringProviders: {},
     })
 
     this.encryptor = opts.encryptor || encryptor
     this.keyrings = []
     this.getNetwork = opts.getNetwork
+
+    this.initkeyringProviders()
+  }
+
+  /**
+   * Fetch information from the keyringProviders and set it up in memStore
+   * 
+   * TODO: automate this, after adding the information to the KeyringProvider classes
+   */
+  initkeyringProviders () {
+
+    keyringProviders[0] = {
+      func: 'CREATE',
+      text: 'createAccount',
+      img:  'images/plus-btn-white.svg',
+    }
+    keyringProviders[1] = {
+      func: 'IMPORT',
+      text: 'importAccount',
+      img:  'images/import-account.svg'
+    }
+    this.memStore.updateState({ keyringProviders })
+    console.log('!!! HI @@@')
   }
 
   // Full Update
