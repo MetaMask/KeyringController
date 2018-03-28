@@ -22,7 +22,7 @@ class MetaMaskWallet extends EventEmitter {
 
   constructor() {
     super()
-    if (this.constructor === Wallet) {
+    if (this.constructor === MetaMaskWallet) {
       throw new TypeError('Abstract class "MetaMaskWallet" cannot be instantiated directly.');
     }
   }
