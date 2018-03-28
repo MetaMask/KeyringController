@@ -18,8 +18,9 @@ const normalizeAddress = sigUtil.normalize
 // TODO: this should be renamed to "wallet"
 //       https://github.com/MetaMask/metamask-extension/issues/3738
 
-const SimpleKeyring = require('eth-simple-keyring')
-const HdKeyring = require('eth-hd-keyring')
+//!!! fetched from code
+const SimpleKeyring = require('./eth-simple-keyring')
+const HdKeyring = require('./eth-hd-keyring')
 const keyringTypes = [
   SimpleKeyring,
   HdKeyring,
