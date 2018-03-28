@@ -1,5 +1,5 @@
 /**
- * @file      KeyringController Class
+ * @file      WalletController Class
  * @copyright Copyright (c) 2018 MetaMask
  * @license   MIT
  */
@@ -14,28 +14,28 @@ const encryptor = require('browser-passworder')
 const sigUtil = require('eth-sig-util')
 const normalizeAddress = sigUtil.normalize
 
-// Keyrings are wrappers around ethereumjs-wallet
+// Wallets are wrappers around ethereumjs-wallet
 // TODO: this should be renamed to "wallet"
 //       https://github.com/MetaMask/metamask-extension/issues/3738
 
 //!!! fetched from code
-const SimpleKeyring = require('./eth-simple-keyring')
-const HdKeyring = require('./eth-hd-keyring')
-const keyringTypes = [
-  SimpleKeyring,
-  HdKeyring,
+const SimpleWallet = require('./mm-wallet-simple')
+const HdWallet = require('./mm-wallet-hd')
+const walletTypes = [
+  SimpleWallet,
+  HdWallet,
 ]
 
-const keyringProviders = {}
+const walletProviders = {}
 
 /**
- * Controller a Collection of KeyringProviders
+ * Controller a Collection of WalletProviders
  */
-class KeyringController extends EventEmitter {
+class WalletController extends EventEmitter {
 
 
   /**
-   * Creates a new Keyring Controller Object
+   * Creates a new Wallet Controller Object
    * 
    * @constructor
    * @param {Object} opts
@@ -47,41 +47,41 @@ class KeyringController extends EventEmitter {
   constructor (opts) {
     super()
     const initState = opts.initState || {}
-    this.keyringTypes = keyringTypes
+    this.walletTypes = walletTypes
     this.store = new ObservableStore(initState)
     this.memStore = new ObservableStore({
       isUnlocked: false,
-      keyringTypes: this.keyringTypes.map(krt => krt.type),
-      keyrings: [],
+      walletTypes: this.walletTypes.map(krt => krt.type),
+      wallets: [],
       identities: {},
-      keyringProviders: {},
+      walletProviders: {},
     })
 
     this.encryptor = opts.encryptor || encryptor
-    this.keyrings = []
+    this.wallets = []
     this.getNetwork = opts.getNetwork
 
-    this.initkeyringProviders()
+    this.initwalletProviders()
   }
 
   /**
-   * Fetch information from the keyringProviders and set it up in memStore
+   * Fetch information from the walletProviders and set it up in memStore
    * 
-   * TODO: automate this, after adding the information to the KeyringProvider classes
+   * TODO: automate this, after adding the information to the WalletProvider classes
    */
-  initkeyringProviders () {
+  initwalletProviders () {
 
-    keyringProviders[0] = {
+    walletProviders[0] = {
       func: 'CREATE',
       text: 'createAccount',
       img:  'images/plus-btn-white.svg',
     }
-    keyringProviders[1] = {
+    walletProviders[1] = {
       func: 'IMPORT',
       text: 'importAccount',
       img:  'images/import-account.svg'
     }
-    this.memStore.updateState({ keyringProviders })
+    this.memStore.updateState({ walletProviders })
     console.log('!!! HI @@@')
   }
 
@@ -111,7 +111,7 @@ class KeyringController extends EventEmitter {
   // randomly creates a new HD wallet with 1 account,
   // faucets that account on the testnet.
   createNewVaultAndKeychain (password) {
-    return this.persistAllKeyrings(password)
+    return this.persistAllWallets(password)
       .then(this.createFirstKeyTree.bind(this))
       .then(this.fullUpdate.bind(this))
   }
@@ -134,24 +134,24 @@ class KeyringController extends EventEmitter {
       return Promise.reject(new Error('Seed phrase is invalid.'))
     }
 
-    this.clearKeyrings()
+    this.clearWallets()
 
-    return this.persistAllKeyrings(password)
+    return this.persistAllWallets(password)
     .then(() => {
-      return this.addNewKeyring('HD Key Tree', {
+      return this.addNewWallet('HD Key Tree', {
         mnemonic: seed,
         numberOfAccounts: 1,
       })
     })
-    .then((firstKeyring) => {
-      return firstKeyring.getAccounts()
+    .then((firstWallet) => {
+      return firstWallet.getAccounts()
     })
     .then((accounts) => {
       const firstAccount = accounts[0]
-      if (!firstAccount) throw new Error('KeyringController - First Account not found.')
+      if (!firstAccount) throw new Error('WalletController - First Account not found.')
       return this.setupAccounts(accounts)
     })
-    .then(this.persistAllKeyrings.bind(this, password))
+    .then(this.persistAllWallets.bind(this, password))
     .then(this.fullUpdate.bind(this))
   }
 
@@ -163,9 +163,9 @@ class KeyringController extends EventEmitter {
     // set locked
     this.password = null
     this.memStore.updateState({ isUnlocked: false })
-    // remove keyrings
-    this.keyrings = []
-    this._updateMemStoreKeyrings()
+    // remove wallets
+    this.wallets = []
+    this._updateMemStoreWallets()
     return this.fullUpdate()
   }
 
@@ -174,49 +174,49 @@ class KeyringController extends EventEmitter {
   //
   // returns Promise( @object state )
   //
-  // Attempts to decrypt the current vault and load its keyrings
+  // Attempts to decrypt the current vault and load its wallets
   // into memory.
   //
   // Temporarily also migrates any old-style vaults first, as well.
   // (Pre MetaMask 3.0.0)
   submitPassword (password) {
-    return this.unlockKeyrings(password)
-    .then((keyrings) => {
-      this.keyrings = keyrings
+    return this.unlockWallets(password)
+    .then((wallets) => {
+      this.wallets = wallets
       return this.fullUpdate()
     })
   }
 
-  // Add New Keyring
+  // Add New Wallet
   // @string type
   // @object opts
   //
-  // returns Promise( @Keyring keyring )
+  // returns Promise( @Wallet wallet )
   //
-  // Adds a new Keyring of the given `type` to the vault
-  // and the current decrypted Keyrings array.
+  // Adds a new Wallet of the given `type` to the vault
+  // and the current decrypted Wallets array.
   //
-  // All Keyring classes implement a unique `type` string,
-  // and this is used to retrieve them from the keyringTypes array.
-  addNewKeyring (type, opts) {
-    const Keyring = this.getKeyringClassForType(type)
-    const keyring = new Keyring(opts)
-    return keyring.deserialize(opts)
+  // All Wallet classes implement a unique `type` string,
+  // and this is used to retrieve them from the walletTypes array.
+  addNewWallet (type, opts) {
+    const Wallet = this.getWalletClassForType(type)
+    const wallet = new Wallet(opts)
+    return wallet.deserialize(opts)
     .then(() => {
-      return keyring.getAccounts()
+      return wallet.getAccounts()
     })
     .then((accounts) => {
       return this.checkForDuplicate(type, accounts)
     })
     .then((checkedAccounts) => {
-      this.keyrings.push(keyring)
+      this.wallets.push(wallet)
       return this.setupAccounts(checkedAccounts)
     })
-    .then(() => this.persistAllKeyrings())
-    .then(() => this._updateMemStoreKeyrings())
+    .then(() => this.persistAllWallets())
+    .then(() => this._updateMemStoreWallets())
     .then(() => this.fullUpdate())
     .then(() => {
-      return keyring
+      return wallet
     })
   }
 
@@ -243,11 +243,11 @@ class KeyringController extends EventEmitter {
   //
   // returns Promise( @object state )
   //
-  // Calls the `addAccounts` method on the Keyring
-  // in the kryings array at index `keyringNum`,
+  // Calls the `addAccounts` method on the Wallet
+  // in the kryings array at index `walletNum`,
   // and then saves those changes.
-  addNewAccount (selectedKeyring) {
-    return selectedKeyring.addAccounts(1)
+  addNewAccount (selectedWallet) {
+    return selectedWallet.addAccounts(1)
     .then((accounts) => {
       accounts.forEach((hexAccount) => {
         this.emit('newAccount', hexAccount)
@@ -255,8 +255,8 @@ class KeyringController extends EventEmitter {
       return accounts
     })
     .then(this.setupAccounts.bind(this))
-    .then(this.persistAllKeyrings.bind(this))
-    .then(this._updateMemStoreKeyrings.bind(this))
+    .then(this.persistAllWallets.bind(this))
+    .then(this._updateMemStoreWallets.bind(this))
     .then(this.fullUpdate.bind(this))
   }
 
@@ -290,15 +290,15 @@ class KeyringController extends EventEmitter {
   //
   // returns Promise( @string privateKey )
   //
-  // Requests the private key from the keyring controlling
+  // Requests the private key from the wallet controlling
   // the specified address.
   //
   // Returns a Promise that may resolve with the private key string.
   exportAccount (address) {
     try {
-      return this.getKeyringForAccount(address)
-      .then((keyring) => {
-        return keyring.exportAccount(normalizeAddress(address))
+      return this.getWalletForAccount(address)
+      .then((wallet) => {
+        return wallet.exportAccount(normalizeAddress(address))
       })
     } catch (e) {
       return Promise.reject(e)
@@ -313,9 +313,9 @@ class KeyringController extends EventEmitter {
 
   signTransaction (ethTx, _fromAddress) {
     const fromAddress = normalizeAddress(_fromAddress)
-    return this.getKeyringForAccount(fromAddress)
-    .then((keyring) => {
-      return keyring.signTransaction(fromAddress, ethTx)
+    return this.getWalletForAccount(fromAddress)
+    .then((wallet) => {
+      return wallet.signTransaction(fromAddress, ethTx)
     })
   }
 
@@ -327,9 +327,9 @@ class KeyringController extends EventEmitter {
   // Attempts to sign the provided @object msgParams.
   signMessage (msgParams) {
     const address = normalizeAddress(msgParams.from)
-    return this.getKeyringForAccount(address)
-    .then((keyring) => {
-      return keyring.signMessage(address, msgParams.data)
+    return this.getWalletForAccount(address)
+    .then((wallet) => {
+      return wallet.signMessage(address, msgParams.data)
     })
   }
 
@@ -342,18 +342,18 @@ class KeyringController extends EventEmitter {
   // Prefixes the hash before signing as per the new geth behavior.
   signPersonalMessage (msgParams) {
     const address = normalizeAddress(msgParams.from)
-    return this.getKeyringForAccount(address)
-    .then((keyring) => {
-      return keyring.signPersonalMessage(address, msgParams.data)
+    return this.getWalletForAccount(address)
+    .then((wallet) => {
+      return wallet.signPersonalMessage(address, msgParams.data)
     })
   }
 
   // Sign Typed Message (EIP712 https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454)
   signTypedMessage (msgParams) {
     const address = normalizeAddress(msgParams.from)
-    return this.getKeyringForAccount(address)
-      .then((keyring) => {
-      return keyring.signTypedData(address, msgParams.data)
+    return this.getWalletForAccount(address)
+      .then((wallet) => {
+      return wallet.signTypedData(address, msgParams.data)
     })
   }
 
@@ -367,24 +367,24 @@ class KeyringController extends EventEmitter {
   //
   // Clears the vault,
   // creates a new one,
-  // creates a random new HD Keyring with 1 account,
+  // creates a random new HD Wallet with 1 account,
   // makes that account the selected account,
   // faucets that account on testnet,
   // puts the current seed words into the state tree.
   createFirstKeyTree () {
-    this.clearKeyrings()
-    return this.addNewKeyring('HD Key Tree', { numberOfAccounts: 1 })
-    .then((keyring) => {
-      return keyring.getAccounts()
+    this.clearWallets()
+    return this.addNewWallet('HD Key Tree', { numberOfAccounts: 1 })
+    .then((wallet) => {
+      return wallet.getAccounts()
     })
     .then((accounts) => {
       const firstAccount = accounts[0]
-      if (!firstAccount) throw new Error('KeyringController - No account found on keychain.')
+      if (!firstAccount) throw new Error('WalletController - No account found on keychain.')
       const hexAccount = normalizeAddress(firstAccount)
       this.emit('newVault', hexAccount)
       return this.setupAccounts(accounts)
     })
-    .then(this.persistAllKeyrings.bind(this))
+    .then(this.persistAllWallets.bind(this))
   }
 
   // Setup Accounts
@@ -440,32 +440,32 @@ class KeyringController extends EventEmitter {
     return this.saveAccountLabel(hexAddress, name)
   }
 
-  // Persist All Keyrings
+  // Persist All Wallets
   // @password string
   //
   // returns Promise
   //
-  // Iterates the current `keyrings` array,
+  // Iterates the current `wallets` array,
   // serializes each one into a serialized array,
   // encrypts that array with the provided `password`,
   // and persists that encrypted string to storage.
-  persistAllKeyrings (password = this.password) {
+  persistAllWallets (password = this.password) {
     if (typeof password === 'string') {
       this.password = password
       this.memStore.updateState({ isUnlocked: true })
     }
-    return Promise.all(this.keyrings.map((keyring) => {
-      return Promise.all([keyring.type, keyring.serialize()])
-      .then((serializedKeyringArray) => {
-        // Label the output values on each serialized Keyring:
+    return Promise.all(this.wallets.map((wallet) => {
+      return Promise.all([wallet.type, wallet.serialize()])
+      .then((serializedWalletArray) => {
+        // Label the output values on each serialized Wallet:
         return {
-          type: serializedKeyringArray[0],
-          data: serializedKeyringArray[1],
+          type: serializedWalletArray[0],
+          data: serializedWalletArray[1],
         }
       })
     }))
-    .then((serializedKeyrings) => {
-      return this.encryptor.encrypt(this.password, serializedKeyrings)
+    .then((serializedWallets) => {
+      return this.encryptor.encrypt(this.password, serializedWallets)
     })
     .then((encryptedString) => {
       this.store.updateState({ vault: encryptedString })
@@ -473,14 +473,14 @@ class KeyringController extends EventEmitter {
     })
   }
 
-  // Unlock Keyrings
+  // Unlock Wallets
   // @string password
   //
-  // returns Promise( @array keyrings )
+  // returns Promise( @array wallets )
   //
   // Attempts to unlock the persisted encrypted storage,
-  // initializing the persisted keyrings to RAM.
-  unlockKeyrings (password) {
+  // initializing the persisted wallets to RAM.
+  unlockWallets (password) {
     const encryptedVault = this.store.getState().vault
     if (!encryptedVault) {
       throw new Error('Cannot unlock without a previous vault.')
@@ -490,87 +490,87 @@ class KeyringController extends EventEmitter {
     .then((vault) => {
       this.password = password
       this.memStore.updateState({ isUnlocked: true })
-      vault.forEach(this.restoreKeyring.bind(this))
-      return this.keyrings
+      vault.forEach(this.restoreWallet.bind(this))
+      return this.wallets
     })
   }
 
-  // Restore Keyring
+  // Restore Wallet
   // @object serialized
   //
-  // returns Promise( @Keyring deserialized )
+  // returns Promise( @Wallet deserialized )
   //
-  // Attempts to initialize a new keyring from the provided
+  // Attempts to initialize a new wallet from the provided
   // serialized payload.
   //
-  // On success, returns the resulting @Keyring instance.
-  restoreKeyring (serialized) {
+  // On success, returns the resulting @Wallet instance.
+  restoreWallet (serialized) {
     const { type, data } = serialized
 
-    const Keyring = this.getKeyringClassForType(type)
-    const keyring = new Keyring()
-    return keyring.deserialize(data)
+    const Wallet = this.getWalletClassForType(type)
+    const wallet = new Wallet()
+    return wallet.deserialize(data)
     .then(() => {
-      return keyring.getAccounts()
+      return wallet.getAccounts()
     })
     .then((accounts) => {
       return this.setupAccounts(accounts)
     })
     .then(() => {
-      this.keyrings.push(keyring)
-      this._updateMemStoreKeyrings()
-      return keyring
+      this.wallets.push(wallet)
+      this._updateMemStoreWallets()
+      return wallet
     })
   }
 
-  // Get Keyring Class For Type
+  // Get Wallet Class For Type
   // @string type
   //
-  // Returns @class Keyring
+  // Returns @class Wallet
   //
-  // Searches the current `keyringTypes` array
-  // for a Keyring class whose unique `type` property
+  // Searches the current `walletTypes` array
+  // for a Wallet class whose unique `type` property
   // matches the provided `type`,
   // returning it if it exists.
-  getKeyringClassForType (type) {
-    return this.keyringTypes.find(kr => kr.type === type)
+  getWalletClassForType (type) {
+    return this.walletTypes.find(kr => kr.type === type)
   }
 
-  getKeyringsByType (type) {
-    return this.keyrings.filter((keyring) => keyring.type === type)
+  getWalletsByType (type) {
+    return this.wallets.filter((wallet) => wallet.type === type)
   }
 
   // Get Accounts
   // returns Promise( @Array[ @string accounts ] )
   //
   // Returns the public addresses of all current accounts
-  // managed by all currently unlocked keyrings.
+  // managed by all currently unlocked wallets.
   async getAccounts () {
-    const keyrings = this.keyrings || []
-    const addrs = await Promise.all(keyrings.map(kr => kr.getAccounts()))
-    .then((keyringArrays) => {
-      return keyringArrays.reduce((res, arr) => {
+    const wallets = this.wallets || []
+    const addrs = await Promise.all(wallets.map(kr => kr.getAccounts()))
+    .then((walletArrays) => {
+      return walletArrays.reduce((res, arr) => {
         return res.concat(arr)
       }, [])
     })
     return addrs.map(normalizeAddress)
   }
 
-  // Get Keyring For Account
+  // Get Wallet For Account
   // @string address
   //
-  // returns Promise(@Keyring keyring)
+  // returns Promise(@Wallet wallet)
   //
-  // Returns the currently initialized keyring that manages
+  // Returns the currently initialized wallet that manages
   // the specified `address` if one exists.
-  getKeyringForAccount (address) {
+  getWalletForAccount (address) {
     const hexed = normalizeAddress(address)
-    log.debug(`KeyringController - getKeyringForAccount: ${hexed}`)
+    log.debug(`WalletController - getWalletForAccount: ${hexed}`)
 
-    return Promise.all(this.keyrings.map((keyring) => {
+    return Promise.all(this.wallets.map((wallet) => {
       return Promise.all([
-        keyring,
-        keyring.getAccounts(),
+        wallet,
+        wallet.getAccounts(),
       ])
     }))
     .then(filter((candidate) => {
@@ -581,22 +581,22 @@ class KeyringController extends EventEmitter {
       if (winners && winners.length > 0) {
         return winners[0][0]
       } else {
-        throw new Error('No keyring found for the requested account.')
+        throw new Error('No wallet found for the requested account.')
       }
     })
   }
 
-  // Display For Keyring
-  // @Keyring keyring
+  // Display For Wallet
+  // @Wallet wallet
   //
   // returns Promise( @Object { type:String, accounts:Array } )
   //
-  // Is used for adding the current keyrings to the state object.
-  displayForKeyring (keyring) {
-    return keyring.getAccounts()
+  // Is used for adding the current wallets to the state object.
+  displayForWallet (wallet) {
+    return wallet.getAccounts()
     .then((accounts) => {
       return {
-        type: keyring.type,
+        type: wallet.type,
         accounts: accounts.map(normalizeAddress),
       }
     })
@@ -615,26 +615,26 @@ class KeyringController extends EventEmitter {
     return ethUtil.addHexPrefix(correct.toString(16))
   }
 
-  // Clear Keyrings
+  // Clear Wallets
   //
-  // Deallocates all currently managed keyrings and accounts.
+  // Deallocates all currently managed wallets and accounts.
   // Used before initializing a new vault.
-  async clearKeyrings () {
-    // clear keyrings from memory
-    this.keyrings = []
+  async clearWallets () {
+    // clear wallets from memory
+    this.wallets = []
     this.memStore.updateState({
-      keyrings: [],
+      wallets: [],
       identities: {},
     })
   }
 
-  _updateMemStoreKeyrings () {
-    Promise.all(this.keyrings.map(this.displayForKeyring))
-    .then((keyrings) => {
-      this.memStore.updateState({ keyrings })
+  _updateMemStoreWallets () {
+    Promise.all(this.wallets.map(this.displayForWallet))
+    .then((wallets) => {
+      this.memStore.updateState({ wallets })
     })
   }
 
 }
 
-module.exports = KeyringController
+module.exports = WalletController
