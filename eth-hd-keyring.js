@@ -1,12 +1,20 @@
+/**
+ * @file      A BIP44 compliant Ethereum Wallet, with a fixed sequence of keys
+ * @copyright Copyright (c) 2018 MetaMask
+ * @license   MIT
+ */
+
 const EventEmitter = require('events').EventEmitter
 const hdkey = require('ethereumjs-wallet/hdkey')
 const bip39 = require('bip39')
 const ethUtil = require('ethereumjs-util')
 const sigUtil = require('eth-sig-util')
 
+const type = 'HD Key Tree'
+
 // Options:
 const hdPathString = `m/44'/60'/0'/0`
-const type = 'HD Key Tree'
+
 
 class HdKeyring extends EventEmitter {
 
@@ -16,6 +24,7 @@ class HdKeyring extends EventEmitter {
     super()
     this.type = type
     this.deserialize(opts)
+
   }
 
   serialize () {
@@ -95,6 +104,7 @@ class HdKeyring extends EventEmitter {
     const privKeyBuffer = new Buffer(privKey, 'hex')
     const sig = sigUtil.personalSign(privKeyBuffer, { data: msgHex })
     return Promise.resolve(sig)
+    
   }
 
   // personal_signTypedData, signs data along with the schema

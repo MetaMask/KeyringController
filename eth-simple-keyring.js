@@ -1,8 +1,20 @@
+/**
+ * @file      A Simple Ethereum Wallet, with imported keys
+ * @copyright Copyright (c) 2018 MetaMask
+ * @license   MIT
+ */
+
 const EventEmitter = require('events').EventEmitter
 const Wallet = require('ethereumjs-wallet')
+
 const ethUtil = require('ethereumjs-util')
-const type = 'Simple Key Pair'
 const sigUtil = require('eth-sig-util')
+
+const type = 'Simple Key Pair'
+
+// Options:
+// none
+
 
 class SimpleKeyring extends EventEmitter {
 
@@ -16,7 +28,11 @@ class SimpleKeyring extends EventEmitter {
   }
 
   serialize () {
-    return Promise.resolve(this.wallets.map(w => w.getPrivateKey().toString('hex')))
+    return Promise.resolve(
+      this.wallets.map(w => w.getPrivateKey().toString('hex'))
+    )
+
+
   }
 
   deserialize (privateKeys = []) {
@@ -33,6 +49,8 @@ class SimpleKeyring extends EventEmitter {
       }
       resolve()
     })
+
+    
   }
 
   addAccounts (n = 1) {
