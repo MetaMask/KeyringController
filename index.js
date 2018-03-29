@@ -1,5 +1,5 @@
 /**
- * @file      WalletController Class
+ * @file      Vault Class, represents a Vault which contains multiple Wallets
  * @copyright Copyright (c) 2018 MetaMask
  * @license   MIT
  */
@@ -14,12 +14,7 @@ const encryptor = require('browser-passworder')
 const sigUtil = require('eth-sig-util')
 const normalizeAddress = sigUtil.normalize
 
-// Wallets are wrappers around ethereumjs-wallet
-// TODO: this should be renamed to "wallet"
-//       https://github.com/MetaMask/metamask-extension/issues/3738
-
-//!!! fetched from code
-const SimpleWallet = require('./mm-wallet-simple')
+const SimpleWallet = require('./mm-wallet-simple') //!!! fetched from code
 const HdWallet = require('./mm-wallet-hd')
 const walletTypes = [
   SimpleWallet,
@@ -28,10 +23,12 @@ const walletTypes = [
 
 const walletProviders = {}
 
+//TODO: Remove all signing-mechanisms out of the vault
+
 /**
  * Controller a Collection of WalletProviders
  */
-class WalletController extends EventEmitter {
+class VaultController extends EventEmitter {
 
 
   /**
@@ -148,7 +145,7 @@ class WalletController extends EventEmitter {
     })
     .then((accounts) => {
       const firstAccount = accounts[0]
-      if (!firstAccount) throw new Error('WalletController - First Account not found.')
+      if (!firstAccount) throw new Error('VaultController - First Account not found.')
       return this.setupAccounts(accounts)
     })
     .then(this.persistAllWallets.bind(this, password))
@@ -357,10 +354,12 @@ class WalletController extends EventEmitter {
     })
   }
 
-  // PRIVATE METHODS
-  //
-  // THESE METHODS ARE ONLY USED INTERNALLY TO THE KEYRING-CONTROLLER
-  // AND SO MAY BE CHANGED MORE LIBERALLY THAN THE ABOVE METHODS.
+//-----------------------------------------------------------------------------
+// PRIVATE METHODS
+//-----------------------------------------------------------------------------
+
+//TODO: make methods real private
+
 
   // Create First Key Tree
   // returns @Promise
@@ -379,7 +378,7 @@ class WalletController extends EventEmitter {
     })
     .then((accounts) => {
       const firstAccount = accounts[0]
-      if (!firstAccount) throw new Error('WalletController - No account found on keychain.')
+      if (!firstAccount) throw new Error('VaultController - No account found on keychain.')
       const hexAccount = normalizeAddress(firstAccount)
       this.emit('newVault', hexAccount)
       return this.setupAccounts(accounts)
@@ -565,7 +564,7 @@ class WalletController extends EventEmitter {
   // the specified `address` if one exists.
   getWalletForAccount (address) {
     const hexed = normalizeAddress(address)
-    log.debug(`WalletController - getWalletForAccount: ${hexed}`)
+    log.debug(`VaultController - getWalletForAccount: ${hexed}`)
 
     return Promise.all(this.wallets.map((wallet) => {
       return Promise.all([
@@ -637,4 +636,4 @@ class WalletController extends EventEmitter {
 
 }
 
-module.exports = WalletController
+module.exports = VaultController
