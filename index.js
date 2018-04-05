@@ -446,8 +446,8 @@ class KeyringController extends EventEmitter {
     .then((vault) => {
       this.password = password
       this.memStore.updateState({ isUnlocked: true })
-      vault.forEach(this.restoreKeyring.bind(this))
-      return this.keyrings
+      return Promise.all(vault.map(this.restoreKeyring.bind(this)))
+      .then(() => this.keyrings)
     })
   }
 
