@@ -33,7 +33,6 @@ class KeyringController extends EventEmitter {
       isUnlocked: false,
       keyringTypes: this.keyringTypes.map(krt => krt.type),
       keyrings: [],
-      identities: {},
     })
 
     this.encryptor = opts.encryptor || encryptor
@@ -105,7 +104,7 @@ class KeyringController extends EventEmitter {
     .then((accounts) => {
       const firstAccount = accounts[0]
       if (!firstAccount) throw new Error('KeyringController - First Account not found.')
-      return this.setupAccounts(accounts)
+      return null
     })
     .then(this.persistAllKeyrings.bind(this, password))
     .then(this.fullUpdate.bind(this))
@@ -164,11 +163,10 @@ class KeyringController extends EventEmitter {
     .then((accounts) => {
       return this.checkForDuplicate(type, accounts)
     })
-    .then((checkedAccounts) => {
-      this.keyrings.push(keyring)
-      return this.setupAccounts(checkedAccounts)
+    .then(() => {
+        this.keyrings.push(keyring)
+        return this.persistAllKeyrings()
     })
-    .then(() => this.persistAllKeyrings())
     .then(() => this._updateMemStoreKeyrings())
     .then(() => this.fullUpdate())
     .then(() => {
@@ -210,35 +208,9 @@ class KeyringController extends EventEmitter {
       })
       return accounts
     })
-    .then(this.setupAccounts.bind(this))
     .then(this.persistAllKeyrings.bind(this))
     .then(this._updateMemStoreKeyrings.bind(this))
     .then(this.fullUpdate.bind(this))
-  }
-
-  // Save Account Label
-  // @string account
-  // @string label
-  //
-  // returns Promise( @string label )
-  //
-  // Persists a nickname equal to `label` for the specified account.
-  saveAccountLabel (account, label) {
-    try {
-      const hexAddress = normalizeAddress(account)
-      // update state on diskStore
-      const state = this.store.getState()
-      const walletNicknames = state.walletNicknames || {}
-      walletNicknames[hexAddress] = label
-      this.store.updateState({ walletNicknames })
-      // update state on memStore
-      const identities = this.memStore.getState().identities
-      identities[hexAddress].name = label
-      this.memStore.updateState({ identities })
-      return Promise.resolve(label)
-    } catch (err) {
-      return Promise.reject(err)
-    }
   }
 
   // Export Account
@@ -338,62 +310,9 @@ class KeyringController extends EventEmitter {
       if (!firstAccount) throw new Error('KeyringController - No account found on keychain.')
       const hexAccount = normalizeAddress(firstAccount)
       this.emit('newVault', hexAccount)
-      return this.setupAccounts(accounts)
+      return null
     })
     .then(this.persistAllKeyrings.bind(this))
-  }
-
-  // Setup Accounts
-  // @array accounts
-  //
-  // returns @Promise(@object account)
-  //
-  // Initializes the provided account array
-  // Gives them numerically incremented nicknames,
-  setupAccounts (accounts) {
-    return this.getAccounts()
-    .then((loadedAccounts) => {
-      const arr = accounts || loadedAccounts
-      return Promise.all(arr.map((account) => {
-        return this.getBalanceAndNickname(account)
-      }))
-    })
-  }
-
-  // Get Balance And Nickname
-  // @string account
-  //
-  // returns Promise( @string label )
-  //
-  // Takes an account address and an iterator representing
-  // the current number of named accounts.
-  getBalanceAndNickname (account) {
-    if (!account) {
-      throw new Error('Problem loading account.')
-    }
-    const address = normalizeAddress(account)
-    return this.createNickname(address)
-  }
-
-  // Create Nickname
-  // @string address
-  //
-  // returns Promise( @string label )
-  //
-  // Takes an address, and assigns it an incremented nickname, persisting it.
-  createNickname (address) {
-    const hexAddress = normalizeAddress(address)
-    const identities = this.memStore.getState().identities
-    const currentIdentityCount = Object.keys(identities).length + 1
-    const nicknames = this.store.getState().walletNicknames || {}
-    const existingNickname = nicknames[hexAddress]
-    const name = existingNickname || `Account ${currentIdentityCount}`
-    identities[hexAddress] = {
-      address: hexAddress,
-      name,
-    }
-    this.memStore.updateState({ identities })
-    return this.saveAccountLabel(hexAddress, name)
   }
 
   // Persist All Keyrings
@@ -406,10 +325,8 @@ class KeyringController extends EventEmitter {
   // encrypts that array with the provided `password`,
   // and persists that encrypted string to storage.
   persistAllKeyrings (password = this.password) {
-    if (typeof password === 'string') {
-      this.password = password
-      this.memStore.updateState({ isUnlocked: true })
-    }
+    this.password = password
+    this.memStore.updateState({ isUnlocked: true })
     return Promise.all(this.keyrings.map((keyring) => {
       return Promise.all([keyring.type, keyring.serialize()])
       .then((serializedKeyringArray) => {
@@ -468,9 +385,6 @@ class KeyringController extends EventEmitter {
     return keyring.deserialize(data)
     .then(() => {
       return keyring.getAccounts()
-    })
-    .then((accounts) => {
-      return this.setupAccounts(accounts)
     })
     .then(() => {
       this.keyrings.push(keyring)
@@ -580,7 +494,6 @@ class KeyringController extends EventEmitter {
     this.keyrings = []
     this.memStore.updateState({
       keyrings: [],
-      identities: {},
     })
   }
 

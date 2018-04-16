@@ -72,10 +72,6 @@ describe('KeyringController', function () {
           numberOfAccounts: 1,
         },
       }
-      const mock = this.sinon.mock(keyringController)
-
-      mock.expects('getBalanceAndNickname')
-      .exactly(1)
 
       keyringController.restoreKeyring(mockSerialized)
       .then((keyring) => {
@@ -84,42 +80,7 @@ describe('KeyringController', function () {
       })
       .then((accounts) => {
         assert.equal(accounts[0], addresses[0])
-        mock.verify()
         done()
-      })
-      .catch((reason) => {
-        done(reason)
-      })
-    })
-  })
-
-  describe('#createNickname', function () {
-    it('should add the address to the identities hash', function () {
-      const fakeAddress = '0x12345678'
-      keyringController.createNickname(fakeAddress)
-      const identities = keyringController.memStore.getState().identities
-      const identity = identities[fakeAddress]
-      assert.equal(identity.address, fakeAddress)
-    })
-  })
-
-  describe('#saveAccountLabel', function () {
-    it('sets the nickname', function (done) {
-      const account = addresses[0]
-      var nick = 'Test nickname'
-      const identities = keyringController.memStore.getState().identities
-      identities[ethUtil.addHexPrefix(account)] = {}
-      keyringController.memStore.updateState({ identities })
-      keyringController.saveAccountLabel(account, nick)
-      .then((label) => {
-        try {
-          assert.equal(label, nick)
-          const persisted = keyringController.store.getState().walletNicknames[account]
-          assert.equal(persisted, nick)
-          done()
-        } catch (err) {
-          done()
-        }
       })
       .catch((reason) => {
         done(reason)
