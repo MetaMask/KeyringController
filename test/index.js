@@ -122,4 +122,19 @@ describe('KeyringController', function () {
       assert.notEqual(result, tooBigOutput, 'not that bad estimate')
     })
   })
+
+  describe('#unlockKeyrings', function () {
+    it('returns the list of keyrings', function (done) {
+      keyringController.setLocked()
+      keyringController.unlockKeyrings(password)
+        .then(function (keyrings) {
+          assert.notStrictEqual(keyrings.length, 0)
+          keyrings.forEach(keyring => {
+            assert.strictEqual(keyring.wallets.length, 1)
+          })
+          done()
+        })
+        .catch(done)
+    })
+  })
 })
