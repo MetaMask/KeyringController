@@ -1,3 +1,4 @@
+const log = require('loglevel')
 const ethUtil = require('ethereumjs-util')
 const BN = ethUtil.BN
 const bip39 = require('bip39')
