@@ -4,7 +4,6 @@ enableFailureOnUnhandledPromiseRejection()
 // logging util
 var log = require('loglevel')
 log.setDefaultLevel(5)
-global.log = log
 
 //
 // polyfills
