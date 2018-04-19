@@ -1,13 +1,13 @@
+const sinon = require('sinon')
 var mockHex = '0xabcdef0123456789'
 var mockKey = new Buffer(32)
 let cacheVal
 
 module.exports = {
-
-  encrypt (password, dataObj) {
+  encrypt: sinon.stub().callsFake(function (password, dataObj) {
     cacheVal = dataObj
     return Promise.resolve(mockHex)
-  },
+  }),
 
   decrypt (password, text) {
     return Promise.resolve(cacheVal || {})

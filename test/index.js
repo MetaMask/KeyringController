@@ -61,6 +61,21 @@ describe('KeyringController', function () {
         done(reason)
       })
     })
+
+    it('should encrypt keyrings with the correct password each time they are persisted', function (done) {
+      keyringController.store.updateState({ vault: null })
+      assert(!keyringController.store.getState().vault, 'no previous vault')
+      keyringController.createNewVaultAndKeychain(password)
+        .then(() => {
+          const vault = keyringController.store.getState().vault
+          assert(vault, 'vault created')
+          keyringController.encryptor.encrypt.args.forEach(([actualPassword]) => {
+            assert.equal(actualPassword, password)
+          })
+          done()
+        })
+        .catch(done)
+    })
   })
 
   describe('#restoreKeyring', function () {
