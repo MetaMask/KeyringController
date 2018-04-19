@@ -69,6 +69,7 @@ class KeyringController extends EventEmitter {
   createNewVaultAndKeychain (password) {
     return this.persistAllKeyrings(password)
       .then(this.createFirstKeyTree.bind(this))
+      .then(this.persistAllKeyrings.bind(this, password))
       .then(this.fullUpdate.bind(this))
   }
 
@@ -313,7 +314,6 @@ class KeyringController extends EventEmitter {
       this.emit('newVault', hexAccount)
       return null
     })
-    .then(this.persistAllKeyrings.bind(this))
   }
 
   // Persist All Keyrings
