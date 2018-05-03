@@ -499,7 +499,7 @@ class KeyringController extends EventEmitter {
   }
 
   _updateMemStoreKeyrings () {
-    Promise.all(this.keyrings.map(this.displayForKeyring))
+    return Promise.all(this.keyrings.map(this.displayForKeyring))
     .then((keyrings) => {
       this.memStore.updateState({ keyrings })
     })
