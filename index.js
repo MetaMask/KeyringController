@@ -354,19 +354,18 @@ class KeyringController extends EventEmitter {
   //
   // Attempts to unlock the persisted encrypted storage,
   // initializing the persisted keyrings to RAM.
-  unlockKeyrings (password) {
+  async unlockKeyrings (password) {
     const encryptedVault = this.store.getState().vault
     if (!encryptedVault) {
       throw new Error('Cannot unlock without a previous vault.')
     }
 
-    return this.encryptor.decrypt(password, encryptedVault)
-    .then((vault) => {
-      this.password = password
-      this.memStore.updateState({ isUnlocked: true })
-      return Promise.all(vault.map(this.restoreKeyring.bind(this)))
-      .then(() => this.keyrings)
-    })
+    await this.clearKeyrings()
+    const vault = await this.encryptor.decrypt(password, encryptedVault)
+    this.password = password
+    this.memStore.updateState({ isUnlocked: true })
+    await Promise.all(vault.map(this.restoreKeyring.bind(this)))
+    return this.keyrings
   }
 
   // Restore Keyring
