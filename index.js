@@ -42,7 +42,7 @@ class KeyringController extends EventEmitter {
   }
 
   // Full Update
-  // returns Promise( @object state )
+  // returns @object state
   //
   // Emits the `update` event and
   // returns a Promise that resolves to the current state.
@@ -52,7 +52,7 @@ class KeyringController extends EventEmitter {
   // or accept a state-resolving promise to consume their results.
   //
   // Not all methods end with this, that might be a nice refactor.
-  async fullUpdate () {
+  fullUpdate () {
     this.emit('update', this.memStore.getState())
     return this.memStore.getState()
   }
