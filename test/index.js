@@ -20,13 +20,6 @@ describe('KeyringController', function () {
 
     keyringController = new KeyringController({
       configManager: configManagerGen(),
-      tcxManager: {
-        getTxList: () => [],
-        getUnapprovedTxList: () => [],
-      },
-      accountTracker: {
-        addAccount (acct) { accounts.push(ethUtil.addHexPrefix(acct)) },
-      },
       encryptor: mockEncryptor,
     })
 
@@ -44,6 +37,23 @@ describe('KeyringController', function () {
     // Cleanup mocks
     this.sinon.restore()
   })
+
+
+  describe('#submitPassword', function () {
+    this.timeout(10000)
+
+    it('should not create new keyrings when called in series', async function () {
+      await keyringController.createNewVaultAndKeychain(password)
+      await keyringController.persistAllKeyrings()
+
+      assert.equal(keyringController.keyrings.length, 1, 'has one keyring')
+      await keyringController.submitPassword(password + 'a')
+      assert.equal(keyringController.keyrings.length, 1, 'has one keyring')
+      await keyringController.submitPassword('')
+      assert.equal(keyringController.keyrings.length, 1, 'has one keyring')
+    })
+  })
+
 
   describe('#createNewVaultAndKeychain', function () {
     this.timeout(10000)
