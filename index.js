@@ -52,9 +52,9 @@ class KeyringController extends EventEmitter {
   // or accept a state-resolving promise to consume their results.
   //
   // Not all methods end with this, that might be a nice refactor.
-  fullUpdate () {
+  async fullUpdate () {
     this.emit('update', this.memStore.getState())
-    return Promise.resolve(this.memStore.getState())
+    return this.memStore.getState()
   }
 
   // Create New Vault And Keychain
@@ -116,13 +116,13 @@ class KeyringController extends EventEmitter {
   // returns Promise( @object state )
   //
   // This method deallocates all secrets, and effectively locks metamask.
-  setLocked () {
+  async setLocked () {
     // set locked
     this.password = null
     this.memStore.updateState({ isUnlocked: false })
     // remove keyrings
     this.keyrings = []
-    this._updateMemStoreKeyrings()
+    await this._updateMemStoreKeyrings()
     return this.fullUpdate()
   }
 
@@ -389,7 +389,9 @@ class KeyringController extends EventEmitter {
     })
     .then(() => {
       this.keyrings.push(keyring)
-      this._updateMemStoreKeyrings()
+      return this._updateMemStoreKeyrings()
+    })
+    .then(() => {
       return keyring
     })
   }
@@ -498,11 +500,9 @@ class KeyringController extends EventEmitter {
     })
   }
 
-  _updateMemStoreKeyrings () {
-    Promise.all(this.keyrings.map(this.displayForKeyring))
-    .then((keyrings) => {
-      this.memStore.updateState({ keyrings })
-    })
+  async _updateMemStoreKeyrings () {
+    const keyrings = await Promise.all(this.keyrings.map(this.displayForKeyring))
+    return this.memStore.updateState({ keyrings })
   }
 
 }
