@@ -158,10 +158,7 @@ class KeyringController extends EventEmitter {
   addNewKeyring (type, opts) {
     const Keyring = this.getKeyringClassForType(type)
     const keyring = new Keyring(opts)
-    return keyring.deserialize(opts)
-    .then(() => {
-      return keyring.getAccounts()
-    })
+    return keyring.getAccounts()
     .then((accounts) => {
       return this.checkForDuplicate(type, accounts)
     })
