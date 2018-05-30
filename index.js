@@ -205,7 +205,6 @@ class KeyringController extends EventEmitter {
       accounts.forEach((hexAccount) => {
         this.emit('newAccount', hexAccount)
       })
-      return accounts
     })
     .then(this.persistAllKeyrings.bind(this))
     .then(this._updateMemStoreKeyrings.bind(this))
@@ -323,6 +322,10 @@ class KeyringController extends EventEmitter {
   // encrypts that array with the provided `password`,
   // and persists that encrypted string to storage.
   persistAllKeyrings (password = this.password) {
+    if (typeof password !== 'string') {
+      return Promise.reject('KeyringController - password is not a string')
+    }
+
     this.password = password
     this.memStore.updateState({ isUnlocked: true })
     return Promise.all(this.keyrings.map((keyring) => {
