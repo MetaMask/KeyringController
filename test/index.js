@@ -74,11 +74,14 @@ describe('KeyringController', () => {
   describe('#addNewKeyring', () => {
     it('Simple Key Pair', async () => {
       const privateKey = 'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
+      const previousAccounts = await keyringController.getAccounts()
       const keyring = await keyringController.addNewKeyring('Simple Key Pair', [ privateKey ])
       const keyringAccounts = await keyring.getAccounts()
-      assert.deepEqual(keyringAccounts, ['0x627306090abab3a6e1400e9345bc60c78a8bef57'], 'keyringAccounts match expectation')
+      const expectedKeyringAccounts = ['0x627306090abab3a6e1400e9345bc60c78a8bef57']
+      assert.deepEqual(keyringAccounts, expectedKeyringAccounts, 'keyringAccounts match expectation')
       const allAccounts = await keyringController.getAccounts()
-      assert.deepEqual(allAccounts, ['0x627306090abab3a6e1400e9345bc60c78a8bef57'], 'allAccounts match expectation')
+      const expectedAllAccounts = previousAccounts.concat(expectedKeyringAccounts)
+      assert.deepEqual(allAccounts, expectedAllAccounts, 'allAccounts match expectation')
     })
   })
 
