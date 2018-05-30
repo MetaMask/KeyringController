@@ -6,7 +6,7 @@ const BN = ethUtil.BN
 const mockEncryptor = require('./lib/mock-encryptor')
 const sinon = require('sinon')
 
-describe('KeyringController', function () {
+describe('KeyringController', () => {
   let keyringController
   const password = 'password123'
   const seedWords = 'puzzle seed penalty soldier say clay field arctic metal hen cage runway'
@@ -14,7 +14,7 @@ describe('KeyringController', function () {
   const accounts = []
   // let originalKeystore
 
-  beforeEach(function (done) {
+  beforeEach(async () => {
     this.sinon = sinon.sandbox.create()
     window.localStorage = {} // Hacking localStorage support into JSDom
 
@@ -23,17 +23,10 @@ describe('KeyringController', function () {
       encryptor: mockEncryptor,
     })
 
-    keyringController.createNewVaultAndKeychain(password)
-    .then(function (newState) {
-      newState
-      done()
-    })
-    .catch((err) => {
-      done(err)
-    })
+    const newState = await keyringController.createNewVaultAndKeychain(password)
   })
 
-  afterEach(function () {
+  afterEach(() => {
     // Cleanup mocks
     this.sinon.restore()
   })
@@ -42,7 +35,7 @@ describe('KeyringController', function () {
   describe('#submitPassword', function () {
     this.timeout(10000)
 
-    it('should not create new keyrings when called in series', async function () {
+    it('should not create new keyrings when called in series', async () => {
       await keyringController.createNewVaultAndKeychain(password)
       await keyringController.persistAllKeyrings()
 
@@ -58,38 +51,42 @@ describe('KeyringController', function () {
   describe('#createNewVaultAndKeychain', function () {
     this.timeout(10000)
 
-    it('should set a vault on the configManager', function (done) {
+    it('should set a vault on the configManager', async () => {
       keyringController.store.updateState({ vault: null })
       assert(!keyringController.store.getState().vault, 'no previous vault')
-      keyringController.createNewVaultAndKeychain(password)
-      .then(() => {
-        const vault = keyringController.store.getState().vault
-        assert(vault, 'vault created')
-        done()
-      })
-      .catch((reason) => {
-        done(reason)
-      })
+      await keyringController.createNewVaultAndKeychain(password)
+      const vault = keyringController.store.getState().vault
+      assert(vault, 'vault created')
     })
 
-    it('should encrypt keyrings with the correct password each time they are persisted', function (done) {
+    it('should encrypt keyrings with the correct password each time they are persisted', async () => {
       keyringController.store.updateState({ vault: null })
       assert(!keyringController.store.getState().vault, 'no previous vault')
-      keyringController.createNewVaultAndKeychain(password)
-        .then(() => {
-          const vault = keyringController.store.getState().vault
-          assert(vault, 'vault created')
-          keyringController.encryptor.encrypt.args.forEach(([actualPassword]) => {
-            assert.equal(actualPassword, password)
-          })
-          done()
-        })
-        .catch(done)
+      await keyringController.createNewVaultAndKeychain(password)
+      const vault = keyringController.store.getState().vault
+      assert(vault, 'vault created')
+      keyringController.encryptor.encrypt.args.forEach(([actualPassword]) => {
+        assert.equal(actualPassword, password)
+      })
     })
   })
 
-  describe('#restoreKeyring', function () {
-    it(`should pass a keyring's serialized data back to the correct type.`, function (done) {
+  describe('#addNewKeyring', () => {
+    it('Simple Key Pair', async () => {
+      const privateKey = 'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
+      const previousAccounts = await keyringController.getAccounts()
+      const keyring = await keyringController.addNewKeyring('Simple Key Pair', [ privateKey ])
+      const keyringAccounts = await keyring.getAccounts()
+      const expectedKeyringAccounts = ['0x627306090abab3a6e1400e9345bc60c78a8bef57']
+      assert.deepEqual(keyringAccounts, expectedKeyringAccounts, 'keyringAccounts match expectation')
+      const allAccounts = await keyringController.getAccounts()
+      const expectedAllAccounts = previousAccounts.concat(expectedKeyringAccounts)
+      assert.deepEqual(allAccounts, expectedAllAccounts, 'allAccounts match expectation')
+    })
+  })
+
+  describe('#restoreKeyring', () => {
+    it(`should pass a keyring's serialized data back to the correct type.`, async () => {
       const mockSerialized = {
         type: 'HD Key Tree',
         data: {
@@ -98,38 +95,27 @@ describe('KeyringController', function () {
         },
       }
 
-      keyringController.restoreKeyring(mockSerialized)
-      .then((keyring) => {
-        assert.equal(keyring.wallets.length, 1, 'one wallet restored')
-        return keyring.getAccounts()
-      })
-      .then((accounts) => {
-        assert.equal(accounts[0], addresses[0])
-        done()
-      })
-      .catch((reason) => {
-        done(reason)
-      })
+      const keyring = await keyringController.restoreKeyring(mockSerialized)
+      assert.equal(keyring.wallets.length, 1, 'one wallet restored')
+      const accounts = await keyring.getAccounts()
+      assert.equal(accounts[0], addresses[0])
     })
   })
 
-  describe('#getAccounts', function () {
-    it('returns the result of getAccounts for each keyring', function (done) {
+  describe('#getAccounts', () => {
+    it('returns the result of getAccounts for each keyring', async () => {
       keyringController.keyrings = [
-        { getAccounts () { return Promise.resolve([1, 2, 3]) } },
-        { getAccounts () { return Promise.resolve([4, 5, 6]) } },
+        { async getAccounts () { return [1, 2, 3] } },
+        { async getAccounts () { return [4, 5, 6] } },
       ]
 
-      keyringController.getAccounts()
-      .then((result) => {
-        assert.deepEqual(result, [1, 2, 3, 4, 5, 6])
-        done()
-      })
+      const result = await keyringController.getAccounts()
+      assert.deepEqual(result, [1, 2, 3, 4, 5, 6])
     })
   })
 
-  describe('#addGasBuffer', function () {
-    it('adds 100k gas buffer to estimates', function () {
+  describe('#addGasBuffer', () => {
+    it('adds 100k gas buffer to estimates', () => {
       const gas = '0x04ee59' // Actual estimated gas example
       const tooBigOutput = '0x80674f9' // Actual bad output
       const bnGas = new BN(ethUtil.stripHexPrefix(gas), 16)
@@ -148,18 +134,14 @@ describe('KeyringController', function () {
     })
   })
 
-  describe('#unlockKeyrings', function () {
-    it('returns the list of keyrings', function (done) {
+  describe('#unlockKeyrings', () => {
+    it('returns the list of keyrings', async () => {
       keyringController.setLocked()
-      keyringController.unlockKeyrings(password)
-        .then(function (keyrings) {
-          assert.notStrictEqual(keyrings.length, 0)
-          keyrings.forEach(keyring => {
-            assert.strictEqual(keyring.wallets.length, 1)
-          })
-          done()
-        })
-        .catch(done)
+      const keyrings = await keyringController.unlockKeyrings(password)
+      assert.notStrictEqual(keyrings.length, 0)
+      keyrings.forEach(keyring => {
+        assert.strictEqual(keyring.wallets.length, 1)
+      })
     })
   })
 })

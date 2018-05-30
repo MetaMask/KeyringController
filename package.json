@@ -27,7 +27,7 @@
     "eslint-plugin-mocha": "^4.11.0",
     "jsdom": "^11.2.0",
     "jsdom-global": "^3.0.2",
-    "mocha": "^3.5.3",
+    "mocha": "^5.2.0",
     "mocha-sinon": "^2.0.0",
     "polyfill-crypto.getrandomvalues": "^1.0.0",
     "sinon": "^3.3.0"
@@ -38,7 +38,7 @@
     "browser-passworder": "^2.0.3",
     "eth-hd-keyring": "^1.2.2",
     "eth-sig-util": "^1.4.0",
-    "eth-simple-keyring": "^1.2.1",
+    "eth-simple-keyring": "^1.2.2",
     "ethereumjs-util": "^5.1.2",
     "loglevel": "^1.5.0",
     "obs-store": "^2.4.1",
