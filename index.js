@@ -173,6 +173,29 @@ class KeyringController extends EventEmitter {
     })
   }
 
+  // Remove Empty Keyrings
+  // returns Void
+  //
+  // Loops through the keyrings and removes the ones
+  // with empty accounts (usually after removing the last / only account)
+  // from a keyring
+  async removeEmptyKeyrings () {
+    const validKeyrings = []
+
+    // Since getAccounts returns a promise
+    // We need to wait to hear back form each keyring
+    // in order to decide which ones are now valid (accounts.length > 0)
+
+    await Promise.all(this.keyrings.map(async (keyring) => {
+      const accounts = await keyring.getAccounts()
+      if(accounts.length > 0){
+        validKeyrings.push(keyring)
+      }
+    }))
+    this.keyrings = validKeyrings
+
+  }
+
   // For now just checks for simple key pairs
   // but in the future
   // should possibly add HD and other types
@@ -229,6 +252,42 @@ class KeyringController extends EventEmitter {
     } catch (e) {
       return Promise.reject(e)
     }
+  }
+
+  // Remove Account
+  // @string address
+  //
+  // returns Promise( void )
+  //
+  // Removes a specific account from a keyring
+  // If the account is the last/only one then it also removes the keyring.
+  //
+  // Returns a Promise.
+  removeAccount (address) {
+    return this.getKeyringForAccount(address)
+    .then((keyring) => {
+      // Not all the keyrings support this, so we have to check...
+      if(typeof keyring.removeAccount === 'function') {
+        keyring.removeAccount(address)
+        this.emit('removedAccount', address)
+        return keyring.getAccounts()
+
+      } else {
+        Promise.reject(`Keyring ${keyring.type} doesn't support account removal operations`)
+      }
+    })
+    .then(accounts => {
+      // Check if this was the last/only account
+      if(accounts.length === 0){
+        return this.removeEmptyKeyrings()
+      }
+    })
+    .then(this.persistAllKeyrings.bind(this))
+    .then(this._updateMemStoreKeyrings.bind(this))
+    .then(this.fullUpdate.bind(this))
+    .catch( e => {
+      return Promise.reject(e)
+    })
   }
 
 

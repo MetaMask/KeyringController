@@ -114,6 +114,46 @@ describe('KeyringController', () => {
     })
   })
 
+  describe('#removeAccount', () => {
+    it('removes an account from the corresponding keyring', async () => {
+      const account = {
+        privateKey: 'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
+        publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
+      }
+
+      const accountsBeforeAdding = await keyringController.getAccounts()
+      // Add a new keyring with one account
+      await keyringController.addNewKeyring('Simple Key Pair', [ account.privateKey ])
+
+      // remove that account that we just added
+      await keyringController.removeAccount(account.publicKey)
+
+      // fetch accounts after removal
+      const result = await keyringController.getAccounts()
+      assert.deepEqual(result, accountsBeforeAdding)
+    })
+
+    it('removes the keyring if there are no accounts after removal', async () => {
+      const account = {
+        privateKey: 'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
+        publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
+      }
+
+      const accountsBeforeAdding = await keyringController.getAccounts()
+      // Add a new keyring with one account
+      await keyringController.addNewKeyring('Simple Key Pair', [ account.privateKey ])
+      // We should have 2 keyrings
+      assert.equal(keyringController.keyrings.length, 2)
+      // remove that account that we just added
+      await keyringController.removeAccount(account.publicKey)
+
+      // Check that the previous keyring with only one account
+      // was also removed after removing the account
+      assert.equal(keyringController.keyrings.length, 1)
+    })
+
+  })
+
   describe('#addGasBuffer', () => {
     it('adds 100k gas buffer to estimates', () => {
       const gas = '0x04ee59' // Actual estimated gas example
@@ -144,4 +184,5 @@ describe('KeyringController', () => {
       })
     })
   })
+
 })
