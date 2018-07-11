@@ -184,5 +184,4 @@ describe('KeyringController', () => {
       })
     })
   })
-
 })
