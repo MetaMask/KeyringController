@@ -11,9 +11,11 @@ const normalizeAddress = sigUtil.normalize
 // Keyrings:
 const SimpleKeyring = require('eth-simple-keyring')
 const HdKeyring = require('eth-hd-keyring')
+const ExternalAccontKeyring = require('eth-external-account-keyring')
 const keyringTypes = [
   SimpleKeyring,
   HdKeyring,
+  ExternalAccountKeyring
 ]
 
 class KeyringController extends EventEmitter {
