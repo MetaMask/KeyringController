@@ -11,11 +11,11 @@ const normalizeAddress = sigUtil.normalize
 // Keyrings:
 const SimpleKeyring = require('eth-simple-keyring')
 const HdKeyring = require('eth-hd-keyring')
-const ExternalAccontKeyring = require('eth-external-account-keyring')
+const ExternalAccountKeyring = require('eth-external-account-keyring')
 const keyringTypes = [
   SimpleKeyring,
   HdKeyring,
-  ExternalAccountKeyring
+  ExternalAccountKeyring,
 ]
 
 class KeyringController extends EventEmitter {
@@ -36,6 +36,9 @@ class KeyringController extends EventEmitter {
       isUnlocked: false,
       keyringTypes: this.keyringTypes.map(krt => krt.type),
       keyrings: [],
+      extToSign: [],
+      extSigned: [],
+      extCancel: [],
     })
 
     this.encryptor = opts.encryptor || encryptor
@@ -190,7 +193,7 @@ class KeyringController extends EventEmitter {
 
     await Promise.all(this.keyrings.map(async (keyring) => {
       const accounts = await keyring.getAccounts()
-      if(accounts.length > 0){
+      if (accounts.length > 0) {
         validKeyrings.push(keyring)
       }
     }))
@@ -256,6 +259,34 @@ class KeyringController extends EventEmitter {
     }
   }
 
+  // Updates arrays of external signing structures.
+  // @Object payload The update data
+  //
+  // returns Promise()
+  //
+  // Updates extToSign, extSigned, or extCancel arrays.
+  // extToSign contains all the Objects that represent the external
+  // signable messages or transactions.
+  // extSigned contains all the transaction objects that are signed by ui
+  // extCancel contains all the transaction objects that whose signing was canceled by user
+  //
+  // Returns a Promise
+  upadteExternalSign (payload) {
+    try {
+        const allowed = ['extToSign', 'extSigned', 'extCancel']
+        const filtered = Object.keys(payload)
+          .filter(key => allowed.includes(key))
+          .reduce((obj, key) => {
+                obj[key] = payload[key]
+                return obj
+              }, {})
+      this.memStore.updateState(filtered)
+      return Promise.resolve()
+    } catch (e) {
+      return Promise.reject(e)
+    }
+  }
+
   // Remove Account
   // @string address
   //
@@ -269,7 +300,7 @@ class KeyringController extends EventEmitter {
     return this.getKeyringForAccount(address)
     .then((keyring) => {
       // Not all the keyrings support this, so we have to check...
-      if(typeof keyring.removeAccount === 'function') {
+      if (typeof keyring.removeAccount === 'function') {
         keyring.removeAccount(address)
         this.emit('removedAccount', address)
         return keyring.getAccounts()
@@ -280,14 +311,14 @@ class KeyringController extends EventEmitter {
     })
     .then(accounts => {
       // Check if this was the last/only account
-      if(accounts.length === 0){
+      if (accounts.length === 0) {
         return this.removeEmptyKeyrings()
       }
     })
     .then(this.persistAllKeyrings.bind(this))
     .then(this._updateMemStoreKeyrings.bind(this))
     .then(this.fullUpdate.bind(this))
-    .catch( e => {
+    .catch(e => {
       return Promise.reject(e)
     })
   }
