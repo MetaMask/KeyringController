@@ -271,7 +271,7 @@ class KeyringController extends EventEmitter {
   // extCancel contains all the transaction objects that whose signing was canceled by user
   //
   // Returns a Promise
-  upadteExternalSign (payload) {
+  updateExternalSign (payload) {
     try {
         const allowed = ['extToSign', 'extSigned', 'extCancel']
         const filtered = Object.keys(payload)
