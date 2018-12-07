@@ -168,6 +168,17 @@ class KeyringController extends EventEmitter {
       return this.checkForDuplicate(type, accounts)
     })
     .then(() => {
+      // try to register for external signing
+      try {
+        return keyring.setExtCallback(
+          this.getExternalSign.bind(this),
+          this.setExternalSign.bind(this)
+        )
+      } catch (e) {
+        return Promise.resolve()
+      }
+    })
+    .then(() => {
         this.keyrings.push(keyring)
         return this.persistAllKeyrings()
     })
@@ -273,18 +284,51 @@ class KeyringController extends EventEmitter {
   // Returns a Promise
   updateExternalSign (payload) {
     try {
-        const allowed = ['extToSign', 'extSigned', 'extCancel']
-        const filtered = Object.keys(payload)
-          .filter(key => allowed.includes(key))
-          .reduce((obj, key) => {
-                obj[key] = payload[key]
-                return obj
-              }, {})
-      this.memStore.updateState(filtered)
+      this.setExternalSign(payload)
       return Promise.resolve()
     } catch (e) {
       return Promise.reject(e)
     }
+  }
+
+  // Updates arrays of external signing structures.
+  // @Object payload The update data
+  //
+  // returns Promise()
+  //
+  // Updates extToSign, extSigned, or extCancel arrays.
+  // extToSign contains all the Objects that represent the external
+  // signable messages or transactions.
+  // extSigned contains all the transaction objects that are signed by ui
+  // extCancel contains all the transaction objects that whose signing was canceled by user
+  //
+  // Returns null
+  setExternalSign (payload) {
+    const allowed = ['extToSign', 'extSigned', 'extCancel']
+    const filtered = Object.keys(payload)
+      .filter(key => allowed.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = payload[key]
+        return obj
+      }, {})
+    this.memStore.updateState(filtered)
+  }
+
+  // @Object payload The update data
+  //
+  // returns array of 'extToSign' or 'extSigned' or 'extCancel'
+  //
+  // Returns extToSign, extSigned, or extCancel arrays.
+  // extToSign contains all the Objects that represent the external
+  // signable messages or transactions.
+  // extSigned contains all the transaction objects that are signed by ui
+  // extCancel contains all the transaction objects that whose signing was canceled by user
+  //
+  // Returns the array of either extToSign, extSigned, extCancel
+  getExternalSign (key) {
+    const allowed = ['extToSign', 'extSigned', 'extCancel']
+    if (allowed.includes(key)) return this.memStore.getState()[key]
+    else return []
   }
 
   // Remove Account
@@ -471,12 +515,22 @@ class KeyringController extends EventEmitter {
   // On success, returns the resulting @Keyring instance.
   restoreKeyring (serialized) {
     const { type, data } = serialized
-
     const Keyring = this.getKeyringClassForType(type)
     const keyring = new Keyring()
     return keyring.deserialize(data)
     .then(() => {
       return keyring.getAccounts()
+    })
+    .then(() => {
+      // try to register for external signing
+      try {
+        return keyring.setExtCallback(
+          this.getExternalSign.bind(this),
+          this.setExternalSign.bind(this)
+        )
+      } catch (e) {
+        return Promise.resolve()
+      }
     })
     .then(() => {
       this.keyrings.push(keyring)
