@@ -171,8 +171,8 @@ class KeyringController extends EventEmitter {
       // try to register for external signing
       try {
         return keyring.setExtCallback(
-          this.getExternalSign.bind(this),
-          this.setExternalSign.bind(this)
+          this.getExternalState.bind(this),
+          this.setExternalState.bind(this)
         )
       } catch (e) {
         return Promise.resolve()
@@ -284,7 +284,7 @@ class KeyringController extends EventEmitter {
   // Returns a Promise
   updateExternalSign (payload) {
     try {
-      this.setExternalSign(payload)
+      this.setExternalState(payload)
       return Promise.resolve()
     } catch (e) {
       return Promise.reject(e)
@@ -303,7 +303,7 @@ class KeyringController extends EventEmitter {
   // extCancel contains all the transaction objects that whose signing was canceled by user
   //
   // Returns null
-  setExternalSign (payload) {
+  setExternalState (payload) {
     const allowed = ['extToSign', 'extSigned', 'extCancel']
     const filtered = Object.keys(payload)
       .filter(key => allowed.includes(key))
@@ -325,7 +325,7 @@ class KeyringController extends EventEmitter {
   // extCancel contains all the transaction objects that whose signing was canceled by user
   //
   // Returns the array of either extToSign, extSigned, extCancel
-  getExternalSign (key) {
+  getExternalState (key) {
     const allowed = ['extToSign', 'extSigned', 'extCancel']
     if (allowed.includes(key)) return this.memStore.getState()[key]
     else return []
@@ -525,8 +525,8 @@ class KeyringController extends EventEmitter {
       // try to register for external signing
       try {
         return keyring.setExtCallback(
-          this.getExternalSign.bind(this),
-          this.setExternalSign.bind(this)
+          this.getExternalState.bind(this),
+          this.setExternalState.bind(this)
         )
       } catch (e) {
         return Promise.resolve()
