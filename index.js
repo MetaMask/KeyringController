@@ -11,9 +11,11 @@ const normalizeAddress = sigUtil.normalize
 // Keyrings:
 const SimpleKeyring = require('eth-simple-keyring')
 const HdKeyring = require('eth-hd-keyring')
+const AppHdKeyring = require('metamask-app-keyring')
 const keyringTypes = [
   SimpleKeyring,
   HdKeyring,
+  AppHdKeyring
 ]
 
 class KeyringController extends EventEmitter {
