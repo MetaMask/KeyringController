@@ -214,18 +214,6 @@ class KeyringController extends EventEmitter {
   }
 
 
-  //create appkeys dict in keyring
-  // hdPath / accounts
-  addNewAppKey (selectedKeyring, hdPath) {
-    console.log("hdPath in keyring", hdPath)
-    return selectedKeyring.addAppKeys(1, hdPath)
-    .then((appKeys) => {
-	console.log(appKeys)
-    })
-    .then(this.persistAllKeyrings.bind(this))
-    .then(this._updateMemStoreKeyrings.bind(this))
-    .then(this.fullUpdate.bind(this))
-  }
 
 
   // Add New Account
@@ -577,6 +565,33 @@ class KeyringController extends EventEmitter {
     return this.memStore.updateState({ keyrings })
   }
 
+
+
+  // App keys
+  // hdPath / index / wallet
+  getPubKey(selectedKeyring, hdPath, index) {
+    console.log("hdPath in keyring", hdPath)
+    console.log("index in keyring", index)    
+    return selectedKeyring.getPubKey(hdPath, index)
+    .then((appKeys) => {
+	console.log(appKeys)
+    })
+    .then(this.persistAllKeyrings.bind(this))
+    .then(this._updateMemStoreKeyrings.bind(this))
+    .then(this.fullUpdate.bind(this))
+  }
+  getXPubKey(selectedKeyring, hdPath, index) {
+    console.log("hdPath in keyring", hdPath)
+    console.log("index in keyring", index)    
+    return selectedKeyring.getPubKey(hdPath, index)
+    .then((appKeys) => {
+	console.log(appKeys)
+    })
+    .then(this.persistAllKeyrings.bind(this))
+    .then(this._updateMemStoreKeyrings.bind(this))
+    .then(this.fullUpdate.bind(this))
+  }
+  
 }
 
 module.exports = KeyringController
