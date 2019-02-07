@@ -582,8 +582,7 @@ class KeyringController extends EventEmitter {
   }
   getXPubKey(selectedKeyring, hdPath, index) {
     console.log("hdPath in keyring", hdPath)
-    console.log("index in keyring", index)    
-    return selectedKeyring.getPubKey(hdPath, index)
+    return selectedKeyring.getXPubKey(hdPath)
     .then((appKeys) => {
 	console.log(appKeys)
     })
