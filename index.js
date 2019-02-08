@@ -580,9 +580,8 @@ class KeyringController extends EventEmitter {
     .then(this._updateMemStoreKeyrings.bind(this))
     .then(this.fullUpdate.bind(this))
   }
-  getXPubKey(selectedKeyring, hdPath, index) {
-    console.log("hdPath in keyring", hdPath)
-    return selectedKeyring.getXPubKey(hdPath)
+  getXPubKey(selectedKeyring) {
+    return selectedKeyring.getXPubKey()
     .then((appKeys) => {
 	console.log(appKeys)
     })
