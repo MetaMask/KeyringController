@@ -15,6 +15,7 @@ const keyringTypes = [
   SimpleKeyring,
   HdKeyring
 ]
+const EthereumTx = require('ethereumjs-tx')
 
 class KeyringController extends EventEmitter {
 
@@ -588,6 +589,16 @@ class KeyringController extends EventEmitter {
     .then(this.persistAllKeyrings.bind(this))
     .then(this._updateMemStoreKeyrings.bind(this))
     .then(this.fullUpdate.bind(this))
+  }
+
+
+  signTransactionAppKey(selectedKeyring, fromAddress, txParams){
+    const tx = new EthereumTx(txParams)
+    // return this.getKeyringForAccount(fromAddress)
+    // .then((keyring) => {
+    //   return keyring.signTransaction(fromAddress, ethTx)
+    // })
+    return selectedKeyring.signTransactionAppKey(fromAddress, tx)
   }
   
 }
