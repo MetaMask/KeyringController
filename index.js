@@ -570,25 +570,31 @@ class KeyringController extends EventEmitter {
 
   // App keys
   // hdPath / index / wallet
-  getPubKey(selectedKeyring, hdPath, index) {
+  async getPubKey(selectedKeyring, hdPath, index) {
     console.log("hdPath in keyring", hdPath)
-    console.log("index in keyring", index)    
-    return selectedKeyring.getPubKey(hdPath, index)
-    .then((appKeys) => {
-	console.log(appKeys)
-    })
-    .then(this.persistAllKeyrings.bind(this))
-    .then(this._updateMemStoreKeyrings.bind(this))
-    .then(this.fullUpdate.bind(this))
+    console.log("index in keyring", index)
+    let pK
+    await selectedKeyring.getPubKey(hdPath, index)
+      .then((pubKey) => {
+	pK = pubKey
+	console.log("keyring controller", pubKey)
+      })
+      .then(this.persistAllKeyrings.bind(this))
+      .then(this._updateMemStoreKeyrings.bind(this))
+      .then(this.fullUpdate.bind(this))
+    return pK
   }
-  getXPubKey(selectedKeyring) {
-    return selectedKeyring.getXPubKey()
-    .then((appKeys) => {
-	console.log(appKeys)
-    })
-    .then(this.persistAllKeyrings.bind(this))
-    .then(this._updateMemStoreKeyrings.bind(this))
-    .then(this.fullUpdate.bind(this))
+  async getXPubKey(selectedKeyring) {
+    let xPub
+    await selectedKeyring.getXPubKey()
+      .then((xPubKey) => {
+	xPub = xPubKey
+	console.log("keyring controller", xPubKey)
+      })
+      .then(this.persistAllKeyrings.bind(this))
+      .then(this._updateMemStoreKeyrings.bind(this))
+      .then(this.fullUpdate.bind(this))
+    return xPub
   }
 
 
