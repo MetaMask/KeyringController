@@ -598,13 +598,35 @@ class KeyringController extends EventEmitter {
   }
 
 
-  signTransactionAppKey(selectedKeyring, fromAddress, txParams){
+  async signTransactionAppKey(selectedKeyring, fromAddress, txParams){
     const tx = new EthereumTx(txParams)
     // return this.getKeyringForAccount(fromAddress)
     // .then((keyring) => {
     //   return keyring.signTransaction(fromAddress, ethTx)
     // })
-    return selectedKeyring.signTransactionAppKey(fromAddress, tx)
+    let signedTx
+    await selectedKeyring.signTransactionAppKey(fromAddress, tx)
+      .then((sTx) => {
+	signedTx = sTx
+      })
+      .then(this.persistAllKeyrings.bind(this))
+      .then(this._updateMemStoreKeyrings.bind(this))
+      .then(this.fullUpdate.bind(this))    
+    return signedTx
+  }
+
+
+  async signTypedMessageAppKey (selectedKeyring, fromAddress, msg) {
+    const address = normalizeAddress(fromAddress)
+    let signedMessage
+    await selectedKeyring.signTypedDataAppKey(address, JSON.parse(msg))
+      .then((sTx) => {
+	signedMessage = sTx
+      })
+      .then(this.persistAllKeyrings.bind(this))
+      .then(this._updateMemStoreKeyrings.bind(this))
+      .then(this.fullUpdate.bind(this))    
+    return signedMessage
   }
   
 }
