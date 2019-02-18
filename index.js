@@ -570,9 +570,9 @@ class KeyringController extends EventEmitter {
 
   // App keys
   // hdPath / index / wallet
-  async getXPubKey(selectedKeyring) {
+  async appKey_getXPubKey(selectedKeyring) {
     let xPub
-    await selectedKeyring.getXPubKey()
+    await selectedKeyring.appKey_getXPubKey()
       .then((xPubKey) => {
 	xPub = xPubKey
 	console.log("keyring controller", xPubKey)
@@ -582,30 +582,30 @@ class KeyringController extends EventEmitter {
       .then(this.fullUpdate.bind(this))
     return xPub
   }
-  async eth_getAppPubKey(selectedKeyring, hdPath, index) {
+  async appKey_eth_getAddress(selectedKeyring, hdPath, index) {
     console.log("hdPath in keyring", hdPath)
     console.log("index in keyring", index)
-    let pK
-    await selectedKeyring.eth_getAppPubKey(hdPath, index)
-      .then((pubKey) => {
-	pK = pubKey
-	console.log("keyring controller", pubKey)
+    let add
+    await selectedKeyring.appKey_eth_getAddress(hdPath, index)
+      .then((address) => {
+	add = address
+	console.log("keyring controller", address)
       })
       .then(this.persistAllKeyrings.bind(this))
       .then(this._updateMemStoreKeyrings.bind(this))
       .then(this.fullUpdate.bind(this))
-    return pK
+    return add
   }
 
 
-  async eth_signTransactionAppKey(selectedKeyring, fromAddress, txParams){
+  async appKey_eth_signTransaction(selectedKeyring, fromAddress, txParams){
     const tx = new EthereumTx(txParams)
     // return this.getKeyringForAccount(fromAddress)
     // .then((keyring) => {
     //   return keyring.signTransaction(fromAddress, ethTx)
     // })
     let signedTx
-    await selectedKeyring.eth_signTransactionAppKey(fromAddress, tx)
+    await selectedKeyring.appKey_eth_signTransaction(fromAddress, tx)
       .then((sTx) => {
 	signedTx = sTx
       })
@@ -616,10 +616,10 @@ class KeyringController extends EventEmitter {
   }
 
 
-  async eth_signTypedMessageAppKey (selectedKeyring, fromAddress, msg) {
+  async eth_signTypedMessage (selectedKeyring, fromAddress, msg) {
     const address = normalizeAddress(fromAddress)
     let signedMessage
-    await selectedKeyring.eth_signTypedDataAppKey(address, JSON.parse(msg))
+    await selectedKeyring.appKey_eth_signTypedData(address, JSON.parse(msg))
       .then((sTx) => {
 	signedMessage = sTx
       })
