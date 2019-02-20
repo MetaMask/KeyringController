@@ -570,9 +570,9 @@ class KeyringController extends EventEmitter {
 
   // App keys
   // hdPath / index / wallet
-  async appKey_getXPubKey(selectedKeyring) {
+  async appKey_eth_getPublicKey(selectedKeyring, hdPath) {
     let xPub
-    await selectedKeyring.appKey_getXPubKey()
+    await selectedKeyring.appKey_eth_getPublicKey(hdPath)
       .then((xPubKey) => {
 	xPub = xPubKey
 	console.log("keyring controller", xPubKey)
@@ -582,11 +582,10 @@ class KeyringController extends EventEmitter {
       .then(this.fullUpdate.bind(this))
     return xPub
   }
-  async appKey_eth_getAddress(selectedKeyring, hdPath, index) {
+  async appKey_eth_getAddress(selectedKeyring, hdPath) {
     console.log("hdPath in keyring", hdPath)
-    console.log("index in keyring", index)
     let add
-    await selectedKeyring.appKey_eth_getAddress(hdPath, index)
+    await selectedKeyring.appKey_eth_getAddress(hdPath)
       .then((address) => {
 	add = address
 	console.log("keyring controller", address)
@@ -616,7 +615,7 @@ class KeyringController extends EventEmitter {
   }
 
 
-  async eth_signTypedMessage (selectedKeyring, fromAddress, msg) {
+  async appKey_eth_signTypedMessage (selectedKeyring, fromAddress, msg) {
     const address = normalizeAddress(fromAddress)
     let signedMessage
     await selectedKeyring.appKey_eth_signTypedData(address, JSON.parse(msg))
