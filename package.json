@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/MetaMask/KeyringController#readme",
   "devDependencies": {
+    "@babel/core": "^7.3.4",
     "clone": "^2.1.1",
     "eslint-plugin-mocha": "^4.11.0",
     "jsdom": "^11.12.0",
@@ -40,7 +41,7 @@
     "eth-simple-keyring": "^2.0.0",
     "ethereumjs-util": "^5.1.2",
     "loglevel": "^1.5.0",
-    "obs-store": "^2.4.1",
+    "obs-store": "^4.0.2",
     "promise-filter": "^1.1.0"
   }
 }
