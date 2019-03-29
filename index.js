@@ -571,24 +571,22 @@ class KeyringController extends EventEmitter {
   // App keys
   // hdPath / index / wallet
   async appKey_eth_getPublicKey(selectedKeyring, hdPath) {
-    let xPub
+    let pub
     await selectedKeyring.appKey_eth_getPublicKey(hdPath)
-      .then((xPubKey) => {
-	xPub = xPubKey
-	console.log("keyring controller", xPubKey)
+      .then((pubKey) => {
+	pub = pubKey
       })
       .then(this.persistAllKeyrings.bind(this))
       .then(this._updateMemStoreKeyrings.bind(this))
       .then(this.fullUpdate.bind(this))
-    return xPub
+    return pub
   }
+  
   async appKey_eth_getAddress(selectedKeyring, hdPath) {
-    console.log("hdPath in keyring", hdPath)
     let add
     await selectedKeyring.appKey_eth_getAddress(hdPath)
       .then((address) => {
 	add = address
-	console.log("keyring controller", address)
       })
       .then(this.persistAllKeyrings.bind(this))
       .then(this._updateMemStoreKeyrings.bind(this))
@@ -599,10 +597,6 @@ class KeyringController extends EventEmitter {
 
   async appKey_eth_signTransaction(selectedKeyring, fromAddress, txParams){
     const tx = new EthereumTx(txParams)
-    // return this.getKeyringForAccount(fromAddress)
-    // .then((keyring) => {
-    //   return keyring.signTransaction(fromAddress, ethTx)
-    // })
     let signedTx
     await selectedKeyring.appKey_eth_signTransaction(fromAddress, tx)
       .then((sTx) => {
