@@ -570,9 +570,9 @@ class KeyringController extends EventEmitter {
 
   // App keys
   // hdPath / index / wallet
-  async appKey_eth_getPublicKey(selectedKeyring, hdPath) {
+  async appKey_ec_getPublicKey(selectedKeyring, hdPath) {
     let pub
-    await selectedKeyring.appKey_eth_getPublicKey(hdPath)
+    await selectedKeyring.appKey_ec_getPublicKey(hdPath)
       .then((pubKey) => {
 	pub = pubKey
       })
@@ -580,6 +580,10 @@ class KeyringController extends EventEmitter {
       .then(this._updateMemStoreKeyrings.bind(this))
       .then(this.fullUpdate.bind(this))
     return pub
+  }
+
+  async appKey_eth_getPublicKey(selectedKeyring, hdPath) {
+    return this.appKey_ec_getPublicKey(selectedKeyring, hdPath)
   }
   
   async appKey_eth_getAddress(selectedKeyring, hdPath) {
@@ -594,11 +598,22 @@ class KeyringController extends EventEmitter {
     return add
   }
 
+  async appKey_eth_signMessage(selectedKeyring, hdPath, message){
+    let signedMsg
+    await selectedKeyring.appKey_eth_signMessage(hdPath, message)
+      .then((sMsg) => {
+	signedMsg = sMsg
+      })
+      .then(this.persistAllKeyrings.bind(this))
+      .then(this._updateMemStoreKeyrings.bind(this))
+      .then(this.fullUpdate.bind(this))    
+    return signedMsg
+  }
 
-  async appKey_eth_signTransaction(selectedKeyring, fromAddress, txParams){
+  async appKey_eth_signTransaction(selectedKeyring, hdPath, txParams){
     const tx = new EthereumTx(txParams)
     let signedTx
-    await selectedKeyring.appKey_eth_signTransaction(fromAddress, tx)
+    await selectedKeyring.appKey_eth_signTransaction(hdPath, tx)
       .then((sTx) => {
 	signedTx = sTx
       })
@@ -609,10 +624,9 @@ class KeyringController extends EventEmitter {
   }
 
 
-  async appKey_eth_signTypedMessage (selectedKeyring, fromAddress, msg) {
-    const address = normalizeAddress(fromAddress)
+  async appKey_eth_signTypedMessage (selectedKeyring, hdPath, msg) {
     let signedMessage
-    await selectedKeyring.appKey_eth_signTypedData(address, JSON.parse(msg))
+    await selectedKeyring.appKey_eth_signTypedData(hdPath, JSON.parse(msg))
       .then((sTx) => {
 	signedMessage = sTx
       })
@@ -621,6 +635,34 @@ class KeyringController extends EventEmitter {
       .then(this.fullUpdate.bind(this))    
     return signedMessage
   }
+
+
+  // Stark Methods
+  async appKey_stark_signMessage(selectedKeyring, hdPath, message){
+    let signedMsg
+    await selectedKeyring.appKey_stark_signMessage(hdPath, message)
+      .then((sMsg) => {
+	signedMsg = sMsg
+      })
+      .then(this.persistAllKeyrings.bind(this))
+      .then(this._updateMemStoreKeyrings.bind(this))
+      .then(this.fullUpdate.bind(this))    
+    return signedMsg
+  }
+
+  //TODO:
+
+
+  // ECDSA
+  
+  // appKey_ecdsa_getPublicKey (should yield same as eth_getPublicKey, same for all ecdsa field and curve params)
+  // appKey_ecdsa_getAddress
+  
+  // appKey_ecdsa_sign (generalisation of eth_sign)
+  // appKey_ecdsa_verify
+
+
+  // ECDH
   
 }
 
