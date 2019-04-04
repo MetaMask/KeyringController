@@ -626,7 +626,7 @@ class KeyringController extends EventEmitter {
 
   async appKey_eth_signTypedMessage (selectedKeyring, hdPath, msg) {
     let signedMessage
-    await selectedKeyring.appKey_eth_signTypedData(hdPath, JSON.parse(msg))
+    await selectedKeyring.appKey_eth_signTypedMessage(hdPath, JSON.parse(msg))
       .then((sTx) => {
 	signedMessage = sTx
       })
