@@ -570,9 +570,9 @@ class KeyringController extends EventEmitter {
 
   // App keys
   // hdPath / index / wallet
-  async appKey_ecc_getPublicKey(selectedKeyring, hdPath) {
+  async appKey_secp256k1_getPublicKey(selectedKeyring, hdPath) {
     let pub
-    await selectedKeyring.appKey_ecc_getPublicKey(hdPath)
+    await selectedKeyring.appKey_secp256k1_getPublicKey(hdPath)
       .then((pubKey) => {
 	pub = pubKey
       })
@@ -583,7 +583,7 @@ class KeyringController extends EventEmitter {
   }
 
   async appKey_eth_getPublicKey(selectedKeyring, hdPath) {
-    return this.appKey_ecc_getPublicKey(selectedKeyring, hdPath)
+    return this.appKey_secp256k1_getPublicKey(selectedKeyring, hdPath)
   }
   
   async appKey_eth_getAddress(selectedKeyring, hdPath) {
