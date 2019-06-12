@@ -11,9 +11,11 @@ const normalizeAddress = sigUtil.normalize
 // Keyrings:
 const SimpleKeyring = require('eth-simple-keyring')
 const HdKeyring = require('eth-hd-keyring')
+const ControlledKeyring = require('eth-controlled-keyring')
 const keyringTypes = [
   SimpleKeyring,
   HdKeyring,
+  ControlledKeyring
 ]
 
 class KeyringController extends EventEmitter {
@@ -181,7 +183,6 @@ class KeyringController extends EventEmitter {
   // from a keyring
   async removeEmptyKeyrings () {
     const validKeyrings = []
-
     // Since getAccounts returns a promise
     // We need to wait to hear back form each keyring
     // in order to decide which ones are now valid (accounts.length > 0)
@@ -484,6 +485,7 @@ class KeyringController extends EventEmitter {
         return res.concat(arr)
       }, [])
     })
+
     return addrs.map(normalizeAddress)
   }
 

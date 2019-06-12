@@ -36,6 +36,7 @@
     "bip39": "^2.4.0",
     "bluebird": "^3.5.0",
     "browser-passworder": "^2.0.3",
+    "eth-controlled-keyring": "0.1.0",
     "eth-hd-keyring": "^2.0.0",
     "eth-sig-util": "^1.4.0",
     "eth-simple-keyring": "^2.0.0",

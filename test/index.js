@@ -102,6 +102,16 @@ describe('KeyringController', () => {
     })
   })
 
+  describe('#addControlledKeyring', () => {
+    it(`should add a controlled key`, async () => {
+      let address = '0x01560cd3bac62cc6d7e6380600d9317363400896'
+      const keyring = await keyringController.addNewKeyring('Controlled', address)
+      const keyringAccounts = await keyring.getAccounts()
+      const expectedKeyringAccounts = ['0x01560cd3bac62cc6d7e6380600d9317363400896']
+      assert.deepEqual(keyringAccounts, expectedKeyringAccounts, 'keyringAccounts match expectation')
+    })
+  })
+
   describe('#getAccounts', () => {
     it('returns the result of getAccounts for each keyring', async () => {
       keyringController.keyrings = [
