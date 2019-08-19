@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/MetaMask/KeyringController#readme",
   "devDependencies": {
-    "@babel/core": "^7.3.4",
+    "@babel/core": "^7.5.5",
     "clone": "^2.1.1",
     "eslint": "^6.2.0",
     "eslint-plugin-mocha": "^6.0.0",
