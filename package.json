@@ -42,7 +42,7 @@
     "eth-simple-keyring": "^2.0.0",
     "ethereumjs-util": "^5.1.2",
     "loglevel": "^1.5.0",
-    "obs-store": "github:rekmarks/obs-store#babelify",
+    "obs-store": "^4.0.3",
     "promise-filter": "^1.1.0"
   }
 }
