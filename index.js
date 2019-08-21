@@ -295,7 +295,7 @@ class KeyringController extends EventEmitter {
   // This method signs tx and returns a promise for
   // TX Manager to update the state after signing
 
-  signTransaction (ethTx, _fromAddress, opts) {
+  signTransaction (ethTx, _fromAddress, opts = {}) {
     const fromAddress = normalizeAddress(_fromAddress)
     return this.getKeyringForAccount(fromAddress)
     .then((keyring) => {
@@ -309,7 +309,7 @@ class KeyringController extends EventEmitter {
   // returns Promise(@buffer rawSig)
   //
   // Attempts to sign the provided @object msgParams.
-  signMessage (msgParams, opts) {
+  signMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
     .then((keyring) => {
@@ -324,7 +324,7 @@ class KeyringController extends EventEmitter {
   //
   // Attempts to sign the provided @object msgParams.
   // Prefixes the hash before signing as per the new geth behavior.
-  signPersonalMessage (msgParams, opts) {
+  signPersonalMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
     .then((keyring) => {
@@ -333,7 +333,7 @@ class KeyringController extends EventEmitter {
   }
 
   // Sign Typed Message (EIP712 https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454)
-  signTypedMessage (msgParams, opts) {
+  signTypedMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
       .then((keyring) => {
