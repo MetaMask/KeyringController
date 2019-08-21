@@ -343,17 +343,15 @@ class KeyringController extends EventEmitter {
 
   // returns an app key
   getAppKeyAddress (_address, origin) {
-    let address
-    try {
-      address = normalizeAddress(_address)
-    } catch (e) {
-      console.error(e)
-      throw e
-    }
-    return this.getKeyringForAccount(address)
-      .then((keyring) => {
-      return keyring.getAppKeyAddress(address, origin)
-    })
+      try {
+        const address = normalizeAddress(_address)
+        return this.getKeyringForAccount(address)
+          .then((keyring) => {
+            return keyring.getAppKeyAddress(address, origin)
+          })
+      } catch (e) {
+        return Promise.reject(e)
+      }
   }
 
   // PRIVATE METHODS
