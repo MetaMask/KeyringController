@@ -3,6 +3,8 @@ const KeyringController = require('../')
 const configManagerGen = require('./lib/mock-config-manager')
 const ethUtil = require('ethereumjs-util')
 const BN = ethUtil.BN
+const sigUtil = require('eth-sig-util')
+const normalizeAddress = sigUtil.normalize
 const mockEncryptor = require('./lib/mock-encryptor')
 const sinon = require('sinon')
 
@@ -182,6 +184,22 @@ describe('KeyringController', () => {
       keyrings.forEach(keyring => {
         assert.strictEqual(keyring.wallets.length, 1)
       })
+    })
+  })
+
+  describe('getAppKeyAddress', () => {
+    it('returns the expected app key address', async () => {
+      const address = '0x01560cd3bac62cc6d7e6380600d9317363400896'
+      const privateKey = '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952'
+      const keyring = await keyringController.addNewKeyring('Simple Key Pair', [ privateKey ])
+      keyring.getAppKeyAddress = sinon.spy()
+      keyringController.getKeyringForAccount = sinon.stub().returns(Promise.resolve(keyring))
+      const appKeyAddress = await keyringController.getAppKeyAddress(address, 'someapp.origin.io')
+
+      assert(keyringController.getKeyringForAccount.calledOnce)
+      assert.equal(keyringController.getKeyringForAccount.getCall(0).args[0], normalizeAddress(address))
+      assert(keyring.getAppKeyAddress.calledOnce)
+      assert.deepEqual(keyring.getAppKeyAddress.getCall(0).args, [normalizeAddress(address), 'someapp.origin.io'])
     })
   })
 })
