@@ -1,8 +1,24 @@
-import { ITypedField, ITypedValue, ITypedData } from 'eth-sig-util';
+import { ITypedField, ITypedValue, ITypedData, signTypedData } from 'eth-sig-util';
 import { Transaction } from 'ethereumjs-tx';
 
+type WalletOpts = {
+  withAppKeyOrigin?: string
+}
+
 export interface IKeyring {
-  signTypedData (withAccount: string, typedData: ITypedData, opts: Object): Promise<string>
+  serialize(): Promise<any>
+  deserialize(serialized:any): Promise<void>
+
+  addAccounts(numberToAdd: number): Array<string> // returns address array
+  getAccounts(): Promise<Array<string>>
+  removeAccount(address:string): Promise<void>
+
+  signTransaction(address:string, tx: Transaction, opts?: WalletOpts): Promise<string>
+  signMessage(address:string, data:Object, opts?: WalletOpts): Promise<string>
+  signPersonalMessage(address:string, msgHex:string, opts?: WalletOpts): Promise<string>  
+  signTypedData(address:string, typedData: ITypedData, opts?: WalletOpts): Promise<string>
+  getAppKeyAddress(address:string, origin:string): Promise<string>
+  exportAccount(address:string): Promise<string>
 }
 
 type ITypedMessageParams = {
