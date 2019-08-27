@@ -1,5 +1,9 @@
-import { ITypedField, ITypedValue, ITypedData, signTypedData } from 'eth-sig-util';
+import { ITypedField, ITypedValue, ITypedData } from 'eth-sig-util';
 import { Transaction } from 'ethereumjs-tx';
+
+export type ITypedField = ITypedField;
+export type ITypedValue = ITypedValue;
+export type ITypedData = ITypedData;
 
 type WalletOpts = {
   withAppKeyOrigin?: string
