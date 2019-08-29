@@ -39,7 +39,7 @@
     "bluebird": "^3.5.0",
     "browser-passworder": "^2.0.3",
     "eth-hd-keyring": "^2.0.0",
-    "eth-sig-util": "^2.4.2",
+    "eth-sig-util": "^2.4.3",
     "eth-simple-keyring": "^2.0.0",
     "ethereumjs-util": "^5.1.2",
     "loglevel": "^1.5.0",
