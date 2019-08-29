@@ -220,7 +220,7 @@ class KeyringController extends EventEmitter {
   // returns Promise( @object state )
   //
   // Calls the `addAccounts` method on the Keyring
-  // in the kryings array at index `keyringNum`,
+  // in the keyrings array at index `keyringNum`,
   // and then saves those changes.
   addNewAccount (selectedKeyring) {
     return selectedKeyring.addAccounts(1)
