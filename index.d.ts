@@ -22,6 +22,20 @@ export interface IKeyring {
   exportAccount(address:string): Promise<string>
 }
 
+export interface ILegacyTypedMessageParam {
+  name: string
+  type: string
+  value: string 
+}
+
+export interface ILegacyTypedMessageParams {
+  data: ILegacyTypedMessageParam
+}
+
+export interface ILegacySignedTypeMessageParam extends ILegacyTypedMessageParams {
+  sig: string
+}
+
 type ITypedMessageParams = {
   from: string // The signing address
   data: ITypedData
