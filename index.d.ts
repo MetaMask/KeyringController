@@ -12,14 +12,18 @@ export interface IKeyring {
 
   addAccounts(numberToAdd: number): Array<string> // returns address array
   getAccounts(): Promise<Array<string>>
-  removeAccount(address:string): Promise<void>
+  removeAccount?(address:string): Promise<void>
 
-  signTransaction(address:string, tx: Transaction, opts?: WalletOpts): Promise<string>
-  signMessage(address:string, data:Object, opts?: WalletOpts): Promise<string>
-  signPersonalMessage(address:string, msgHex:string, opts?: WalletOpts): Promise<string>  
-  signTypedData(address:string, typedData: ITypedData, opts?: WalletOpts): Promise<string>
-  getAppKeyAddress(address:string, origin:string): Promise<string>
-  exportAccount(address:string): Promise<string>
+  // Implementing getPrivateKeyFor allows inheriting eth-simple-keyring for free signing method support.
+  getPrivateKeyFor?(address:string, opts?: WalletOpts): Buffer
+
+  // If private key method above is not provided, these methods will need to be implemented per-implementation.
+  signTransaction?(address:string, tx: Transaction, opts?: WalletOpts): Promise<string>
+  signMessage?(address:string, data:Object, opts?: WalletOpts): Promise<string>
+  signPersonalMessage?(address:string, msgHex:string, opts?: WalletOpts): Promise<string>  
+  signTypedData?(address:string, typedData: ILegacyTypedMessageParam, opts?: WalletOpts): Promise<string>
+  getAppKeyAddress?(address:string, origin:string): Promise<string>
+  exportAccount?(address:string): Promise<string>
 }
 
 export interface ILegacyTypedMessageParam {
