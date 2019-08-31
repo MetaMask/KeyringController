@@ -4,7 +4,6 @@ const BN = ethUtil.BN
 const bip39 = require('bip39')
 const EventEmitter = require('events').EventEmitter
 const ObservableStore = require('obs-store')
-const filter = require('promise-filter')
 const encryptor = require('browser-passworder')
 const sigUtil = require('eth-sig-util')
 const normalizeAddress = sigUtil.normalize
@@ -504,11 +503,11 @@ class KeyringController extends EventEmitter {
         keyring.getAccounts(),
       ])
     }))
-    .then(filter((candidate) => {
-      const accounts = candidate[1].map(normalizeAddress)
-      return accounts.includes(hexed)
-    }))
-    .then((winners) => {
+    .then((candidates) => {
+      const winners = candidates.filter(candidate => {
+        const accounts = candidate[1].map(normalizeAddress)
+        return accounts.includes(hexed)
+      })
       if (winners && winners.length > 0) {
         return winners[0][0]
       } else {
