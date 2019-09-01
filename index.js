@@ -295,11 +295,11 @@ class KeyringController extends EventEmitter {
   // This method signs tx and returns a promise for
   // TX Manager to update the state after signing
 
-  signTransaction (ethTx, _fromAddress) {
+  signTransaction (ethTx, _fromAddress, opts = {}) {
     const fromAddress = normalizeAddress(_fromAddress)
     return this.getKeyringForAccount(fromAddress)
     .then((keyring) => {
-      return keyring.signTransaction(fromAddress, ethTx)
+      return keyring.signTransaction(fromAddress, ethTx, opts)
     })
   }
 
@@ -309,11 +309,11 @@ class KeyringController extends EventEmitter {
   // returns Promise(@buffer rawSig)
   //
   // Attempts to sign the provided @object msgParams.
-  signMessage (msgParams) {
+  signMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
     .then((keyring) => {
-      return keyring.signMessage(address, msgParams.data)
+      return keyring.signMessage(address, msgParams.data, opts)
     })
   }
 
@@ -324,21 +324,34 @@ class KeyringController extends EventEmitter {
   //
   // Attempts to sign the provided @object msgParams.
   // Prefixes the hash before signing as per the new geth behavior.
-  signPersonalMessage (msgParams) {
+  signPersonalMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
     .then((keyring) => {
-      return keyring.signPersonalMessage(address, msgParams.data)
+      return keyring.signPersonalMessage(address, msgParams.data, opts)
     })
   }
 
   // Sign Typed Message (EIP712 https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454)
-  signTypedMessage (msgParams) {
+  signTypedMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
       .then((keyring) => {
-      return keyring.signTypedData(address, msgParams.data)
+      return keyring.signTypedData(address, msgParams.data, opts)
     })
+  }
+
+  // returns an app key
+  getAppKeyAddress (_address, origin) {
+      try {
+        const address = normalizeAddress(_address)
+        return this.getKeyringForAccount(address)
+          .then((keyring) => {
+            return keyring.getAppKeyAddress(address, origin)
+          })
+      } catch (e) {
+        return Promise.reject(e)
+      }
   }
 
   // PRIVATE METHODS
