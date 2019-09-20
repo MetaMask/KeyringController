@@ -342,16 +342,19 @@ class KeyringController extends EventEmitter {
   }
 
   // returns an app key
-  getAppKeyAddress (_address, origin) {
-      try {
-        const address = normalizeAddress(_address)
-        return this.getKeyringForAccount(address)
-          .then((keyring) => {
-            return keyring.getAppKeyAddress(address, origin)
-          })
-      } catch (e) {
-        return Promise.reject(e)
-      }
+  async getAppKeyAddress (_address, origin) {
+    const address = normalizeAddress(_address)
+    const keyring = await this.getKeyringForAccount(address)
+    return keyring.getAppKeyAddress(address, origin)
+  }
+
+  async exportAppKeyForAddress(_address, origin) {
+    const address = normalizeAddress(_address)
+    const keyring = await this.getKeyringForAccount(address)
+    if (!('exportAccount' in keyring)) {
+      throw new Error(`The keyring for address ${_address} does not support exporting.`)
+    }
+    return keyring.exportAccount(address, { withAppKeyOrigin: origin })
   }
 
   // PRIVATE METHODS
