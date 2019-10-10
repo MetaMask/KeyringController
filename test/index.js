@@ -14,11 +14,10 @@ describe('KeyringController', () => {
   const password = 'password123'
   const seedWords = 'puzzle seed penalty soldier say clay field arctic metal hen cage runway'
   const addresses = ['0xeF35cA8EbB9669A35c31b5F6f249A9941a812AC1'.toLowerCase()]
-  const accounts = []
   // let originalKeystore
 
   beforeEach(async () => {
-    this.sinon = sinon.sandbox.create()
+    this.sinon = sinon.createSandbox()
     window.localStorage = {} // Hacking localStorage support into JSDom
 
     keyringController = new KeyringController({
@@ -26,7 +25,8 @@ describe('KeyringController', () => {
       encryptor: mockEncryptor,
     })
 
-    const newState = await keyringController.createNewVaultAndKeychain(password)
+    await keyringController.createNewVaultAndKeychain(password)
+
   })
 
   afterEach(() => {
@@ -142,7 +142,6 @@ describe('KeyringController', () => {
         publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
       }
 
-      const accountsBeforeAdding = await keyringController.getAccounts()
       // Add a new keyring with one account
       await keyringController.addNewKeyring('Simple Key Pair', [ account.privateKey ])
       // We should have 2 keyrings
@@ -195,7 +194,7 @@ describe('KeyringController', () => {
       const keyring = await keyringController.addNewKeyring('Simple Key Pair', [ privateKey ])
       keyring.getAppKeyAddress = sinon.spy()
       keyringController.getKeyringForAccount = sinon.stub().returns(Promise.resolve(keyring))
-      const appKeyAddress = await keyringController.getAppKeyAddress(address, 'someapp.origin.io')
+      await keyringController.getAppKeyAddress(address, 'someapp.origin.io')
 
       assert(keyringController.getKeyringForAccount.calledOnce)
       assert.equal(keyringController.getKeyringForAccount.getCall(0).args[0], normalizeAddress(address))
@@ -208,7 +207,8 @@ describe('KeyringController', () => {
     it('returns a unique key', async () => {
       const address = '0x01560cd3bac62cc6d7e6380600d9317363400896'
       const privateKey = '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952'
-      const keyring = await keyringController.addNewKeyring('Simple Key Pair', [ privateKey ])
+      await keyringController.addNewKeyring('Simple Key Pair', [ privateKey ])
+
       const appKeyAddress = await keyringController.getAppKeyAddress(address, 'someapp.origin.io')
 
       const privateAppKey = await keyringController.exportAppKeyForAddress(address, 'someapp.origin.io')
