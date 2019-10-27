@@ -332,6 +332,20 @@ class KeyringController extends EventEmitter {
     })
   }
 
+  // Get encryption public key
+  // @object address
+  //
+  // returns Promise(@buffer publicKey)
+  //
+  // Get encryption public key for using in encrypt/decrypt process.
+  getEncryptionPublicKey (_address, opts = {}) {
+    const address = normalizeAddress(_address)
+    return this.getKeyringForAccount(address)
+    .then((keyring) => {
+      return keyring.getEncryptionPublicKey(address, opts)
+    })
+  }
+  
   // Decrypt Message
   // @object msgParams
   //
