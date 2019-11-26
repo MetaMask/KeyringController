@@ -213,11 +213,11 @@ describe('KeyringController', () => {
 
       const privateAppKey = await keyringController.exportAppKeyForAddress(address, 'someapp.origin.io')
 
-      const wallet = Wallet.fromPrivateKey(ethUtil.toBuffer('0x' + privateAppKey))
+      const wallet = Wallet.fromPrivateKey(ethUtil.toBuffer('0x' + privateAppKey.toString('hex')))
       const recoveredAddress = '0x' + wallet.getAddress().toString('hex')
 
       assert.equal(recoveredAddress, appKeyAddress, 'Exported the appropriate private key')
-      assert.notEqual(privateAppKey, privateKey)
+      assert.notEqual(privateAppKey, '0x' + privateAppKey.toString('hex'))
     })
   })
 
