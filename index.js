@@ -332,6 +332,34 @@ class KeyringController extends EventEmitter {
     })
   }
 
+  // Get encryption public key
+  // @object address
+  //
+  // returns Promise(@buffer publicKey)
+  //
+  // Get encryption public key for using in encrypt/decrypt process.
+  getEncryptionPublicKey (_address, opts = {}) {
+    const address = normalizeAddress(_address)
+    return this.getKeyringForAccount(address)
+    .then((keyring) => {
+      return keyring.getEncryptionPublicKey(address, opts)
+    })
+  }
+  
+  // Decrypt Message
+  // @object msgParams
+  //
+  // returns Promise(@buffer rawSig)
+  //
+  // Attempts to decrypt the provided @object msgParams.
+  decryptMessage (msgParams, opts = {}) {
+    const address = normalizeAddress(msgParams.from)
+    return this.getKeyringForAccount(address)
+    .then((keyring) => {
+      return keyring.decryptMessage(address, msgParams.data, opts)
+    })
+  }
+
   // Sign Typed Message (EIP712 https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454)
   signTypedMessage (msgParams, opts = { version: 'V1' }) {
     const address = normalizeAddress(msgParams.from)
