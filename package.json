@@ -40,7 +40,7 @@
     "browser-passworder": "^2.0.3",
     "eth-hd-keyring": "^3.4.1",
     "eth-sig-util": "^1.4.0",
-    "eth-simple-keyring": "^3.4.0",
+    "eth-simple-keyring": "^3.5.0",
     "ethereumjs-util": "^5.1.2",
     "loglevel": "^1.5.0",
     "obs-store": "^4.0.3"
