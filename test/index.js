@@ -186,6 +186,18 @@ describe('KeyringController', () => {
         assert.strictEqual(keyring.wallets.length, 1)
       })
     })
+
+    it('emits an unlock event', async () => {
+      keyringController.setLocked()
+
+      let called = false
+      keyringController.on('unlock', () => {
+        called = true
+      })
+
+      await keyringController.unlockKeyrings(password)
+      assert.ok(called, 'unlock event fired')
+    })
   })
 
   describe('getAppKeyAddress', () => {
