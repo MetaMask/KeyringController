@@ -2,10 +2,7 @@ module.exports = {
 
   root: true,
 
-  parser: 'babel-eslint',
-
   parserOptions: {
-    'classes': true,
     'ecmaVersion': 2017,
   },
 
