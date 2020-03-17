@@ -1,14 +1,17 @@
 // disallow promises from swallowing errors
 enableFailureOnUnhandledPromiseRejection()
 
-// logging util
 const log = require('loglevel')
+const getRandomValuesPoly = require('polyfill-crypto.getrandomvalues')
 
 log.setDefaultLevel(5)
 
 //
 // polyfills
 //
+
+// overwrite node's promise with the stricter Bluebird promise
+global.Promise = require('bluebird')
 
 // dom
 require('jsdom-global')()
@@ -20,15 +23,12 @@ window.localStorage = {}
 if (!window.crypto) {
   window.crypto = {}
 }
+
 if (!window.crypto.getRandomValues) {
-  /* eslint-disable-next-line */
-  window.crypto.getRandomValues = require('polyfill-crypto.getrandomvalues')
+  window.crypto.getRandomValues = getRandomValuesPoly
 }
 
 function enableFailureOnUnhandledPromiseRejection (...args) {
-  // overwrite node's promise with the stricter Bluebird promise
-  global.Promise = require('bluebird') /* eslint-disable-line */
-
   // modified from https://github.com/mochajs/mocha/issues/1926#issuecomment-180842722
 
   // rethrow unhandledRejections

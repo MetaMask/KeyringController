@@ -41,7 +41,6 @@ describe('KeyringController', function () {
 
 
   describe('#submitPassword', function () {
-    this.timeout(10000) /* eslint-disable-line */
 
     it('should not create new keyrings when called in series', async function () {
       await keyringController.createNewVaultAndKeychain(password)
@@ -57,7 +56,6 @@ describe('KeyringController', function () {
 
 
   describe('#createNewVaultAndKeychain', function () {
-    this.timeout(10000) /* eslint-disable-line */
 
     it('should set a vault on the configManager', async function () {
       keyringController.store.updateState({ vault: null })
@@ -219,7 +217,7 @@ describe('KeyringController', function () {
 
       const keyring = await keyringController.addNewKeyring('Simple Key Pair', [privateKey])
       keyring.getAppKeyAddress = sinon.spy()
-      /* eslint-disable-next-line */
+      /* eslint-disable-next-line require-atomic-updates */
       keyringController.getKeyringForAccount = sinon.stub().returns(Promise.resolve(keyring))
 
       await keyringController.getAppKeyAddress(address, 'someapp.origin.io')
