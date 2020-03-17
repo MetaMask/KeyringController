@@ -4,7 +4,9 @@
   "description": "A module for managing various keyrings of Ethereum accounts, encrypting them, and using them.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --require test/helper.js test/index.js"
+    "test": "mocha --require test/helper.js test/index.js",
+    "lint": "eslint . --ext js,json",
+    "lint:fix": "eslint . --ext js,json --fix"
   },
   "repository": {
     "type": "git",
@@ -23,9 +25,13 @@
   },
   "homepage": "https://github.com/MetaMask/KeyringController#readme",
   "devDependencies": {
-    "@babel/core": "^7.5.5",
+    "@babel/core": "^7.8.7",
+    "@metamask/eslint-config": "^2.1.0",
+    "babel-eslint": "^10.1.0",
     "clone": "^2.1.1",
-    "eslint": "^6.2.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-json": "^2.1.1",
     "eslint-plugin-mocha": "^6.0.0",
     "ethereumjs-wallet": "^0.6.3",
     "jsdom": "^11.12.0",

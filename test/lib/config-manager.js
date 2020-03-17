@@ -1,5 +1,5 @@
 const ethUtil = require('ethereumjs-util')
-const normalize = require('eth-sig-util').normalize
+const { normalize } = require('eth-sig-util')
 const MetamaskConfig = require('./config.js')
 
 
@@ -23,14 +23,14 @@ function ConfigManager (opts) {
 }
 
 ConfigManager.prototype.setConfig = function (config) {
-  var data = this.getData()
+  const data = this.getData()
   data.config = config
   this.setData(data)
   this._emitUpdates(config)
 }
 
 ConfigManager.prototype.getConfig = function () {
-  var data = this.getData()
+  const data = this.getData()
   return data.config
 }
 
@@ -43,19 +43,19 @@ ConfigManager.prototype.getData = function () {
 }
 
 ConfigManager.prototype.setWallet = function (wallet) {
-  var data = this.getData()
+  const data = this.getData()
   data.wallet = wallet
   this.setData(data)
 }
 
 ConfigManager.prototype.setVault = function (encryptedString) {
-  var data = this.getData()
+  const data = this.getData()
   data.vault = encryptedString
   this.setData(data)
 }
 
 ConfigManager.prototype.getVault = function () {
-  var data = this.getData()
+  const data = this.getData()
   return data.vault
 }
 
@@ -64,18 +64,18 @@ ConfigManager.prototype.getKeychains = function () {
 }
 
 ConfigManager.prototype.setKeychains = function (keychains) {
-  var data = this.getData()
+  const data = this.getData()
   data.keychains = keychains
   this.setData(data)
 }
 
 ConfigManager.prototype.getSelectedAccount = function () {
-  var config = this.getConfig()
+  const config = this.getConfig()
   return config.selectedAccount
 }
 
 ConfigManager.prototype.setSelectedAccount = function (address) {
-  var config = this.getConfig()
+  const config = this.getConfig()
   config.selectedAccount = ethUtil.addHexPrefix(address)
   this.setConfig(config)
 }
@@ -86,29 +86,29 @@ ConfigManager.prototype.getWallet = function () {
 
 // Takes a boolean
 ConfigManager.prototype.setShowSeedWords = function (should) {
-  var data = this.getData()
+  const data = this.getData()
   data.showSeedWords = should
   this.setData(data)
 }
 
 
 ConfigManager.prototype.getShouldShowSeedWords = function () {
-  var data = this.getData()
+  const data = this.getData()
   return data.showSeedWords
 }
 
 ConfigManager.prototype.setSeedWords = function (words) {
-  var data = this.getData()
+  const data = this.getData()
   data.seedWords = words
   this.setData(data)
 }
 
 ConfigManager.prototype.getSeedWords = function () {
-  var data = this.getData()
+  const data = this.getData()
   return data.seedWords
 }
 ConfigManager.prototype.setRpcTarget = function (rpcUrl) {
-  var config = this.getConfig()
+  const config = this.getConfig()
   config.provider = {
     type: 'rpc',
     rpcTarget: rpcUrl,
@@ -117,15 +117,15 @@ ConfigManager.prototype.setRpcTarget = function (rpcUrl) {
 }
 
 ConfigManager.prototype.setProviderType = function (type) {
-  var config = this.getConfig()
+  const config = this.getConfig()
   config.provider = {
-    type: type,
+    type,
   }
   this.setConfig(config)
 }
 
 ConfigManager.prototype.useEtherscanProvider = function () {
-  var config = this.getConfig()
+  const config = this.getConfig()
   config.provider = {
     type: 'etherscan',
   }
@@ -133,13 +133,15 @@ ConfigManager.prototype.useEtherscanProvider = function () {
 }
 
 ConfigManager.prototype.getProvider = function () {
-  var config = this.getConfig()
+  const config = this.getConfig()
   return config.provider
 }
 
 ConfigManager.prototype.getCurrentRpcAddress = function () {
-  var provider = this.getProvider()
-  if (!provider) return null
+  const provider = this.getProvider()
+  if (!provider) {
+    return null
+  }
   switch (provider.type) {
 
     case 'mainnet':
@@ -164,16 +166,16 @@ ConfigManager.prototype.getCurrentRpcAddress = function () {
 //
 
 ConfigManager.prototype.getTxList = function () {
-  var data = this.getData()
+  const data = this.getData()
   if (data.transactions !== undefined) {
     return data.transactions
-  } else {
-    return []
   }
+  return []
+
 }
 
 ConfigManager.prototype.setTxList = function (txList) {
-  var data = this.getData()
+  const data = this.getData()
   data.transactions = txList
   this.setData(data)
 }
@@ -182,7 +184,7 @@ ConfigManager.prototype.setTxList = function (txList) {
 // wallet nickname methods
 
 ConfigManager.prototype.getWalletNicknames = function () {
-  var data = this.getData()
+  const data = this.getData()
   const nicknames = ('walletNicknames' in data) ? data.walletNicknames : {}
   return nicknames
 }
@@ -197,7 +199,7 @@ ConfigManager.prototype.setNicknameForWallet = function (account, nickname) {
   const address = normalize(account)
   const nicknames = this.getWalletNicknames()
   nicknames[address] = nickname
-  var data = this.getData()
+  const data = this.getData()
   data.walletNicknames = nicknames
   this.setData(data)
 }
@@ -205,25 +207,27 @@ ConfigManager.prototype.setNicknameForWallet = function (account, nickname) {
 // observable
 
 ConfigManager.prototype.getSalt = function () {
-  var data = this.getData()
+  const data = this.getData()
   return data.salt
 }
 
 ConfigManager.prototype.setSalt = function (salt) {
-  var data = this.getData()
+  const data = this.getData()
   data.salt = salt
   this.setData(data)
 }
 
 ConfigManager.prototype.subscribe = function (fn) {
   this._subs.push(fn)
-  var unsubscribe = this.unsubscribe.bind(this, fn)
+  const unsubscribe = this.unsubscribe.bind(this, fn)
   return unsubscribe
 }
 
 ConfigManager.prototype.unsubscribe = function (fn) {
-  var index = this._subs.indexOf(fn)
-  if (index !== -1) this._subs.splice(index, 1)
+  const index = this._subs.indexOf(fn)
+  if (index !== -1) {
+    this._subs.splice(index, 1)
+  }
 }
 
 ConfigManager.prototype._emitUpdates = function (state) {
@@ -233,12 +237,12 @@ ConfigManager.prototype._emitUpdates = function (state) {
 }
 
 ConfigManager.prototype.setLostAccounts = function (lostAccounts) {
-  var data = this.getData()
+  const data = this.getData()
   data.lostAccounts = lostAccounts
   this.setData(data)
 }
 
 ConfigManager.prototype.getLostAccounts = function () {
-  var data = this.getData()
+  const data = this.getData()
   return data.lostAccounts || []
 }
