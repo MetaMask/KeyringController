@@ -345,7 +345,7 @@ class KeyringController extends EventEmitter {
       return keyring.getEncryptionPublicKey(address, opts)
     })
   }
-  
+
   // Decrypt Message
   // @object msgParams
   //
@@ -429,7 +429,7 @@ class KeyringController extends EventEmitter {
     }
 
     this.password = password
-    this.memStore.updateState({ isUnlocked: true })
+    this.setUnlocked()
     return Promise.all(this.keyrings.map((keyring) => {
       return Promise.all([keyring.type, keyring.serialize()])
       .then((serializedKeyringArray) => {
@@ -465,7 +465,7 @@ class KeyringController extends EventEmitter {
     await this.clearKeyrings()
     const vault = await this.encryptor.decrypt(password, encryptedVault)
     this.password = password
-    this.memStore.updateState({ isUnlocked: true })
+    this.setUnlocked()
     await Promise.all(vault.map(this.restoreKeyring.bind(this)))
     return this.keyrings
   }
@@ -604,6 +604,11 @@ class KeyringController extends EventEmitter {
   async _updateMemStoreKeyrings () {
     const keyrings = await Promise.all(this.keyrings.map(this.displayForKeyring))
     return this.memStore.updateState({ keyrings })
+  }
+
+  setUnlocked() {
+    this.memStore.updateState({ isUnlocked: true })
+    this.emit('unlock', true)
   }
 
 }
