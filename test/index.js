@@ -1,4 +1,4 @@
-const assert = require('assert')
+const { strict: assert } = require('assert')
 const ethUtil = require('ethereumjs-util')
 
 const { BN } = ethUtil
@@ -17,6 +17,7 @@ const mockAddress = '0xeF35cA8EbB9669A35c31b5F6f249A9941a812AC1'.toLowerCase()
 let sandbox
 
 describe('KeyringController', function () {
+
   let keyringController
   const password = 'password123'
   const seedWords = 'puzzle seed penalty soldier say clay field arctic metal hen cage runway'
@@ -45,10 +46,11 @@ describe('KeyringController', function () {
     it('should not create new keyrings when called in series', async function () {
       await keyringController.createNewVaultAndKeychain(password)
       await keyringController.persistAllKeyrings()
-
       assert.equal(keyringController.keyrings.length, 1, 'has one keyring')
+
       await keyringController.submitPassword(`${password}a`)
       assert.equal(keyringController.keyrings.length, 1, 'has one keyring')
+
       await keyringController.submitPassword('')
       assert.equal(keyringController.keyrings.length, 1, 'has one keyring')
     })
@@ -58,16 +60,20 @@ describe('KeyringController', function () {
   describe('#createNewVaultAndKeychain', function () {
 
     it('should set a vault on the configManager', async function () {
+
       keyringController.store.updateState({ vault: null })
       assert(!keyringController.store.getState().vault, 'no previous vault')
+
       await keyringController.createNewVaultAndKeychain(password)
       const { vault } = keyringController.store.getState()
       assert(vault, 'vault created')
     })
 
     it('should encrypt keyrings with the correct password each time they are persisted', async function () {
+
       keyringController.store.updateState({ vault: null })
       assert(!keyringController.store.getState().vault, 'no previous vault')
+
       await keyringController.createNewVaultAndKeychain(password)
       const { vault } = keyringController.store.getState()
       assert(vault, 'vault created')
@@ -78,13 +84,16 @@ describe('KeyringController', function () {
   })
 
   describe('#addNewKeyring', function () {
+
     it('Simple Key Pair', async function () {
+
       const privateKey = 'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3'
       const previousAccounts = await keyringController.getAccounts()
       const keyring = await keyringController.addNewKeyring('Simple Key Pair', [privateKey])
       const keyringAccounts = await keyring.getAccounts()
       const expectedKeyringAccounts = ['0x627306090abab3a6e1400e9345bc60c78a8bef57']
       assert.deepEqual(keyringAccounts, expectedKeyringAccounts, 'keyringAccounts match expectation')
+
       const allAccounts = await keyringController.getAccounts()
       const expectedAllAccounts = previousAccounts.concat(expectedKeyringAccounts)
       assert.deepEqual(allAccounts, expectedAllAccounts, 'allAccounts match expectation')
@@ -92,7 +101,9 @@ describe('KeyringController', function () {
   })
 
   describe('#restoreKeyring', function () {
+
     it(`should pass a keyring's serialized data back to the correct type.`, async function () {
+
       const mockSerialized = {
         type: 'HD Key Tree',
         data: {
@@ -103,12 +114,14 @@ describe('KeyringController', function () {
 
       const keyring = await keyringController.restoreKeyring(mockSerialized)
       assert.equal(keyring.wallets.length, 1, 'one wallet restored')
+
       const accounts = await keyring.getAccounts()
       assert.equal(accounts[0], addresses[0])
     })
   })
 
   describe('#getAccounts', function () {
+
     it('returns the result of getAccounts for each keyring', async function () {
       keyringController.keyrings = [
         {
@@ -124,18 +137,21 @@ describe('KeyringController', function () {
       ]
 
       const result = await keyringController.getAccounts()
-      assert.deepEqual(result, [1, 2, 3, 4, 5, 6])
+      assert.deepEqual(result, ['0x01', '0x02', '0x03', '0x04', '0x05', '0x06'])
     })
   })
 
   describe('#removeAccount', function () {
+
     it('removes an account from the corresponding keyring', async function () {
+
       const account = {
         privateKey: 'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
         publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
       }
 
       const accountsBeforeAdding = await keyringController.getAccounts()
+
       // Add a new keyring with one account
       await keyringController.addNewKeyring('Simple Key Pair', [account.privateKey])
 
@@ -148,6 +164,7 @@ describe('KeyringController', function () {
     })
 
     it('removes the keyring if there are no accounts after removal', async function () {
+
       const account = {
         privateKey: 'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
         publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
@@ -155,8 +172,10 @@ describe('KeyringController', function () {
 
       // Add a new keyring with one account
       await keyringController.addNewKeyring('Simple Key Pair', [account.privateKey])
+
       // We should have 2 keyrings
       assert.equal(keyringController.keyrings.length, 2)
+
       // remove that account that we just added
       await keyringController.removeAccount(account.publicKey)
 
@@ -168,7 +187,9 @@ describe('KeyringController', function () {
   })
 
   describe('#addGasBuffer', function () {
+
     it('adds 100k gas buffer to estimates', function () {
+
       const gas = '0x04ee59' // Actual estimated gas example
       const tooBigOutput = '0x80674f9' // Actual bad output
       const bnGas = new BN(ethUtil.stripHexPrefix(gas), 16)
@@ -188,7 +209,9 @@ describe('KeyringController', function () {
   })
 
   describe('#unlockKeyrings', function () {
+
     it('returns the list of keyrings', async function () {
+
       keyringController.setLocked()
       const keyrings = await keyringController.unlockKeyrings(password)
       assert.notStrictEqual(keyrings.length, 0)
@@ -198,6 +221,7 @@ describe('KeyringController', function () {
     })
 
     it('emits an unlock event', async function () {
+
       keyringController.setLocked()
 
       let called = false
@@ -211,6 +235,7 @@ describe('KeyringController', function () {
   })
 
   describe('getAppKeyAddress', function () {
+
     it('returns the expected app key address', async function () {
       const address = '0x01560cd3bac62cc6d7e6380600d9317363400896'
       const privateKey = '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952'
@@ -230,6 +255,7 @@ describe('KeyringController', function () {
   })
 
   describe('exportAppKeyForAddress', function () {
+
     it('returns a unique key', async function () {
       const address = '0x01560cd3bac62cc6d7e6380600d9317363400896'
       const privateKey = '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952'
@@ -245,5 +271,4 @@ describe('KeyringController', function () {
       assert.notEqual(privateAppKey, privateKey)
     })
   })
-
 })
