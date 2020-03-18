@@ -695,7 +695,7 @@ class KeyringController extends EventEmitter {
 
   /**
    * Update Memstore Keyrings
-   * 
+   *
    * Updates the in-memory keyrings, without persisting.
    */
   async _updateMemStoreKeyrings () {
@@ -705,9 +705,9 @@ class KeyringController extends EventEmitter {
 
   /**
    * Unlock Keyrings
-   * 
+   *
    * Unlocks the keyrings.
-   * 
+   *
    * @emits KeyringController#unlock
    */
   setUnlocked () {
