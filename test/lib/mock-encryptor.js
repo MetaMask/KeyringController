@@ -1,15 +1,16 @@
 const sinon = require('sinon')
-var mockHex = '0xabcdef0123456789'
-var mockKey = new Buffer(32)
+
+const mockHex = '0xabcdef0123456789'
+const mockKey = Buffer.alloc(32)
 let cacheVal
 
 module.exports = {
-  encrypt: sinon.stub().callsFake(function (password, dataObj) {
+  encrypt: sinon.stub().callsFake(function (_password, dataObj) {
     cacheVal = dataObj
     return Promise.resolve(mockHex)
   }),
 
-  decrypt (password, text) {
+  decrypt (_password, _text) {
     return Promise.resolve(cacheVal || {})
   },
 
@@ -21,12 +22,11 @@ module.exports = {
     return this.decrypt(key, text)
   },
 
-  keyFromPassword (password) {
+  keyFromPassword (_password) {
     return Promise.resolve(mockKey)
   },
 
   generateSalt () {
     return 'WHADDASALT!'
   },
-
 }

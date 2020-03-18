@@ -1,15 +1,19 @@
+
+const { EventEmitter } = require('events')
 const log = require('loglevel')
 const ethUtil = require('ethereumjs-util')
-const BN = ethUtil.BN
+
+const { BN } = ethUtil
 const bip39 = require('bip39')
-const EventEmitter = require('events').EventEmitter
 const ObservableStore = require('obs-store')
 const encryptor = require('browser-passworder')
 const sigUtil = require('eth-sig-util')
+
 const normalizeAddress = sigUtil.normalize
 // Keyrings:
 const SimpleKeyring = require('eth-simple-keyring')
 const HdKeyring = require('eth-hd-keyring')
+
 const keyringTypes = [
   SimpleKeyring,
   HdKeyring,
@@ -31,7 +35,7 @@ class KeyringController extends EventEmitter {
     this.store = new ObservableStore(initState)
     this.memStore = new ObservableStore({
       isUnlocked: false,
-      keyringTypes: this.keyringTypes.map(krt => krt.type),
+      keyringTypes: this.keyringTypes.map((krt) => krt.type),
       keyrings: [],
     })
 
@@ -83,7 +87,7 @@ class KeyringController extends EventEmitter {
   // creates a new HD wallet from the given seed with 1 account.
   createNewVaultAndRestore (password, seed) {
     if (typeof password !== 'string') {
-      return Promise.reject('Password must be text.')
+      return Promise.reject(new Error('Password must be text.'))
     }
 
     if (!bip39.validateMnemonic(seed)) {
@@ -93,22 +97,23 @@ class KeyringController extends EventEmitter {
     this.clearKeyrings()
 
     return this.persistAllKeyrings(password)
-    .then(() => {
-      return this.addNewKeyring('HD Key Tree', {
-        mnemonic: seed,
-        numberOfAccounts: 1,
+      .then(() => {
+        return this.addNewKeyring('HD Key Tree', {
+          mnemonic: seed,
+          numberOfAccounts: 1,
+        })
       })
-    })
-    .then((firstKeyring) => {
-      return firstKeyring.getAccounts()
-    })
-    .then((accounts) => {
-      const firstAccount = accounts[0]
-      if (!firstAccount) throw new Error('KeyringController - First Account not found.')
-      return null
-    })
-    .then(this.persistAllKeyrings.bind(this, password))
-    .then(this.fullUpdate.bind(this))
+      .then((firstKeyring) => {
+        return firstKeyring.getAccounts()
+      })
+      .then(([firstAccount]) => {
+        if (!firstAccount) {
+          throw new Error('KeyringController - First Account not found.')
+        }
+        return null
+      })
+      .then(this.persistAllKeyrings.bind(this, password))
+      .then(this.fullUpdate.bind(this))
   }
 
   // Set Locked
@@ -137,10 +142,10 @@ class KeyringController extends EventEmitter {
   // (Pre MetaMask 3.0.0)
   submitPassword (password) {
     return this.unlockKeyrings(password)
-    .then((keyrings) => {
-      this.keyrings = keyrings
-      return this.fullUpdate()
-    })
+      .then((keyrings) => {
+        this.keyrings = keyrings
+        return this.fullUpdate()
+      })
   }
 
   // Add New Keyring
@@ -158,18 +163,18 @@ class KeyringController extends EventEmitter {
     const Keyring = this.getKeyringClassForType(type)
     const keyring = new Keyring(opts)
     return keyring.getAccounts()
-    .then((accounts) => {
-      return this.checkForDuplicate(type, accounts)
-    })
-    .then(() => {
+      .then((accounts) => {
+        return this.checkForDuplicate(type, accounts)
+      })
+      .then(() => {
         this.keyrings.push(keyring)
         return this.persistAllKeyrings()
-    })
-    .then(() => this._updateMemStoreKeyrings())
-    .then(() => this.fullUpdate())
-    .then(() => {
-      return keyring
-    })
+      })
+      .then(() => this._updateMemStoreKeyrings())
+      .then(() => this.fullUpdate())
+      .then(() => {
+        return keyring
+      })
   }
 
   // Remove Empty Keyrings
@@ -187,7 +192,7 @@ class KeyringController extends EventEmitter {
 
     await Promise.all(this.keyrings.map(async (keyring) => {
       const accounts = await keyring.getAccounts()
-      if(accounts.length > 0){
+      if (accounts.length > 0) {
         validKeyrings.push(keyring)
       }
     }))
@@ -201,15 +206,25 @@ class KeyringController extends EventEmitter {
   //
   checkForDuplicate (type, newAccount) {
     return this.getAccounts()
-    .then((accounts) => {
-      switch (type) {
-        case 'Simple Key Pair':
-          const isNotIncluded = !accounts.find((key) => key === newAccount[0] || key === ethUtil.stripHexPrefix(newAccount[0]))
-          return (isNotIncluded) ? Promise.resolve(newAccount) : Promise.reject(new Error('The account you\'re are trying to import is a duplicate'))
-        default:
-          return Promise.resolve(newAccount)
-      }
-    })
+      .then((accounts) => {
+        switch (type) {
+          case 'Simple Key Pair': {
+            const isIncluded = Boolean(
+              accounts.find(
+                (key) => (
+                  key === newAccount[0] ||
+                  key === ethUtil.stripHexPrefix(newAccount[0])),
+              ),
+            )
+            return isIncluded
+              ? Promise.reject(new Error('The account you\'re are trying to import is a duplicate'))
+              : Promise.resolve(newAccount)
+          }
+          default: {
+            return Promise.resolve(newAccount)
+          }
+        }
+      })
   }
 
 
@@ -223,14 +238,14 @@ class KeyringController extends EventEmitter {
   // and then saves those changes.
   addNewAccount (selectedKeyring) {
     return selectedKeyring.addAccounts(1)
-    .then((accounts) => {
-      accounts.forEach((hexAccount) => {
-        this.emit('newAccount', hexAccount)
+      .then((accounts) => {
+        accounts.forEach((hexAccount) => {
+          this.emit('newAccount', hexAccount)
+        })
       })
-    })
-    .then(this.persistAllKeyrings.bind(this))
-    .then(this._updateMemStoreKeyrings.bind(this))
-    .then(this.fullUpdate.bind(this))
+      .then(this.persistAllKeyrings.bind(this))
+      .then(this._updateMemStoreKeyrings.bind(this))
+      .then(this.fullUpdate.bind(this))
   }
 
   // Export Account
@@ -245,9 +260,9 @@ class KeyringController extends EventEmitter {
   exportAccount (address) {
     try {
       return this.getKeyringForAccount(address)
-      .then((keyring) => {
-        return keyring.exportAccount(normalizeAddress(address))
-      })
+        .then((keyring) => {
+          return keyring.exportAccount(normalizeAddress(address))
+        })
     } catch (e) {
       return Promise.reject(e)
     }
@@ -264,29 +279,31 @@ class KeyringController extends EventEmitter {
   // Returns a Promise.
   removeAccount (address) {
     return this.getKeyringForAccount(address)
-    .then((keyring) => {
+      .then((keyring) => {
       // Not all the keyrings support this, so we have to check...
-      if(typeof keyring.removeAccount === 'function') {
-        keyring.removeAccount(address)
-        this.emit('removedAccount', address)
-        return keyring.getAccounts()
+        if (typeof keyring.removeAccount === 'function') {
+          keyring.removeAccount(address)
+          this.emit('removedAccount', address)
+          return keyring.getAccounts()
 
-      } else {
-        Promise.reject(`Keyring ${keyring.type} doesn't support account removal operations`)
-      }
-    })
-    .then(accounts => {
+        }
+        return Promise.reject(new Error(
+          `Keyring ${keyring.type} doesn't support account removal operations`,
+        ))
+      })
+      .then((accounts) => {
       // Check if this was the last/only account
-      if(accounts.length === 0){
-        return this.removeEmptyKeyrings()
-      }
-    })
-    .then(this.persistAllKeyrings.bind(this))
-    .then(this._updateMemStoreKeyrings.bind(this))
-    .then(this.fullUpdate.bind(this))
-    .catch( e => {
-      return Promise.reject(e)
-    })
+        if (accounts.length === 0) {
+          return this.removeEmptyKeyrings()
+        }
+        return undefined
+      })
+      .then(this.persistAllKeyrings.bind(this))
+      .then(this._updateMemStoreKeyrings.bind(this))
+      .then(this.fullUpdate.bind(this))
+      .catch((e) => {
+        return Promise.reject(e)
+      })
   }
 
 
@@ -298,9 +315,9 @@ class KeyringController extends EventEmitter {
   signTransaction (ethTx, _fromAddress, opts = {}) {
     const fromAddress = normalizeAddress(_fromAddress)
     return this.getKeyringForAccount(fromAddress)
-    .then((keyring) => {
-      return keyring.signTransaction(fromAddress, ethTx, opts)
-    })
+      .then((keyring) => {
+        return keyring.signTransaction(fromAddress, ethTx, opts)
+      })
   }
 
   // Sign Message
@@ -312,9 +329,9 @@ class KeyringController extends EventEmitter {
   signMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
-    .then((keyring) => {
-      return keyring.signMessage(address, msgParams.data, opts)
-    })
+      .then((keyring) => {
+        return keyring.signMessage(address, msgParams.data, opts)
+      })
   }
 
   // Sign Personal Message
@@ -327,9 +344,9 @@ class KeyringController extends EventEmitter {
   signPersonalMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
-    .then((keyring) => {
-      return keyring.signPersonalMessage(address, msgParams.data, opts)
-    })
+      .then((keyring) => {
+        return keyring.signPersonalMessage(address, msgParams.data, opts)
+      })
   }
 
   // Get encryption public key
@@ -341,9 +358,9 @@ class KeyringController extends EventEmitter {
   getEncryptionPublicKey (_address, opts = {}) {
     const address = normalizeAddress(_address)
     return this.getKeyringForAccount(address)
-    .then((keyring) => {
-      return keyring.getEncryptionPublicKey(address, opts)
-    })
+      .then((keyring) => {
+        return keyring.getEncryptionPublicKey(address, opts)
+      })
   }
 
   // Decrypt Message
@@ -355,9 +372,9 @@ class KeyringController extends EventEmitter {
   decryptMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
-    .then((keyring) => {
-      return keyring.decryptMessage(address, msgParams.data, opts)
-    })
+      .then((keyring) => {
+        return keyring.decryptMessage(address, msgParams.data, opts)
+      })
   }
 
   // Sign Typed Message (EIP712 https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454)
@@ -365,8 +382,8 @@ class KeyringController extends EventEmitter {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
       .then((keyring) => {
-      return keyring.signTypedData(address, msgParams.data, opts)
-    })
+        return keyring.signTypedData(address, msgParams.data, opts)
+      })
   }
 
   // returns an app key
@@ -376,7 +393,7 @@ class KeyringController extends EventEmitter {
     return keyring.getAppKeyAddress(address, origin)
   }
 
-  async exportAppKeyForAddress(_address, origin) {
+  async exportAppKeyForAddress (_address, origin) {
     const address = normalizeAddress(_address)
     const keyring = await this.getKeyringForAccount(address)
     if (!('exportAccount' in keyring)) {
@@ -402,16 +419,17 @@ class KeyringController extends EventEmitter {
   createFirstKeyTree () {
     this.clearKeyrings()
     return this.addNewKeyring('HD Key Tree', { numberOfAccounts: 1 })
-    .then((keyring) => {
-      return keyring.getAccounts()
-    })
-    .then((accounts) => {
-      const firstAccount = accounts[0]
-      if (!firstAccount) throw new Error('KeyringController - No account found on keychain.')
-      const hexAccount = normalizeAddress(firstAccount)
-      this.emit('newVault', hexAccount)
-      return null
-    })
+      .then((keyring) => {
+        return keyring.getAccounts()
+      })
+      .then(([firstAccount]) => {
+        if (!firstAccount) {
+          throw new Error('KeyringController - No account found on keychain.')
+        }
+        const hexAccount = normalizeAddress(firstAccount)
+        this.emit('newVault', hexAccount)
+        return null
+      })
   }
 
   // Persist All Keyrings
@@ -425,28 +443,30 @@ class KeyringController extends EventEmitter {
   // and persists that encrypted string to storage.
   persistAllKeyrings (password = this.password) {
     if (typeof password !== 'string') {
-      return Promise.reject('KeyringController - password is not a string')
+      return Promise.reject(new Error(
+        'KeyringController - password is not a string',
+      ))
     }
 
     this.password = password
     this.setUnlocked()
     return Promise.all(this.keyrings.map((keyring) => {
       return Promise.all([keyring.type, keyring.serialize()])
-      .then((serializedKeyringArray) => {
+        .then((serializedKeyringArray) => {
         // Label the output values on each serialized Keyring:
-        return {
-          type: serializedKeyringArray[0],
-          data: serializedKeyringArray[1],
-        }
-      })
+          return {
+            type: serializedKeyringArray[0],
+            data: serializedKeyringArray[1],
+          }
+        })
     }))
-    .then((serializedKeyrings) => {
-      return this.encryptor.encrypt(this.password, serializedKeyrings)
-    })
-    .then((encryptedString) => {
-      this.store.updateState({ vault: encryptedString })
-      return true
-    })
+      .then((serializedKeyrings) => {
+        return this.encryptor.encrypt(this.password, serializedKeyrings)
+      })
+      .then((encryptedString) => {
+        this.store.updateState({ vault: encryptedString })
+        return true
+      })
   }
 
   // Unlock Keyrings
@@ -485,16 +505,16 @@ class KeyringController extends EventEmitter {
     const Keyring = this.getKeyringClassForType(type)
     const keyring = new Keyring()
     return keyring.deserialize(data)
-    .then(() => {
-      return keyring.getAccounts()
-    })
-    .then(() => {
-      this.keyrings.push(keyring)
-      return this._updateMemStoreKeyrings()
-    })
-    .then(() => {
-      return keyring
-    })
+      .then(() => {
+        return keyring.getAccounts()
+      })
+      .then(() => {
+        this.keyrings.push(keyring)
+        return this._updateMemStoreKeyrings()
+      })
+      .then(() => {
+        return keyring
+      })
   }
 
   // Get Keyring Class For Type
@@ -507,7 +527,7 @@ class KeyringController extends EventEmitter {
   // matches the provided `type`,
   // returning it if it exists.
   getKeyringClassForType (type) {
-    return this.keyringTypes.find(kr => kr.type === type)
+    return this.keyringTypes.find((kr) => kr.type === type)
   }
 
   getKeyringsByType (type) {
@@ -521,12 +541,12 @@ class KeyringController extends EventEmitter {
   // managed by all currently unlocked keyrings.
   async getAccounts () {
     const keyrings = this.keyrings || []
-    const addrs = await Promise.all(keyrings.map(kr => kr.getAccounts()))
-    .then((keyringArrays) => {
-      return keyringArrays.reduce((res, arr) => {
-        return res.concat(arr)
-      }, [])
-    })
+    const addrs = await Promise.all(keyrings.map((kr) => kr.getAccounts()))
+      .then((keyringArrays) => {
+        return keyringArrays.reduce((res, arr) => {
+          return res.concat(arr)
+        }, [])
+      })
     return addrs.map(normalizeAddress)
   }
 
@@ -547,17 +567,17 @@ class KeyringController extends EventEmitter {
         keyring.getAccounts(),
       ])
     }))
-    .then((candidates) => {
-      const winners = candidates.filter(candidate => {
-        const accounts = candidate[1].map(normalizeAddress)
-        return accounts.includes(hexed)
-      })
-      if (winners && winners.length > 0) {
-        return winners[0][0]
-      } else {
+      .then((candidates) => {
+        const winners = candidates.filter((candidate) => {
+          const accounts = candidate[1].map(normalizeAddress)
+          return accounts.includes(hexed)
+        })
+        if (winners && winners.length > 0) {
+          return winners[0][0]
+        }
         throw new Error('No keyring found for the requested account.')
-      }
-    })
+
+      })
   }
 
   // Display For Keyring
@@ -568,12 +588,12 @@ class KeyringController extends EventEmitter {
   // Is used for adding the current keyrings to the state object.
   displayForKeyring (keyring) {
     return keyring.getAccounts()
-    .then((accounts) => {
-      return {
-        type: keyring.type,
-        accounts: accounts.map(normalizeAddress),
-      }
-    })
+      .then((accounts) => {
+        return {
+          type: keyring.type,
+          accounts: accounts.map(normalizeAddress),
+        }
+      })
   }
 
   // Add Gas Buffer
@@ -593,7 +613,7 @@ class KeyringController extends EventEmitter {
   //
   // Deallocates all currently managed keyrings and accounts.
   // Used before initializing a new vault.
-  async clearKeyrings () {
+  async clearKeyrings () { /* eslint-disable require-await: interface compatibility */
     // clear keyrings from memory
     this.keyrings = []
     this.memStore.updateState({
@@ -606,7 +626,7 @@ class KeyringController extends EventEmitter {
     return this.memStore.updateState({ keyrings })
   }
 
-  setUnlocked() {
+  setUnlocked () {
     this.memStore.updateState({ isUnlocked: true })
     this.emit('unlock', true)
   }
