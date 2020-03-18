@@ -19,12 +19,9 @@ const keyringTypes = [
 
 class KeyringController extends EventEmitter {
 
+  //
   // PUBLIC METHODS
   //
-  // THE FIRST SECTION OF METHODS ARE PUBLIC-FACING,
-  // MEANING THEY ARE USED BY CONSUMERS OF THIS CLASS.
-  //
-  // THEIR SURFACE AREA SHOULD BE CHANGED WITH GREAT CARE.
 
   constructor (opts) {
     super()
@@ -80,13 +77,13 @@ class KeyringController extends EventEmitter {
   /**
    * CreateNewVaultAndRestore
    *
-   * @returns {Promise<Object>} A Promise that resolves to the state.
-   *
    * Destroys any old encrypted storage,
    * creates a new encrypted store with the given password,
    * creates a new HD wallet from the given seed with 1 account.
+   *
    * @param {string} password - The password to encrypt the vault with
    * @param {string} seed - The BIP44-compliant seed phrase.
+   * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   createNewVaultAndRestore (password, seed) {
     if (typeof password !== 'string') {
@@ -194,7 +191,7 @@ class KeyringController extends EventEmitter {
   async removeEmptyKeyrings () {
     const validKeyrings = []
 
-    // Since getAccounts @returns a promise
+    // Since getAccounts returns a Promise
     // We need to wait to hear back form each keyring
     // in order to decide which ones are now valid (accounts.length > 0)
 
@@ -243,11 +240,10 @@ class KeyringController extends EventEmitter {
   /**
    * Add New Account
    *
-   * Calls the `addAccounts` method on the Keyring
-   * in the keyrings array at index `keyringNum`,
+   * Calls the `addAccounts` method on the given keyring,
    * and then saves those changes.
    *
-   * @param {number} keyRingNum
+   * @param {Keyring} selectedKeyring - The currently selected keyring.
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   addNewAccount (selectedKeyring) {
@@ -262,15 +258,17 @@ class KeyringController extends EventEmitter {
       .then(this.fullUpdate.bind(this))
   }
 
-  // Export Account
-  // @param {string} address
-  //
-  // @returns Promise( @param {string} privateKey )
-  //
-  // Requests the private key from the keyring controlling
-  // the specified address.
-  //
-  // Returns a Promise that may resolve with the private key string.
+  /**
+   * Export Account
+   *
+   * Requests the private key from the keyring controlling
+   * the specified address.
+   *
+   * Returns a Promise that may resolve with the private key string.
+   *
+   * @param {string} address - The address of the account to export.
+   * @returns {Promise<string>} The private key of the account.
+   */
   exportAccount (address) {
     try {
       return this.getKeyringForAccount(address)
@@ -289,25 +287,24 @@ class KeyringController extends EventEmitter {
    * Removes a specific account from a keyring
    * If the account is the last/only one then it also removes the keyring.
    *
-   * @param {string} address
-   * @returns {Promise<void>}
+   * @param {string} address - The address of the account to remove.
+   * @returns {Promise<void>} A Promise that resolves if the operation was successful.
    */
   removeAccount (address) {
     return this.getKeyringForAccount(address)
       .then((keyring) => {
-      // Not all the keyrings support this, so we have to check...
+        // Not all the keyrings support this, so we have to check
         if (typeof keyring.removeAccount === 'function') {
           keyring.removeAccount(address)
           this.emit('removedAccount', address)
           return keyring.getAccounts()
-
         }
         return Promise.reject(new Error(
           `Keyring ${keyring.type} doesn't support account removal operations`,
         ))
       })
       .then((accounts) => {
-      // Check if this was the last/only account
+        // Check if this was the last/only account
         if (accounts.length === 0) {
           return this.removeEmptyKeyrings()
         }
@@ -321,12 +318,20 @@ class KeyringController extends EventEmitter {
       })
   }
 
-
+  //
   // SIGNING METHODS
   //
-  // This method signs tx and @returns a promise for
-  // TX Manager to update the state after signing
 
+  /**
+   * Sign Ethereum Transaction
+   *
+   * Signs an Ethereum transaction object.
+   *
+   * @param {Object} ethTx - The transaction to sign.
+   * @param {string} _fromAddress - The transaction 'from' address.
+   * @param {Object} opts - Signing options.
+   * @returns {Promise<Object>} The signed transactio object.
+   */
   signTransaction (ethTx, _fromAddress, opts = {}) {
     const fromAddress = normalizeAddress(_fromAddress)
     return this.getKeyringForAccount(fromAddress)
@@ -341,7 +346,7 @@ class KeyringController extends EventEmitter {
    * Attempts to sign the provided message parameters.
    *
    * @param {Object} msgParams - The message parameters to sign.
-   * @returns {Promise<Buffer>} The raw signature, if successful.
+   * @returns {Promise<Buffer>} The raw signature.
    */
   signMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
@@ -405,7 +410,7 @@ class KeyringController extends EventEmitter {
    * (EIP712 https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454)
    *
    * @param {Object} msgParams - The message parameters to sign.
-   * @returns {Promise<Buffer>} The raw signature, if successful.
+   * @returns {Promise<Buffer>} The raw signature.
    */
   signTypedMessage (msgParams, opts = { version: 'V1' }) {
     const address = normalizeAddress(msgParams.from)
@@ -444,10 +449,9 @@ class KeyringController extends EventEmitter {
     return keyring.exportAccount(address, { withAppKeyOrigin: origin })
   }
 
+  //
   // PRIVATE METHODS
   //
-  // THESE METHODS ARE ONLY USED INTERNALLY TO THE KEYRING-CONTROLLER
-  // AND SO MAY BE CHANGED MORE LIBERALLY THAN THE ABOVE METHODS.
 
   /**
    * Create First Key Tree
@@ -459,7 +463,7 @@ class KeyringController extends EventEmitter {
    * - Faucets that account on testnet
    * - Puts the current seed words into the state tree
    *
-   * @returns {Promise<null>}
+   * @returns {Promise<void>} - A promise that resovles if the operation was successful.
    */
   createFirstKeyTree () {
     this.clearKeyrings()
@@ -620,8 +624,8 @@ class KeyringController extends EventEmitter {
    * Returns the currently initialized keyring that manages
    * the specified `address` if one exists.
    *
-   * @param {string} address
-   * @returns {Promise<Keyring>}
+   * @param {string} address - An account address.
+   * @returns {Promise<Keyring>} The keyring of the account, if it exists.
    */
   getKeyringForAccount (address) {
     const hexed = normalizeAddress(address)
