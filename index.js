@@ -7,10 +7,8 @@ const { BN } = ethUtil
 const bip39 = require('bip39')
 const ObservableStore = require('obs-store')
 const encryptor = require('browser-passworder')
-const sigUtil = require('eth-sig-util')
+const { normalize: normalizeAddress } = require('eth-sig-util')
 
-const normalizeAddress = sigUtil.normalize
-// Keyrings:
 const SimpleKeyring = require('eth-simple-keyring')
 const HdKeyring = require('eth-hd-keyring')
 
@@ -44,31 +42,34 @@ class KeyringController extends EventEmitter {
     this.getNetwork = opts.getNetwork
   }
 
-  // Full Update
-  // returns @object state
-  //
-  // Emits the `update` event and
-  // returns a Promise that resolves to the current state.
-  //
-  // Frequently used to end asynchronous chains in this class,
-  // indicating consumers can often either listen for updates,
-  // or accept a state-resolving promise to consume their results.
-  //
-  // Not all methods end with this, that might be a nice refactor.
+  /**
+   * Full Update
+   *
+   * Emits the `update` event and @returns a Promise that resolves to
+   * the current state.
+   *
+   * Frequently used to end asynchronous chains in this class,
+   * indicating consumers can often either listen for updates,
+   * or accept a state-resolving promise to consume their results.
+   *
+   * @returns {Object} The controller state.
+   */
   fullUpdate () {
     this.emit('update', this.memStore.getState())
     return this.memStore.getState()
   }
 
-  // Create New Vault And Keychain
-  // @string password - The password to encrypt the vault with
-  //
-  // returns Promise( @object state )
-  //
-  // Destroys any old encrypted storage,
-  // creates a new encrypted store with the given password,
-  // randomly creates a new HD wallet with 1 account,
-  // faucets that account on the testnet.
+  /**
+   * Create New Vault And Keychain
+   *
+   * Destroys any old encrypted storage,
+   * creates a new encrypted store with the given password,
+   * randomly creates a new HD wallet with 1 account,
+   * faucets that account on the testnet.
+   * 
+   * @param {string} password - The password to encrypt the vault with.
+   * @returns {Promise<Object>} A Promise that resolves to the state.
+   */
   createNewVaultAndKeychain (password) {
     return this.persistAllKeyrings(password)
       .then(this.createFirstKeyTree.bind(this))
@@ -76,15 +77,17 @@ class KeyringController extends EventEmitter {
       .then(this.fullUpdate.bind(this))
   }
 
-  // CreateNewVaultAndRestore
-  // @string password - The password to encrypt the vault with
-  // @string seed - The BIP44-compliant seed phrase.
-  //
-  // returns Promise( @object state )
-  //
-  // Destroys any old encrypted storage,
-  // creates a new encrypted store with the given password,
-  // creates a new HD wallet from the given seed with 1 account.
+  /**
+   * CreateNewVaultAndRestore
+   *
+   * @returns {Promise<Object>} A Promise that resolves to the state.
+   *
+   * Destroys any old encrypted storage,
+   * creates a new encrypted store with the given password,
+   * creates a new HD wallet from the given seed with 1 account.
+   * @param {string} password - The password to encrypt the vault with
+   * @param {string} seed - The BIP44-compliant seed phrase.
+   */
   createNewVaultAndRestore (password, seed) {
     if (typeof password !== 'string') {
       return Promise.reject(new Error('Password must be text.'))
@@ -116,10 +119,12 @@ class KeyringController extends EventEmitter {
       .then(this.fullUpdate.bind(this))
   }
 
-  // Set Locked
-  // returns Promise( @object state )
-  //
-  // This method deallocates all secrets, and effectively locks metamask.
+  /**
+   * Set Locked
+   *
+   * This method deallocates all secrets, and effectively locks metamask.
+   * @returns {Promise<Object>} A Promise that resolves to the state.
+   */
   async setLocked () {
     // set locked
     this.password = null
@@ -130,16 +135,17 @@ class KeyringController extends EventEmitter {
     return this.fullUpdate()
   }
 
-  // Submit Password
-  // @string password
-  //
-  // returns Promise( @object state )
-  //
-  // Attempts to decrypt the current vault and load its keyrings
-  // into memory.
-  //
-  // Temporarily also migrates any old-style vaults first, as well.
-  // (Pre MetaMask 3.0.0)
+  /**
+   * Submit Password
+   *
+   * Attempts to decrypt the current vault and load its keyrings
+   * into memory.
+   *
+   * Temporarily also migrates any old-style vaults first, as well.
+   * (Pre MetaMask 3.0.0)
+   * @param {string} password - The keyring controller password.
+   * @returns {Promise<Object>} A Promise that resolves to the state.
+   */
   submitPassword (password) {
     return this.unlockKeyrings(password)
       .then((keyrings) => {
@@ -148,17 +154,19 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Add New Keyring
-  // @string type
-  // @object opts
-  //
-  // returns Promise( @Keyring keyring )
-  //
-  // Adds a new Keyring of the given `type` to the vault
-  // and the current decrypted Keyrings array.
-  //
-  // All Keyring classes implement a unique `type` string,
-  // and this is used to retrieve them from the keyringTypes array.
+  /**
+   * Add New Keyring
+   *
+   * Adds a new Keyring of the given `type` to the vault
+   * and the current decrypted Keyrings array.
+   *
+   * All Keyring classes implement a unique `type` string,
+   * and this is used to retrieve them from the keyringTypes array.
+   * 
+   * @param {string} type - The type of keyring to add.
+   * @param {Object} opts - The constructor options for the keyring.
+   * @returns {Promise<Keyring>} The new keyring.
+   */
   addNewKeyring (type, opts) {
     const Keyring = this.getKeyringClassForType(type)
     const keyring = new Keyring(opts)
@@ -177,16 +185,16 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Remove Empty Keyrings
-  // returns Void
-  //
-  // Loops through the keyrings and removes the ones
-  // with empty accounts (usually after removing the last / only account)
-  // from a keyring
+  /**
+   * Remove Empty Keyrings
+   *
+   * Loops through the keyrings and removes the ones with empty accounts
+   * (usually after removing the last / only account) from a keyring
+   */
   async removeEmptyKeyrings () {
     const validKeyrings = []
 
-    // Since getAccounts returns a promise
+    // Since getAccounts @returns a promise
     // We need to wait to hear back form each keyring
     // in order to decide which ones are now valid (accounts.length > 0)
 
@@ -197,14 +205,19 @@ class KeyringController extends EventEmitter {
       }
     }))
     this.keyrings = validKeyrings
-
   }
 
-  // For now just checks for simple key pairs
-  // but in the future
-  // should possibly add HD and other types
-  //
-  checkForDuplicate (type, newAccount) {
+  /**
+   * Checks for duplicate keypairs, using the the first account in the given
+   * array. Rejects if a duplicate is found.
+   * 
+   * Only supports 'Simple Key Pair'.
+   * 
+   * @param {string} type - The key pair type to check for.
+   * @param {Array<string>} newAccountArray - Array of new accounts.
+   * @returns {Promise<Array<string>>} The account, if no duplicate is found.
+   */
+  checkForDuplicate (type, newAccountArray) {
     return this.getAccounts()
       .then((accounts) => {
         switch (type) {
@@ -212,30 +225,31 @@ class KeyringController extends EventEmitter {
             const isIncluded = Boolean(
               accounts.find(
                 (key) => (
-                  key === newAccount[0] ||
-                  key === ethUtil.stripHexPrefix(newAccount[0])),
+                  key === newAccountArray[0] ||
+                  key === ethUtil.stripHexPrefix(newAccountArray[0])),
               ),
             )
             return isIncluded
               ? Promise.reject(new Error('The account you\'re are trying to import is a duplicate'))
-              : Promise.resolve(newAccount)
+              : Promise.resolve(newAccountArray)
           }
           default: {
-            return Promise.resolve(newAccount)
+            return Promise.resolve(newAccountArray)
           }
         }
       })
   }
 
-
-  // Add New Account
-  // @number keyRingNum
-  //
-  // returns Promise( @object state )
-  //
-  // Calls the `addAccounts` method on the Keyring
-  // in the keyrings array at index `keyringNum`,
-  // and then saves those changes.
+  /**
+   * Add New Account
+   *
+   * Calls the `addAccounts` method on the Keyring
+   * in the keyrings array at index `keyringNum`,
+   * and then saves those changes.
+   * 
+   * @param {number} keyRingNum
+   * @returns {Promise<Object>} A Promise that resolves to the state.
+   */
   addNewAccount (selectedKeyring) {
     return selectedKeyring.addAccounts(1)
       .then((accounts) => {
@@ -249,9 +263,9 @@ class KeyringController extends EventEmitter {
   }
 
   // Export Account
-  // @string address
+  // @param {string} address
   //
-  // returns Promise( @string privateKey )
+  // @returns Promise( @param {string} privateKey )
   //
   // Requests the private key from the keyring controlling
   // the specified address.
@@ -268,15 +282,16 @@ class KeyringController extends EventEmitter {
     }
   }
 
-  // Remove Account
-  // @string address
-  //
-  // returns Promise( void )
-  //
-  // Removes a specific account from a keyring
-  // If the account is the last/only one then it also removes the keyring.
-  //
-  // Returns a Promise.
+  /**
+   * 
+   * Remove Account
+   *
+   * Removes a specific account from a keyring
+   * If the account is the last/only one then it also removes the keyring.
+   *
+   * @param {string} address
+   * @returns {Promise<void>}
+   */
   removeAccount (address) {
     return this.getKeyringForAccount(address)
       .then((keyring) => {
@@ -309,7 +324,7 @@ class KeyringController extends EventEmitter {
 
   // SIGNING METHODS
   //
-  // This method signs tx and returns a promise for
+  // This method signs tx and @returns a promise for
   // TX Manager to update the state after signing
 
   signTransaction (ethTx, _fromAddress, opts = {}) {
@@ -320,12 +335,14 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Sign Message
-  // @object msgParams
-  //
-  // returns Promise(@buffer rawSig)
-  //
-  // Attempts to sign the provided @object msgParams.
+  /**
+   * Sign Message
+   *
+   * Attempts to sign the provided message parameters.
+   * 
+   * @param {Object} msgParams - The message parameters to sign.
+   * @returns {Promise<Buffer>} The raw signature, if successful.
+   */
   signMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
@@ -334,13 +351,15 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Sign Personal Message
-  // @object msgParams
-  //
-  // returns Promise(@buffer rawSig)
-  //
-  // Attempts to sign the provided @object msgParams.
-  // Prefixes the hash before signing as per the new geth behavior.
+  /**
+   * Sign Personal Message
+   *
+   * Attempts to sign the provided message paramaters.
+   * Prefixes the hash before signing per the personal sign expectation.
+   * 
+   * @param {Object} msgParams - The message parameters to sign.
+   * @returns {Promise<Buffer>} The raw signature.
+   */
   signPersonalMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
@@ -349,12 +368,14 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Get encryption public key
-  // @object address
-  //
-  // returns Promise(@buffer publicKey)
-  //
-  // Get encryption public key for using in encrypt/decrypt process.
+  /**
+   * Get encryption public key
+   *
+   * Get encryption public key for using in encrypt/decrypt process.
+   * 
+   * @param {Object} address - The address to get the encryption public key for.
+   * @returns {Promise<Buffer>} The public key.
+   */
   getEncryptionPublicKey (_address, opts = {}) {
     const address = normalizeAddress(_address)
     return this.getKeyringForAccount(address)
@@ -363,12 +384,14 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Decrypt Message
-  // @object msgParams
-  //
-  // returns Promise(@buffer rawSig)
-  //
-  // Attempts to decrypt the provided @object msgParams.
+  /**
+   * Decrypt Message
+   *
+   * Attempts to decrypt the provided message parameters.
+   * 
+   * @param {Object} msgParams - The decryption message parameters.
+   * @returns {Promise<Buffer>} The raw decryption result.
+   */
   decryptMessage (msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
@@ -377,7 +400,13 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Sign Typed Message (EIP712 https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454)
+  /**
+   * Sign Typed Data
+   * (EIP712 https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454)
+   * 
+   * @param {Object} msgParams - The message parameters to sign.
+   * @returns {Promise<Buffer>} The raw signature, if successful.
+   */
   signTypedMessage (msgParams, opts = { version: 'V1' }) {
     const address = normalizeAddress(msgParams.from)
     return this.getKeyringForAccount(address)
@@ -386,13 +415,26 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // returns an app key
+  /**
+   * Gets the app key address for the given Ethereum address and origin.
+   * 
+   * @param {string} _address - The Ethereum address for the app key.
+   * @param {string} origin - The origin for the app key.
+   * @returns {string} The app key address.
+   */
   async getAppKeyAddress (_address, origin) {
     const address = normalizeAddress(_address)
     const keyring = await this.getKeyringForAccount(address)
     return keyring.getAppKeyAddress(address, origin)
   }
 
+  /**
+   * TODO: what exactly does this do?
+   * 
+   * @param {string} _address - The Ethereum address for the app key.
+   * @param {string} origin - The origin for the app key.
+   * @returns {string} The app key address. TODO: wut?
+   */
   async exportAppKeyForAddress (_address, origin) {
     const address = normalizeAddress(_address)
     const keyring = await this.getKeyringForAccount(address)
@@ -407,15 +449,18 @@ class KeyringController extends EventEmitter {
   // THESE METHODS ARE ONLY USED INTERNALLY TO THE KEYRING-CONTROLLER
   // AND SO MAY BE CHANGED MORE LIBERALLY THAN THE ABOVE METHODS.
 
-  // Create First Key Tree
-  // returns @Promise
-  //
-  // Clears the vault,
-  // creates a new one,
-  // creates a random new HD Keyring with 1 account,
-  // makes that account the selected account,
-  // faucets that account on testnet,
-  // puts the current seed words into the state tree.
+  /**
+   * Create First Key Tree
+   *
+   * - Clears the existing vault
+   * - Creates a new vault
+   * - Creates a random new HD Keyring with 1 account
+   * - Makes that account the selected account
+   * - Faucets that account on testnet
+   * - Puts the current seed words into the state tree
+   * 
+   * @returns {Promise<null>}
+   */
   createFirstKeyTree () {
     this.clearKeyrings()
     return this.addNewKeyring('HD Key Tree', { numberOfAccounts: 1 })
@@ -432,15 +477,17 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Persist All Keyrings
-  // @password string
-  //
-  // returns Promise
-  //
-  // Iterates the current `keyrings` array,
-  // serializes each one into a serialized array,
-  // encrypts that array with the provided `password`,
-  // and persists that encrypted string to storage.
+  /**
+   * Persist All Keyrings
+   *
+   * Iterates the current `keyrings` array,
+   * serializes each one into a serialized array,
+   * encrypts that array with the provided `password`,
+   * and persists that encrypted string to storage.
+   * 
+   * @param {string} password - The keyring controller password.
+   * @returns {Promise<boolean>} Resolves to true once keyrings are persisted.
+   */
   persistAllKeyrings (password = this.password) {
     if (typeof password !== 'string') {
       return Promise.reject(new Error(
@@ -469,13 +516,15 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Unlock Keyrings
-  // @string password
-  //
-  // returns Promise( @array keyrings )
-  //
-  // Attempts to unlock the persisted encrypted storage,
-  // initializing the persisted keyrings to RAM.
+  /**
+   * Unlock Keyrings
+   *
+   * Attempts to unlock the persisted encrypted storage,
+   * initializing the persisted keyrings to RAM.
+   * 
+   * @param {string} password - The keyring controller password.
+   * @returns {Promise<Array<Keyring>>} The keyrings.
+   */
   async unlockKeyrings (password) {
     const encryptedVault = this.store.getState().vault
     if (!encryptedVault) {
@@ -490,15 +539,17 @@ class KeyringController extends EventEmitter {
     return this.keyrings
   }
 
-  // Restore Keyring
-  // @object serialized
-  //
-  // returns Promise( @Keyring deserialized )
-  //
-  // Attempts to initialize a new keyring from the provided
-  // serialized payload.
-  //
-  // On success, returns the resulting @Keyring instance.
+  /**
+   * Restore Keyring
+   *
+   * Attempts to initialize a new keyring from the provided
+   * serialized payload.
+   *
+   * On success, the resulting keyring instance.
+   * 
+   * @param {Object} serialized - The serialized keyring.
+   * @returns {Promise<Keyring>} The deserialized keyring.
+   */
   restoreKeyring (serialized) {
     const { type, data } = serialized
 
@@ -517,28 +568,41 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Get Keyring Class For Type
-  // @string type
-  //
-  // Returns @class Keyring
-  //
-  // Searches the current `keyringTypes` array
-  // for a Keyring class whose unique `type` property
-  // matches the provided `type`,
-  // returning it if it exists.
+  /**
+   * Get Keyring Class For Type
+   *
+   * Searches the current `keyringTypes` array
+   * for a Keyring class whose unique `type` property
+   * matches the provided `type`,
+   * returning it if it exists.
+   * 
+   * @param {string} type - The type whose class to get.
+   * @returns {Keyring|undefined} The class, if it exists.
+   */
   getKeyringClassForType (type) {
     return this.keyringTypes.find((kr) => kr.type === type)
   }
 
+  /**
+   * Get Keyrings by Type
+   * 
+   * Gets all keyrings of the given type.
+   * 
+   * @param {string} type - The keyring types to retrieve.
+   * @returns {Array<Keyring>} The keyrings.
+   */
   getKeyringsByType (type) {
     return this.keyrings.filter((keyring) => keyring.type === type)
   }
 
-  // Get Accounts
-  // returns Promise( @Array[ @string accounts ] )
-  //
-  // Returns the public addresses of all current accounts
-  // managed by all currently unlocked keyrings.
+  /**
+   * Get Accounts
+   *
+   * Returns the public addresses of all current accounts
+   * managed by all currently unlocked keyrings.
+   * 
+   * @returns {Promise<Array<string>>} The array of accounts.
+   */
   async getAccounts () {
     const keyrings = this.keyrings || []
     const addrs = await Promise.all(keyrings.map((kr) => kr.getAccounts()))
@@ -550,13 +614,15 @@ class KeyringController extends EventEmitter {
     return addrs.map(normalizeAddress)
   }
 
-  // Get Keyring For Account
-  // @string address
-  //
-  // returns Promise(@Keyring keyring)
-  //
-  // Returns the currently initialized keyring that manages
-  // the specified `address` if one exists.
+  /**
+   * Get Keyring For Account
+   *
+   * Returns the currently initialized keyring that manages
+   * the specified `address` if one exists.
+   * 
+   * @param {string} address
+   * @returns {Promise<Keyring>}
+   */
   getKeyringForAccount (address) {
     const hexed = normalizeAddress(address)
     log.debug(`KeyringController - getKeyringForAccount: ${hexed}`)
@@ -580,12 +646,13 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Display For Keyring
-  // @Keyring keyring
-  //
-  // returns Promise( @Object { type:String, accounts:Array } )
-  //
-  // Is used for adding the current keyrings to the state object.
+  /**
+   * Display For Keyring
+   *
+   * Is used for adding the current keyrings to the state object.
+   * @param {Keyring} keyring
+   * @returns {Promise<Object>} A keyring display object, with type and accounts properties.
+   */
   displayForKeyring (keyring) {
     return keyring.getAccounts()
       .then((accounts) => {
@@ -596,12 +663,14 @@ class KeyringController extends EventEmitter {
       })
   }
 
-  // Add Gas Buffer
-  // @string gas (as hexadecimal value)
-  //
-  // returns @string bufferedGas (as hexadecimal value)
-  //
-  // Adds a healthy buffer of gas to an initial gas estimate.
+  /**
+   * Add Gas Buffer
+   *
+   * Adds a healthy buffer of gas to an initial gas estimate.
+   * 
+   * @param {string} gas - The gas value, as a hex string.
+   * @returns {string} The buffered gas, as a hex string.
+   */
   addGasBuffer (gas) {
     const gasBuffer = new BN('100000', 10)
     const bnGas = new BN(ethUtil.stripHexPrefix(gas), 16)
@@ -609,10 +678,12 @@ class KeyringController extends EventEmitter {
     return ethUtil.addHexPrefix(correct.toString(16))
   }
 
-  // Clear Keyrings
-  //
-  // Deallocates all currently managed keyrings and accounts.
-  // Used before initializing a new vault.
+  /**
+   * Clear Keyrings
+   *
+   * Deallocates all currently managed keyrings and accounts.
+   * Used before initializing a new vault.
+   */
   async clearKeyrings () { /* eslint-disable require-await: interface compatibility */
     // clear keyrings from memory
     this.keyrings = []
