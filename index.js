@@ -613,7 +613,7 @@ class KeyringController extends EventEmitter {
   //
   // Deallocates all currently managed keyrings and accounts.
   // Used before initializing a new vault.
-  clearKeyrings () {
+  async clearKeyrings () { /* eslint-disable require-await: interface compatibility */
     // clear keyrings from memory
     this.keyrings = []
     this.memStore.updateState({
