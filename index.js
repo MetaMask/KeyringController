@@ -429,11 +429,11 @@ class KeyringController extends EventEmitter {
   }
 
   /**
-   * TODO: what exactly does this do?
+   * Exports an app key private key for the given Ethereum address and origin.
    *
    * @param {string} _address - The Ethereum address for the app key.
    * @param {string} origin - The origin for the app key.
-   * @returns {string} The app key address. TODO: wut?
+   * @returns {string} The app key private key.
    */
   async exportAppKeyForAddress (_address, origin) {
     const address = normalizeAddress(_address)
