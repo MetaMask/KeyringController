@@ -20,10 +20,6 @@ module.exports = {
     'window': true,
   },
 
-  rules: {
-    'require-await': 'off',
-  },
-
   overrides: [{
     files: [
       '.eslintrc.js',

@@ -66,7 +66,7 @@ class KeyringController extends EventEmitter {
    * creates a new encrypted store with the given password,
    * randomly creates a new HD wallet with 1 account,
    * faucets that account on the testnet.
-   * 
+   *
    * @param {string} password - The password to encrypt the vault with.
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
@@ -162,7 +162,7 @@ class KeyringController extends EventEmitter {
    *
    * All Keyring classes implement a unique `type` string,
    * and this is used to retrieve them from the keyringTypes array.
-   * 
+   *
    * @param {string} type - The type of keyring to add.
    * @param {Object} opts - The constructor options for the keyring.
    * @returns {Promise<Keyring>} The new keyring.
@@ -210,9 +210,9 @@ class KeyringController extends EventEmitter {
   /**
    * Checks for duplicate keypairs, using the the first account in the given
    * array. Rejects if a duplicate is found.
-   * 
+   *
    * Only supports 'Simple Key Pair'.
-   * 
+   *
    * @param {string} type - The key pair type to check for.
    * @param {Array<string>} newAccountArray - Array of new accounts.
    * @returns {Promise<Array<string>>} The account, if no duplicate is found.
@@ -246,7 +246,7 @@ class KeyringController extends EventEmitter {
    * Calls the `addAccounts` method on the Keyring
    * in the keyrings array at index `keyringNum`,
    * and then saves those changes.
-   * 
+   *
    * @param {number} keyRingNum
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
@@ -283,7 +283,7 @@ class KeyringController extends EventEmitter {
   }
 
   /**
-   * 
+   *
    * Remove Account
    *
    * Removes a specific account from a keyring
@@ -339,7 +339,7 @@ class KeyringController extends EventEmitter {
    * Sign Message
    *
    * Attempts to sign the provided message parameters.
-   * 
+   *
    * @param {Object} msgParams - The message parameters to sign.
    * @returns {Promise<Buffer>} The raw signature, if successful.
    */
@@ -356,7 +356,7 @@ class KeyringController extends EventEmitter {
    *
    * Attempts to sign the provided message paramaters.
    * Prefixes the hash before signing per the personal sign expectation.
-   * 
+   *
    * @param {Object} msgParams - The message parameters to sign.
    * @returns {Promise<Buffer>} The raw signature.
    */
@@ -372,7 +372,7 @@ class KeyringController extends EventEmitter {
    * Get encryption public key
    *
    * Get encryption public key for using in encrypt/decrypt process.
-   * 
+   *
    * @param {Object} address - The address to get the encryption public key for.
    * @returns {Promise<Buffer>} The public key.
    */
@@ -388,7 +388,7 @@ class KeyringController extends EventEmitter {
    * Decrypt Message
    *
    * Attempts to decrypt the provided message parameters.
-   * 
+   *
    * @param {Object} msgParams - The decryption message parameters.
    * @returns {Promise<Buffer>} The raw decryption result.
    */
@@ -403,7 +403,7 @@ class KeyringController extends EventEmitter {
   /**
    * Sign Typed Data
    * (EIP712 https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454)
-   * 
+   *
    * @param {Object} msgParams - The message parameters to sign.
    * @returns {Promise<Buffer>} The raw signature, if successful.
    */
@@ -417,7 +417,7 @@ class KeyringController extends EventEmitter {
 
   /**
    * Gets the app key address for the given Ethereum address and origin.
-   * 
+   *
    * @param {string} _address - The Ethereum address for the app key.
    * @param {string} origin - The origin for the app key.
    * @returns {string} The app key address.
@@ -430,7 +430,7 @@ class KeyringController extends EventEmitter {
 
   /**
    * TODO: what exactly does this do?
-   * 
+   *
    * @param {string} _address - The Ethereum address for the app key.
    * @param {string} origin - The origin for the app key.
    * @returns {string} The app key address. TODO: wut?
@@ -458,7 +458,7 @@ class KeyringController extends EventEmitter {
    * - Makes that account the selected account
    * - Faucets that account on testnet
    * - Puts the current seed words into the state tree
-   * 
+   *
    * @returns {Promise<null>}
    */
   createFirstKeyTree () {
@@ -484,7 +484,7 @@ class KeyringController extends EventEmitter {
    * serializes each one into a serialized array,
    * encrypts that array with the provided `password`,
    * and persists that encrypted string to storage.
-   * 
+   *
    * @param {string} password - The keyring controller password.
    * @returns {Promise<boolean>} Resolves to true once keyrings are persisted.
    */
@@ -521,7 +521,7 @@ class KeyringController extends EventEmitter {
    *
    * Attempts to unlock the persisted encrypted storage,
    * initializing the persisted keyrings to RAM.
-   * 
+   *
    * @param {string} password - The keyring controller password.
    * @returns {Promise<Array<Keyring>>} The keyrings.
    */
@@ -546,7 +546,7 @@ class KeyringController extends EventEmitter {
    * serialized payload.
    *
    * On success, the resulting keyring instance.
-   * 
+   *
    * @param {Object} serialized - The serialized keyring.
    * @returns {Promise<Keyring>} The deserialized keyring.
    */
@@ -575,7 +575,7 @@ class KeyringController extends EventEmitter {
    * for a Keyring class whose unique `type` property
    * matches the provided `type`,
    * returning it if it exists.
-   * 
+   *
    * @param {string} type - The type whose class to get.
    * @returns {Keyring|undefined} The class, if it exists.
    */
@@ -585,9 +585,9 @@ class KeyringController extends EventEmitter {
 
   /**
    * Get Keyrings by Type
-   * 
+   *
    * Gets all keyrings of the given type.
-   * 
+   *
    * @param {string} type - The keyring types to retrieve.
    * @returns {Array<Keyring>} The keyrings.
    */
@@ -600,7 +600,7 @@ class KeyringController extends EventEmitter {
    *
    * Returns the public addresses of all current accounts
    * managed by all currently unlocked keyrings.
-   * 
+   *
    * @returns {Promise<Array<string>>} The array of accounts.
    */
   async getAccounts () {
@@ -619,7 +619,7 @@ class KeyringController extends EventEmitter {
    *
    * Returns the currently initialized keyring that manages
    * the specified `address` if one exists.
-   * 
+   *
    * @param {string} address
    * @returns {Promise<Keyring>}
    */
@@ -667,7 +667,7 @@ class KeyringController extends EventEmitter {
    * Add Gas Buffer
    *
    * Adds a healthy buffer of gas to an initial gas estimate.
-   * 
+   *
    * @param {string} gas - The gas value, as a hex string.
    * @returns {string} The buffered gas, as a hex string.
    */
@@ -684,7 +684,8 @@ class KeyringController extends EventEmitter {
    * Deallocates all currently managed keyrings and accounts.
    * Used before initializing a new vault.
    */
-  async clearKeyrings () { /* eslint-disable require-await: interface compatibility */
+  /* eslint-disable require-await */
+  async clearKeyrings () {
     // clear keyrings from memory
     this.keyrings = []
     this.memStore.updateState({
@@ -692,16 +693,27 @@ class KeyringController extends EventEmitter {
     })
   }
 
+  /**
+   * Update Memstore Keyrings
+   * 
+   * Updates the in-memory keyrings, without persisting.
+   */
   async _updateMemStoreKeyrings () {
     const keyrings = await Promise.all(this.keyrings.map(this.displayForKeyring))
     return this.memStore.updateState({ keyrings })
   }
 
+  /**
+   * Unlock Keyrings
+   * 
+   * Unlocks the keyrings.
+   * 
+   * @emits KeyringController#unlock
+   */
   setUnlocked () {
     this.memStore.updateState({ isUnlocked: true })
     this.emit('unlock', true)
   }
-
 }
 
 module.exports = KeyringController
