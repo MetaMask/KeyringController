@@ -115,8 +115,8 @@ class KeyringController extends EventEmitter {
         }
         return null
       })
-      .then(this.setUnlocked.bind(this))
       .then(this.persistAllKeyrings.bind(this, password))
+      .then(this.setUnlocked.bind(this))
       .then(this.fullUpdate.bind(this))
   }
 
