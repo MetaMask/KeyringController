@@ -144,7 +144,7 @@ class KeyringController extends EventEmitter {
    *
    * Temporarily also migrates any old-style vaults first, as well.
    * (Pre MetaMask 3.0.0)
-   * 
+   *
    * @emits KeyringController#unlock
    * @param {string} password - The keyring controller password.
    * @returns {Promise<Object>} A Promise that resolves to the state.
