@@ -54,6 +54,19 @@ describe('KeyringController', function () {
       await keyringController.submitPassword('')
       assert.equal(keyringController.keyrings.length, 1, 'has one keyring')
     })
+
+    it('emits an unlock event', async function () {
+
+      keyringController.setLocked()
+
+      let called = false
+      keyringController.on('unlock', () => {
+        called = true
+      })
+
+      await keyringController.submitPassword(password)
+      assert.ok(called, 'unlock event fired')
+    })
   })
 
 
@@ -218,19 +231,6 @@ describe('KeyringController', function () {
       keyrings.forEach((keyring) => {
         assert.strictEqual(keyring.wallets.length, 1)
       })
-    })
-
-    it('emits an unlock event', async function () {
-
-      keyringController.setLocked()
-
-      let called = false
-      keyringController.on('unlock', () => {
-        called = true
-      })
-
-      await keyringController.unlockKeyrings(password)
-      assert.ok(called, 'unlock event fired')
     })
   })
 
