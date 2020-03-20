@@ -64,6 +64,7 @@ class KeyringController extends EventEmitter {
    * randomly creates a new HD wallet with 1 account,
    * faucets that account on the testnet.
    *
+   * @emits KeyringController#unlock
    * @param {string} password - The password to encrypt the vault with.
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
@@ -71,6 +72,7 @@ class KeyringController extends EventEmitter {
     return this.persistAllKeyrings(password)
       .then(this.createFirstKeyTree.bind(this))
       .then(this.persistAllKeyrings.bind(this, password))
+      .then(this.setUnlocked.bind(this))
       .then(this.fullUpdate.bind(this))
   }
 
@@ -81,6 +83,7 @@ class KeyringController extends EventEmitter {
    * creates a new encrypted store with the given password,
    * creates a new HD wallet from the given seed with 1 account.
    *
+   * @emits KeyringController#unlock
    * @param {string} password - The password to encrypt the vault with
    * @param {string} seed - The BIP44-compliant seed phrase.
    * @returns {Promise<Object>} A Promise that resolves to the state.
@@ -112,6 +115,7 @@ class KeyringController extends EventEmitter {
         }
         return null
       })
+      .then(this.setUnlocked.bind(this))
       .then(this.persistAllKeyrings.bind(this, password))
       .then(this.fullUpdate.bind(this))
   }
@@ -140,9 +144,10 @@ class KeyringController extends EventEmitter {
    *
    * Temporarily also migrates any old-style vaults first, as well.
    * (Pre MetaMask 3.0.0)
+   * 
+   * @emits KeyringController#unlock
    * @param {string} password - The keyring controller password.
    * @returns {Promise<Object>} A Promise that resolves to the state.
-   * @emits KeyringController#unlock
    */
   submitPassword (password) {
     return this.unlockKeyrings(password)
@@ -502,7 +507,6 @@ class KeyringController extends EventEmitter {
     }
 
     this.password = password
-    this.setUnlocked()
     return Promise.all(this.keyrings.map((keyring) => {
       return Promise.all([keyring.type, keyring.serialize()])
         .then((serializedKeyringArray) => {
