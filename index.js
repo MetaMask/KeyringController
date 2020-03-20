@@ -142,11 +142,13 @@ class KeyringController extends EventEmitter {
    * (Pre MetaMask 3.0.0)
    * @param {string} password - The keyring controller password.
    * @returns {Promise<Object>} A Promise that resolves to the state.
+   * @emits KeyringController#unlock
    */
   submitPassword (password) {
     return this.unlockKeyrings(password)
       .then((keyrings) => {
         this.keyrings = keyrings
+        this.setUnlocked()
         return this.fullUpdate()
       })
   }
@@ -538,7 +540,6 @@ class KeyringController extends EventEmitter {
     await this.clearKeyrings()
     const vault = await this.encryptor.decrypt(password, encryptedVault)
     this.password = password
-    this.setUnlocked()
     await Promise.all(vault.map(this.restoreKeyring.bind(this)))
     return this.keyrings
   }
