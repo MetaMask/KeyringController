@@ -1,13 +1,17 @@
 // disallow promises from swallowing errors
 enableFailureOnUnhandledPromiseRejection()
 
-// logging util
-var log = require('loglevel')
+const log = require('loglevel')
+const getRandomValuesPoly = require('polyfill-crypto.getrandomvalues')
+
 log.setDefaultLevel(5)
 
 //
 // polyfills
 //
+
+// overwrite node's promise with the stricter Bluebird promise
+global.Promise = require('bluebird')
 
 // dom
 require('jsdom-global')()
@@ -16,13 +20,15 @@ require('jsdom-global')()
 window.localStorage = {}
 
 // crypto.getRandomValues
-if (!window.crypto) window.crypto = {}
-if (!window.crypto.getRandomValues) window.crypto.getRandomValues = require('polyfill-crypto.getrandomvalues')
+if (!window.crypto) {
+  window.crypto = {}
+}
 
-function enableFailureOnUnhandledPromiseRejection () {
-  // overwrite node's promise with the stricter Bluebird promise
-  global.Promise = require('bluebird')
+if (!window.crypto.getRandomValues) {
+  window.crypto.getRandomValues = getRandomValuesPoly
+}
 
+function enableFailureOnUnhandledPromiseRejection (...args) {
   // modified from https://github.com/mochajs/mocha/issues/1926#issuecomment-180842722
 
   // rethrow unhandledRejections
@@ -38,9 +44,11 @@ function enableFailureOnUnhandledPromiseRejection () {
         throw evt.detail.reason
       })
     } else {
-      var oldOHR = window.onunhandledrejection
+      const oldOHR = window.onunhandledrejection
       window.onunhandledrejection = function (evt) {
-        if (typeof oldOHR === 'function') oldOHR.apply(this, arguments)
+        if (typeof oldOHR === 'function') {
+          oldOHR.apply(this, args)
+        }
         throw evt.detail.reason
       }
     }

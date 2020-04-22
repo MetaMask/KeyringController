@@ -1,10 +1,12 @@
 {
   "name": "eth-keyring-controller",
-  "version": "5.0.0",
+  "version": "5.6.1",
   "description": "A module for managing various keyrings of Ethereum accounts, encrypting them, and using them.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --require test/helper.js test/index.js"
+    "test": "mocha --timeout 10000 --require test/helper.js test/index.js",
+    "lint": "eslint . --ext js,json",
+    "lint:fix": "eslint . --ext js,json --fix"
   },
   "repository": {
     "type": "git",
@@ -23,9 +25,14 @@
   },
   "homepage": "https://github.com/MetaMask/KeyringController#readme",
   "devDependencies": {
-    "@babel/core": "^7.3.4",
+    "@babel/core": "^7.8.7",
+    "@metamask/eslint-config": "^2.1.0",
     "clone": "^2.1.1",
-    "eslint-plugin-mocha": "^4.11.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-json": "^2.1.1",
+    "eslint-plugin-mocha": "^6.0.0",
+    "ethereumjs-wallet": "^0.6.3",
     "jsdom": "^11.12.0",
     "jsdom-global": "^3.0.2",
     "mocha": "^5.2.0",
@@ -36,12 +43,14 @@
     "bip39": "^2.4.0",
     "bluebird": "^3.5.0",
     "browser-passworder": "^2.0.3",
-    "eth-hd-keyring": "^2.0.0",
+    "eth-hd-keyring": "^3.5.0",
     "eth-sig-util": "^1.4.0",
-    "eth-simple-keyring": "^2.0.0",
+    "eth-simple-keyring": "^3.5.0",
     "ethereumjs-util": "^5.1.2",
     "loglevel": "^1.5.0",
-    "obs-store": "^4.0.2",
-    "promise-filter": "^1.1.0"
-  }
+    "obs-store": "^4.0.3"
+  },
+  "files": [
+    "index.js"
+  ]
 }
