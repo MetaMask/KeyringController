@@ -122,8 +122,9 @@ class KeyringController extends EventEmitter {
 
   /**
    * Set Locked
+   * This method deallocates all secrets, and effectively locks MetaMask.
    *
-   * This method deallocates all secrets, and effectively locks metamask.
+   * @emits KeyringController#lock
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async setLocked () {
@@ -133,6 +134,7 @@ class KeyringController extends EventEmitter {
     // remove keyrings
     this.keyrings = []
     await this._updateMemStoreKeyrings()
+    this.emit('lock')
     return this.fullUpdate()
   }
 
@@ -721,7 +723,7 @@ class KeyringController extends EventEmitter {
    */
   setUnlocked () {
     this.memStore.updateState({ isUnlocked: true })
-    this.emit('unlock', true)
+    this.emit('unlock')
   }
 }
 
