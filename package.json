@@ -1,6 +1,6 @@
 {
   "name": "eth-keyring-controller",
-  "version": "5.6.1",
+  "version": "6.0.0",
   "description": "A module for managing various keyrings of Ethereum accounts, encrypting them, and using them.",
   "main": "index.js",
   "scripts": {
