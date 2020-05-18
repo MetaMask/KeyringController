@@ -124,7 +124,7 @@ class KeyringController extends EventEmitter {
    * Set Locked
    * This method deallocates all secrets, and effectively locks MetaMask.
    *
-   * @emits KeyringController#unlock
+   * @emits KeyringController#lock
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async setLocked () {
