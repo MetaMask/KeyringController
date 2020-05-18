@@ -66,14 +66,12 @@ describe('KeyringController', function () {
 
     it('emits "lock" event', async function () {
 
-      let called = false
-      keyringController.on('lock', () => {
-        called = true
-      })
+      const spy = sinon.spy()
+      keyringController.on('lock', spy)
 
       await keyringController.setLocked()
 
-      assert.ok(called, 'lock event fired')
+      assert.ok(spy.calledOnce, 'lock event fired')
     })
   })
 
@@ -95,13 +93,11 @@ describe('KeyringController', function () {
 
       await keyringController.setLocked()
 
-      let called = false
-      keyringController.on('unlock', () => {
-        called = true
-      })
+      const spy = sinon.spy()
+      keyringController.on('unlock', spy)
 
       await keyringController.submitPassword(password)
-      assert.ok(called, 'unlock event fired')
+      assert.ok(spy.calledOnce, 'unlock event fired')
     })
   })
 
