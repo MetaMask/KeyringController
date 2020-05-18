@@ -35,7 +35,7 @@
     "ethereumjs-wallet": "^0.6.3",
     "jsdom": "^11.12.0",
     "jsdom-global": "^3.0.2",
-    "mocha": "^5.2.0",
+    "mocha": "^7.1.2",
     "polyfill-crypto.getrandomvalues": "^1.0.0",
     "sinon": "^7.2.7"
   },
