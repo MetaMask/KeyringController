@@ -546,37 +546,46 @@ class KeyringController extends EventEmitter {
     await this.clearKeyrings()
     const vault = await this.encryptor.decrypt(password, encryptedVault)
     this.password = password
-    await Promise.all(vault.map(this.restoreKeyring.bind(this)))
+    await Promise.all(vault.map(this._restoreKeyring.bind(this)))
+    await this._updateMemStoreKeyrings()
     return this.keyrings
   }
 
   /**
    * Restore Keyring
    *
-   * Attempts to initialize a new keyring from the provided
-   * serialized payload.
-   *
-   * On success, the resulting keyring instance.
+   * Attempts to initialize a new keyring from the provided serialized payload.
+   * On success, updates the memStore keyrings and returns the resulting
+   * keyring instance.
    *
    * @param {Object} serialized - The serialized keyring.
    * @returns {Promise<Keyring>} The deserialized keyring.
    */
-  restoreKeyring (serialized) {
+  async restoreKeyring (serialized) {
+    const keyring = await this._restoreKeyring(serialized)
+    await this._updateMemStoreKeyrings()
+    return keyring
+  }
+
+  /**
+   * Restore Keyring Helper
+   *
+   * Attempts to initialize a new keyring from the provided serialized payload.
+   * On success, returns the resulting keyring instance.
+   *
+   * @param {Object} serialized - The serialized keyring.
+   * @returns {Promise<Keyring>} The deserialized keyring.
+   */
+  async _restoreKeyring (serialized) {
     const { type, data } = serialized
 
     const Keyring = this.getKeyringClassForType(type)
     const keyring = new Keyring()
-    return keyring.deserialize(data)
-      .then(() => {
-        return keyring.getAccounts()
-      })
-      .then(() => {
-        this.keyrings.push(keyring)
-        return this._updateMemStoreKeyrings()
-      })
-      .then(() => {
-        return keyring
-      })
+    await keyring.deserialize(data)
+    // getAccounts also validates the accounts for some keyrings
+    await keyring.getAccounts()
+    this.keyrings.push(keyring)
+    return keyring
   }
 
   /**
