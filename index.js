@@ -547,6 +547,7 @@ class KeyringController extends EventEmitter {
     const vault = await this.encryptor.decrypt(password, encryptedVault)
     this.password = password
     await Promise.all(vault.map(this.restoreKeyring.bind(this)))
+    this._updateMemStoreKeyrings()
     return this.keyrings
   }
 
@@ -556,7 +557,9 @@ class KeyringController extends EventEmitter {
    * Attempts to initialize a new keyring from the provided
    * serialized payload.
    *
-   * On success, the resulting keyring instance.
+   * On success, returns the resulting keyring instance.
+   *
+   * ATTN: The caller must call _updateMemStoreKeyrings as necessary.
    *
    * @param {Object} serialized - The serialized keyring.
    * @returns {Promise<Keyring>} The deserialized keyring.
@@ -572,7 +575,6 @@ class KeyringController extends EventEmitter {
       })
       .then(() => {
         this.keyrings.push(keyring)
-        return this._updateMemStoreKeyrings()
       })
       .then(() => {
         return keyring
