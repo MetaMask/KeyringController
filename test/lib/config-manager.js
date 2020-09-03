@@ -2,7 +2,6 @@ const ethUtil = require('ethereumjs-util')
 const { normalize } = require('eth-sig-util')
 const MetamaskConfig = require('./config.js')
 
-
 const MAINNET_RPC = MetamaskConfig.network.mainnet
 const ROPSTEN_RPC = MetamaskConfig.network.ropsten
 const KOVAN_RPC = MetamaskConfig.network.kovan
@@ -91,7 +90,6 @@ ConfigManager.prototype.setShowSeedWords = function (should) {
   this.setData(data)
 }
 
-
 ConfigManager.prototype.getShouldShowSeedWords = function () {
   const data = this.getData()
   return data.showSeedWords
@@ -179,7 +177,6 @@ ConfigManager.prototype.setTxList = function (txList) {
   data.transactions = txList
   this.setData(data)
 }
-
 
 // wallet nickname methods
 

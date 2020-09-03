@@ -122,8 +122,9 @@ class KeyringController extends EventEmitter {
 
   /**
    * Set Locked
+   * This method deallocates all secrets, and effectively locks MetaMask.
    *
-   * This method deallocates all secrets, and effectively locks metamask.
+   * @emits KeyringController#lock
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async setLocked () {
@@ -133,6 +134,7 @@ class KeyringController extends EventEmitter {
     // remove keyrings
     this.keyrings = []
     await this._updateMemStoreKeyrings()
+    this.emit('lock')
     return this.fullUpdate()
   }
 
@@ -156,6 +158,22 @@ class KeyringController extends EventEmitter {
         this.setUnlocked()
         return this.fullUpdate()
       })
+  }
+
+  /**
+   * Verify Password
+   *
+   * Attempts to decrypt the current vault with a given password
+   * to verify its validity.
+   *
+   * @param {string} password
+   */
+  async verifyPassword (password) {
+    const encryptedVault = this.store.getState().vault
+    if (!encryptedVault) {
+      throw new Error('Cannot unlock without a previous vault.')
+    }
+    await this.encryptor.decrypt(password, encryptedVault)
   }
 
   /**
@@ -545,37 +563,46 @@ class KeyringController extends EventEmitter {
     await this.clearKeyrings()
     const vault = await this.encryptor.decrypt(password, encryptedVault)
     this.password = password
-    await Promise.all(vault.map(this.restoreKeyring.bind(this)))
+    await Promise.all(vault.map(this._restoreKeyring.bind(this)))
+    await this._updateMemStoreKeyrings()
     return this.keyrings
   }
 
   /**
    * Restore Keyring
    *
-   * Attempts to initialize a new keyring from the provided
-   * serialized payload.
-   *
-   * On success, the resulting keyring instance.
+   * Attempts to initialize a new keyring from the provided serialized payload.
+   * On success, updates the memStore keyrings and returns the resulting
+   * keyring instance.
    *
    * @param {Object} serialized - The serialized keyring.
    * @returns {Promise<Keyring>} The deserialized keyring.
    */
-  restoreKeyring (serialized) {
+  async restoreKeyring (serialized) {
+    const keyring = await this._restoreKeyring(serialized)
+    await this._updateMemStoreKeyrings()
+    return keyring
+  }
+
+  /**
+   * Restore Keyring Helper
+   *
+   * Attempts to initialize a new keyring from the provided serialized payload.
+   * On success, returns the resulting keyring instance.
+   *
+   * @param {Object} serialized - The serialized keyring.
+   * @returns {Promise<Keyring>} The deserialized keyring.
+   */
+  async _restoreKeyring (serialized) {
     const { type, data } = serialized
 
     const Keyring = this.getKeyringClassForType(type)
     const keyring = new Keyring()
-    return keyring.deserialize(data)
-      .then(() => {
-        return keyring.getAccounts()
-      })
-      .then(() => {
-        this.keyrings.push(keyring)
-        return this._updateMemStoreKeyrings()
-      })
-      .then(() => {
-        return keyring
-      })
+    await keyring.deserialize(data)
+    // getAccounts also validates the accounts for some keyrings
+    await keyring.getAccounts()
+    this.keyrings.push(keyring)
+    return keyring
   }
 
   /**
@@ -722,7 +749,7 @@ class KeyringController extends EventEmitter {
    */
   setUnlocked () {
     this.memStore.updateState({ isUnlocked: true })
-    this.emit('unlock', true)
+    this.emit('unlock')
   }
 }
 

@@ -36,12 +36,46 @@ describe('KeyringController', function () {
   })
 
   afterEach(function () {
-    // Cleanup mocks
     sandbox.restore()
   })
 
+  describe('setLocked', function () {
 
-  describe('#submitPassword', function () {
+    it('setLocked correctly sets lock state', async function () {
+
+      assert.notDeepEqual(
+        keyringController.keyrings, [],
+        'keyrings should not be empty',
+      )
+
+      await keyringController.setLocked()
+
+      assert.equal(
+        keyringController.password, null,
+        'password should be null',
+      )
+      assert.equal(
+        keyringController.memStore.getState().isUnlocked, false,
+        'isUnlocked should be false',
+      )
+      assert.deepEqual(
+        keyringController.keyrings, [],
+        'keyrings should be empty',
+      )
+    })
+
+    it('emits "lock" event', async function () {
+
+      const spy = sinon.spy()
+      keyringController.on('lock', spy)
+
+      await keyringController.setLocked()
+
+      assert.ok(spy.calledOnce, 'lock event fired')
+    })
+  })
+
+  describe('submitPassword', function () {
 
     it('should not create new keyrings when called in series', async function () {
       await keyringController.createNewVaultAndKeychain(password)
@@ -55,22 +89,19 @@ describe('KeyringController', function () {
       assert.equal(keyringController.keyrings.length, 1, 'has one keyring')
     })
 
-    it('emits an unlock event', async function () {
+    it('emits "unlock" event', async function () {
 
-      keyringController.setLocked()
+      await keyringController.setLocked()
 
-      let called = false
-      keyringController.on('unlock', () => {
-        called = true
-      })
+      const spy = sinon.spy()
+      keyringController.on('unlock', spy)
 
       await keyringController.submitPassword(password)
-      assert.ok(called, 'unlock event fired')
+      assert.ok(spy.calledOnce, 'unlock event fired')
     })
   })
 
-
-  describe('#createNewVaultAndKeychain', function () {
+  describe('createNewVaultAndKeychain', function () {
 
     it('should set a vault on the configManager', async function () {
 
@@ -96,7 +127,7 @@ describe('KeyringController', function () {
     })
   })
 
-  describe('#addNewKeyring', function () {
+  describe('addNewKeyring', function () {
 
     it('Simple Key Pair', async function () {
 
@@ -113,7 +144,7 @@ describe('KeyringController', function () {
     })
   })
 
-  describe('#restoreKeyring', function () {
+  describe('restoreKeyring', function () {
 
     it(`should pass a keyring's serialized data back to the correct type.`, async function () {
 
@@ -133,7 +164,7 @@ describe('KeyringController', function () {
     })
   })
 
-  describe('#getAccounts', function () {
+  describe('getAccounts', function () {
 
     it('returns the result of getAccounts for each keyring', async function () {
       keyringController.keyrings = [
@@ -154,7 +185,7 @@ describe('KeyringController', function () {
     })
   })
 
-  describe('#removeAccount', function () {
+  describe('removeAccount', function () {
 
     it('removes an account from the corresponding keyring', async function () {
 
@@ -199,7 +230,7 @@ describe('KeyringController', function () {
 
   })
 
-  describe('#addGasBuffer', function () {
+  describe('addGasBuffer', function () {
 
     it('adds 100k gas buffer to estimates', function () {
 
@@ -221,11 +252,11 @@ describe('KeyringController', function () {
     })
   })
 
-  describe('#unlockKeyrings', function () {
+  describe('unlockKeyrings', function () {
 
     it('returns the list of keyrings', async function () {
 
-      keyringController.setLocked()
+      await keyringController.setLocked()
       const keyrings = await keyringController.unlockKeyrings(password)
       assert.notStrictEqual(keyrings.length, 0)
       keyrings.forEach((keyring) => {
