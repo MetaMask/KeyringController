@@ -46,7 +46,7 @@
     "eth-hd-keyring": "^3.5.0",
     "eth-sig-util": "^1.4.0",
     "eth-simple-keyring": "^3.5.0",
-    "ethereumjs-util": "^5.1.2",
+    "ethereumjs-util": "^7.0.9",
     "loglevel": "^1.5.0",
     "obs-store": "^4.0.3"
   },
