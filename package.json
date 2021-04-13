@@ -3,6 +3,9 @@
   "version": "6.1.0",
   "description": "A module for managing various keyrings of Ethereum accounts, encrypting them, and using them.",
   "main": "index.js",
+  "engines": {
+    "node": ">=12.0.0"
+  },
   "scripts": {
     "test": "mocha --timeout 10000 --require test/helper.js test/index.js",
     "lint": "eslint . --ext js,json",
