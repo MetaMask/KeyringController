@@ -11,7 +11,7 @@ The KeyringController has three main responsibilities:
 
 ## Installation
 
-`npm install eth-keyring-controller --save`
+`yarn install eth-keyring-controller --save`
 
 ## Usage
 
@@ -38,6 +38,12 @@ this.keyringController.on('newAccount', (address) => {
   console.log(`New account created: ${address}`)
 })
 this.keyringController.on('removedAccount', handleThat)
+```
+
+## Running tests
+
+```bash
+yarn test
 ```
 
 ## Methods
