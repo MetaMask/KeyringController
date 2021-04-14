@@ -92,7 +92,8 @@ class KeyringController extends EventEmitter {
       return Promise.reject(new Error('Password must be text.'))
     }
 
-    if (!bip39.validateMnemonic(seed)) {
+    const wordlists = Object.values(bip39.wordlists);
+    if (wordlists.every(wordlist => !bip39.validateMnemonic(seed, wordlist))) {
       return Promise.reject(new Error('Seed phrase is invalid.'))
     }
 
