@@ -1110,6 +1110,16 @@ eth-simple-keyring@^3.5.0:
     events "^1.1.1"
     xtend "^4.0.1"
 
+eth-simple-keyring@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/eth-simple-keyring/-/eth-simple-keyring-4.2.0.tgz#c197a4bd4cce7d701b5f3607d0b843112ddb17e3"
+  integrity sha512-lBxFObXJTBjktDkQszXrqoB317wghEUYATQ3W19vLAjaznrmbdy1lccPhXIRMT9bHIUgNKOJQkLohNZiT9tO8Q==
+  dependencies:
+    eth-sig-util "^3.0.1"
+    ethereumjs-util "^7.0.9"
+    ethereumjs-wallet "^1.0.1"
+    events "^1.1.1"
+
 ethereum-cryptography@^0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/ethereum-cryptography/-/ethereum-cryptography-0.1.3.tgz#8d6143cfc3d74bf79bbd8edecdf29e4ae20dd191"
@@ -1184,6 +1194,18 @@ ethereumjs-util@^6.0.0:
     rlp "^2.2.3"
     secp256k1 "^3.0.1"
 
+ethereumjs-util@^7.0.2:
+  version "7.0.10"
+  resolved "https://registry.yarnpkg.com/ethereumjs-util/-/ethereumjs-util-7.0.10.tgz#5fb7b69fa1fda0acc59634cf39d6b0291180fc1f"
+  integrity sha512-c/xThw6A+EAnej5Xk5kOzFzyoSnw0WX0tSlZ6pAsfGVvQj3TItaDg9b1+Fz1RJXA+y2YksKwQnuzgt1eY6LKzw==
+  dependencies:
+    "@types/bn.js" "^5.1.0"
+    bn.js "^5.1.2"
+    create-hash "^1.1.2"
+    ethereum-cryptography "^0.1.3"
+    ethjs-util "0.1.6"
+    rlp "^2.2.4"
+
 ethereumjs-util@^7.0.9:
   version "7.0.9"
   resolved "https://registry.yarnpkg.com/ethereumjs-util/-/ethereumjs-util-7.0.9.tgz#2038baeb30f370a3e576ec175bd70bbbb6807d42"
@@ -1208,6 +1230,20 @@ ethereumjs-wallet@^0.6.0, ethereumjs-wallet@^0.6.3:
     randombytes "^2.0.6"
     safe-buffer "^5.1.2"
     scrypt.js "^0.3.0"
+    utf8 "^3.0.0"
+    uuid "^3.3.2"
+
+ethereumjs-wallet@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/ethereumjs-wallet/-/ethereumjs-wallet-1.0.1.tgz#664a4bcacfc1291ca2703de066df1178938dba1c"
+  integrity sha512-3Z5g1hG1das0JWU6cQ9HWWTY2nt9nXCcwj7eXVNAHKbo00XAZO8+NHlwdgXDWrL0SXVQMvTWN8Q/82DRH/JhPw==
+  dependencies:
+    aes-js "^3.1.1"
+    bs58check "^2.1.2"
+    ethereum-cryptography "^0.1.3"
+    ethereumjs-util "^7.0.2"
+    randombytes "^2.0.6"
+    scrypt-js "^3.0.1"
     utf8 "^3.0.0"
     uuid "^3.3.2"
 
@@ -2577,7 +2613,7 @@ sax@^1.2.4:
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
 
-scrypt-js@^3.0.0:
+scrypt-js@^3.0.0, scrypt-js@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/scrypt-js/-/scrypt-js-3.0.1.tgz#d314a57c2aef69d1ad98a138a21fe9eafa9ee312"
   integrity sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==
