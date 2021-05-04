@@ -680,13 +680,13 @@ class KeyringController extends EventEmitter {
         // Adding more info to the error
         let errorInfo = 'Error info: '
         if (!address) {
-          errorInfo += 'Empty address; '
+          errorInfo += 'The address passed in is invalid/empty; '
         }
         if (!candidates || !candidates.length) {
-          errorInfo += 'Empty candidates; '
+          errorInfo += 'There are no keyrings; '
         }
         if (!winners || !winners.length) {
-          errorInfo += 'Empty winners;'
+          errorInfo += 'There are keyrings, but none match the address;'
         }
         throw new Error(`No keyring found for the requested account. ${errorInfo}`)
 
