@@ -268,10 +268,11 @@ class KeyringController extends EventEmitter {
    * and then saves those changes.
    *
    * @param {Keyring} selectedKeyring - The currently selected keyring.
+   * @param {Object} opts - New account options.
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
-  addNewAccount (selectedKeyring) {
-    return selectedKeyring.addAccounts(1)
+  addNewAccount (selectedKeyring, opts = {}) {
+    return selectedKeyring.addAccounts(1, opts)
       .then((accounts) => {
         accounts.forEach((hexAccount) => {
           this.emit('newAccount', hexAccount)
