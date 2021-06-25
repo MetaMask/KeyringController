@@ -1,10 +1,7 @@
 // disallow promises from swallowing errors
 enableFailureOnUnhandledPromiseRejection()
 
-const log = require('loglevel')
 const getRandomValuesPoly = require('polyfill-crypto.getrandomvalues')
-
-log.setDefaultLevel(5)
 
 //
 // polyfills
