@@ -8,8 +8,10 @@
   },
   "scripts": {
     "test": "mocha --timeout 10000 test/index.js",
-    "lint": "eslint . --ext js,json",
-    "lint:fix": "eslint . --ext js,json --fix"
+    "lint:eslint": "eslint . --cache --ext js,ts",
+    "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' '**/*.yml' --ignore-path .gitignore",
+    "lint": "yarn lint:eslint && yarn lint:misc --check",
+    "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write"
   },
   "repository": {
     "type": "git",
@@ -28,13 +30,18 @@
   },
   "homepage": "https://github.com/MetaMask/KeyringController#readme",
   "devDependencies": {
-    "@metamask/eslint-config": "^3.2.0",
-    "eslint": "^6.8.0",
-    "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-json": "^2.1.1",
-    "eslint-plugin-mocha": "^6.0.0",
+    "@metamask/eslint-config": "^6.0.0",
+    "@metamask/eslint-config-mocha": "^6.0.0",
+    "@metamask/eslint-config-nodejs": "^6.0.0",
+    "eslint": "^7.29.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-mocha": "^8.2.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.4.0",
     "ethereumjs-wallet": "^1.0.1",
     "mocha": "^9.0.1",
+    "prettier": "^2.3.2",
     "sinon": "^11.1.1"
   },
   "dependencies": {

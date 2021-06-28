@@ -32,8 +32,8 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-          - node_modules
-          - build-artifacts
+            - node_modules
+            - build-artifacts
 
   test-lint:
     docker:

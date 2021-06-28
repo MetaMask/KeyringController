@@ -3,13 +3,13 @@
 
 version: 2
 updates:
-  - package-ecosystem: 'npm'
-    directory: '/'
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
-      interval: 'daily'
-      time: '06:00'
+      interval: "daily"
+      time: "06:00"
     allow:
-      - dependency-name: '@metamask/*'
-    target-branch: 'main'
-    versioning-strategy: 'increase-if-necessary'
+      - dependency-name: "@metamask/*"
+    target-branch: "main"
+    versioning-strategy: "increase-if-necessary"
     open-pull-requests-limit: 10
