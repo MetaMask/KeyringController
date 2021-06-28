@@ -3,7 +3,7 @@ const sigUtil = require('eth-sig-util')
 
 const normalizeAddress = sigUtil.normalize
 const sinon = require('sinon')
-const Wallet = require('ethereumjs-wallet')
+const Wallet = require('ethereumjs-wallet').default
 
 const mockEncryptor = require('./lib/mock-encryptor')
 const KeyringController = require('..')
