@@ -18,8 +18,6 @@ describe('KeyringController', function () {
   const addresses = [mockAddress]
 
   beforeEach(async function () {
-    window.localStorage = {} // Hacking localStorage support into JSDom
-
     keyringController = new KeyringController({
       encryptor: mockEncryptor,
     })
