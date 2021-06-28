@@ -10,8 +10,6 @@ const KeyringController = require('..')
 
 const mockAddress = '0xeF35cA8EbB9669A35c31b5F6f249A9941a812AC1'.toLowerCase()
 
-let sandbox
-
 describe('KeyringController', function () {
 
   let keyringController
@@ -20,7 +18,6 @@ describe('KeyringController', function () {
   const addresses = [mockAddress]
 
   beforeEach(async function () {
-    sandbox = sinon.createSandbox()
     window.localStorage = {} // Hacking localStorage support into JSDom
 
     keyringController = new KeyringController({
@@ -31,7 +28,7 @@ describe('KeyringController', function () {
   })
 
   afterEach(function () {
-    sandbox.restore()
+    sinon.restore()
   })
 
   describe('setLocked', function () {
