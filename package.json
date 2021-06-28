@@ -41,7 +41,7 @@
     "sinon": "^7.2.7"
   },
   "dependencies": {
-    "bip39": "^2.4.0",
+    "bip39": "^3.0.4",
     "bluebird": "^3.5.0",
     "browser-passworder": "^2.0.3",
     "eth-hd-keyring": "^3.6.0",
