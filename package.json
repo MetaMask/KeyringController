@@ -36,7 +36,7 @@
     "ethereumjs-wallet": "^0.6.3",
     "jsdom": "^11.12.0",
     "jsdom-global": "^3.0.2",
-    "mocha": "^7.1.2",
+    "mocha": "^9.0.1",
     "polyfill-crypto.getrandomvalues": "^1.0.0",
     "sinon": "^7.2.7"
   },
@@ -47,7 +47,6 @@
     "eth-hd-keyring": "^3.6.0",
     "eth-sig-util": "^3.0.1",
     "eth-simple-keyring": "^4.2.0",
-    "ethereumjs-util": "^7.0.9",
     "obs-store": "^4.0.3"
   },
   "files": [
