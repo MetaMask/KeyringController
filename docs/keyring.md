@@ -9,13 +9,13 @@ This is the only class property or method, the remaining methods are instance me
 
 ### constructor( options )
 
-As a Javascript class, your Keyring object will be used to instantiate new Keyring instances using the new keyword.  For example:
+As a Javascript class, your Keyring object will be used to instantiate new Keyring instances using the new keyword. For example:
 
 ```
 const keyring = new YourKeyringClass(options);
 ```
 
-The constructor currently receives an options object that will be defined by your keyring-building UI, once the user has gone through the steps required for you to fully instantiate a new keyring.  For example, choosing a pattern for a vanity account, or entering a seed phrase.
+The constructor currently receives an options object that will be defined by your keyring-building UI, once the user has gone through the steps required for you to fully instantiate a new keyring. For example, choosing a pattern for a vanity account, or entering a seed phrase.
 
 We haven't defined the protocol for this account-generating UI yet, so for now please ensure your Keyring behaves nicely when not passed any options object.
 

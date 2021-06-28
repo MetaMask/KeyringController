@@ -1,27 +1,16 @@
 module.exports = {
-
   root: true,
-
-  parserOptions: {
-    'ecmaVersion': 2017,
+  extends: ['@metamask/eslint-config'],
+  env: {
+    commonjs: true,
   },
-
-  extends: [
-    '@metamask/eslint-config',
-    '@metamask/eslint-config/config/nodejs',
-    '@metamask/eslint-config/config/mocha',
-  ],
-
-  plugins: [
-    'json',
-  ],
-
-  overrides: [{
-    files: [
-      '.eslintrc.js',
-    ],
-    parserOptions: {
-      sourceType: 'script',
+  overrides: [
+    {
+      files: ['test/**/*.js'],
+      extends: [
+        '@metamask/eslint-config-mocha',
+        '@metamask/eslint-config-nodejs',
+      ],
     },
-  }],
-}
+  ],
+};
