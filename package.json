@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/MetaMask/KeyringController.git"
+    "url": "https://github.com/MetaMask/KeyringController.git"
   },
   "keywords": [
     "ethereum",
@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/MetaMask/KeyringController#readme",
   "devDependencies": {
+    "@metamask/auto-changelog": "^2.3.0",
     "@metamask/eslint-config": "^6.0.0",
     "@metamask/eslint-config-mocha": "^6.0.0",
     "@metamask/eslint-config-nodejs": "^6.0.0",

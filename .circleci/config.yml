@@ -10,9 +10,13 @@ workflows:
       - test-unit:
           requires:
             - prep-deps
+      - test-lint-changelog:
+          requires:
+            - prep-deps
       - all-tests-pass:
           requires:
             - test-lint
+            - test-lint-changelog
             - test-unit
 
 jobs:
@@ -56,6 +60,33 @@ jobs:
       - run:
           name: Unit tests
           command: yarn test
+
+  test-lint-changelog:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - when:
+          condition:
+            not:
+              matches:
+                pattern: /^release\//
+                value: << pipeline.git.branch >>
+          steps:
+            - run:
+                name: Validate changelog
+                command: yarn auto-changelog validate
+      - when:
+          condition:
+            matches:
+              pattern: /^release\//
+              value: << pipeline.git.branch >>
+          steps:
+            - run:
+                name: Validate release candidate changelog
+                command: yarn auto-changelog validate --rc
 
   all-tests-pass:
     docker:
