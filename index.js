@@ -1,5 +1,4 @@
 const { EventEmitter } = require('events')
-const log = require('loglevel')
 const ethUtil = require('ethereumjs-util')
 const bip39 = require('bip39')
 const ObservableStore = require('obs-store')
@@ -657,7 +656,6 @@ class KeyringController extends EventEmitter {
    */
   getKeyringForAccount (address) {
     const hexed = normalizeAddress(address)
-    log.debug(`KeyringController - getKeyringForAccount: ${hexed}`)
 
     return Promise.all(this.keyrings.map((keyring) => {
       return Promise.all([
