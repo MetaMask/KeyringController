@@ -6,7 +6,6 @@ const normalizeAddress = sigUtil.normalize
 const sinon = require('sinon')
 const Wallet = require('ethereumjs-wallet')
 
-const configManagerGen = require('./lib/mock-config-manager')
 const mockEncryptor = require('./lib/mock-encryptor')
 const KeyringController = require('..')
 
@@ -26,7 +25,6 @@ describe('KeyringController', function () {
     window.localStorage = {} // Hacking localStorage support into JSDom
 
     keyringController = new KeyringController({
-      configManager: configManagerGen(),
       encryptor: mockEncryptor,
     })
 
