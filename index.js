@@ -1,8 +1,5 @@
-
 const { EventEmitter } = require('events')
 const ethUtil = require('ethereumjs-util')
-
-const { BN } = ethUtil
 const bip39 = require('bip39')
 const ObservableStore = require('obs-store')
 const encryptor = require('browser-passworder')
@@ -706,21 +703,6 @@ class KeyringController extends EventEmitter {
           accounts: accounts.map(normalizeAddress),
         }
       })
-  }
-
-  /**
-   * Add Gas Buffer
-   *
-   * Adds a healthy buffer of gas to an initial gas estimate.
-   *
-   * @param {string} gas - The gas value, as a hex string.
-   * @returns {string} The buffered gas, as a hex string.
-   */
-  addGasBuffer (gas) {
-    const gasBuffer = new BN('100000', 10)
-    const bnGas = new BN(ethUtil.stripHexPrefix(gas), 16)
-    const correct = bnGas.add(gasBuffer)
-    return ethUtil.addHexPrefix(correct.toString(16))
   }
 
   /**
