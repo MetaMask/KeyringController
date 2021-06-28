@@ -7,7 +7,7 @@
     "node": ">=12.0.0"
   },
   "scripts": {
-    "test": "mocha --timeout 10000 --require test/helper.js test/index.js",
+    "test": "mocha --timeout 10000 test/index.js",
     "lint": "eslint . --ext js,json",
     "lint:fix": "eslint . --ext js,json --fix"
   },
@@ -39,7 +39,6 @@
   },
   "dependencies": {
     "bip39": "^3.0.4",
-    "bluebird": "^3.5.0",
     "browser-passworder": "^2.0.3",
     "eth-hd-keyring": "^3.6.0",
     "eth-sig-util": "^3.0.1",
