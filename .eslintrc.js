@@ -16,10 +16,6 @@ module.exports = {
     'json',
   ],
 
-  globals: {
-    'window': true,
-  },
-
   overrides: [{
     files: [
       '.eslintrc.js',
