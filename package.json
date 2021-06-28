@@ -47,7 +47,6 @@
     "eth-hd-keyring": "^3.6.0",
     "eth-sig-util": "^3.0.1",
     "eth-simple-keyring": "^4.2.0",
-    "ethereumjs-util": "^7.0.9",
     "obs-store": "^4.0.3"
   },
   "files": [

@@ -1,5 +1,4 @@
 const { EventEmitter } = require('events')
-const ethUtil = require('ethereumjs-util')
 const bip39 = require('bip39')
 const ObservableStore = require('obs-store')
 const encryptor = require('browser-passworder')
@@ -12,6 +11,18 @@ const keyringTypes = [
   SimpleKeyring,
   HdKeyring,
 ]
+
+/**
+ * Strip the hex prefix from an address, if present
+ * @param {string} address - The address that might be hex prefixed.
+ * @returns {string} The address without a hex prefix.
+ */
+function stripHexPrefix (address) {
+  if (address.startsWith('0x')) {
+    return address.slice(2)
+  }
+  return address
+}
 
 class KeyringController extends EventEmitter {
 
@@ -243,7 +254,7 @@ class KeyringController extends EventEmitter {
               accounts.find(
                 (key) => (
                   key === newAccountArray[0] ||
-                  key === ethUtil.stripHexPrefix(newAccountArray[0])),
+                  key === stripHexPrefix(newAccountArray[0])),
               ),
             )
             return isIncluded
