@@ -7,6 +7,7 @@
     "node": ">=12.0.0"
   },
   "scripts": {
+    "setup": "yarn install && yarn allow-scripts",
     "test": "mocha --timeout 10000 test/index.js",
     "lint:eslint": "eslint . --cache --ext js,ts",
     "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' '**/*.yml' --ignore-path .gitignore",
@@ -30,6 +31,7 @@
   },
   "homepage": "https://github.com/MetaMask/KeyringController#readme",
   "devDependencies": {
+    "@lavamoat/allow-scripts": "^1.0.6",
     "@metamask/auto-changelog": "^2.3.0",
     "@metamask/eslint-config": "^6.0.0",
     "@metamask/eslint-config-mocha": "^6.0.0",
@@ -55,5 +57,12 @@
   },
   "files": [
     "index.js"
-  ]
+  ],
+  "lavamoat": {
+    "allowScripts": {
+      "@lavamoat/preinstall-always-fail": false,
+      "keccak": true,
+      "secp256k1": true
+    }
+  }
 }
