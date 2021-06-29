@@ -6,11 +6,15 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['test/**/*.js'],
+      files: ['test/**/*.ts'],
       extends: [
         '@metamask/eslint-config-jest',
         '@metamask/eslint-config-nodejs',
       ],
+    },
+    {
+      files: ['*.ts'],
+      extends: ['@metamask/eslint-config-typescript'],
     },
   ],
 };

@@ -1,12 +1,13 @@
-const { strict: assert } = require('assert');
-const sigUtil = require('eth-sig-util');
+import { strict as assert } from 'assert';
+import sigUtil from 'eth-sig-util';
+
+import sinon from 'sinon';
+import Wallet from 'ethereumjs-wallet';
+
+import KeyringController from '../src';
+import mockEncryptor from './lib/mock-encryptor';
 
 const normalizeAddress = sigUtil.normalize;
-const sinon = require('sinon');
-const Wallet = require('ethereumjs-wallet').default;
-
-const KeyringController = require('..');
-const mockEncryptor = require('./lib/mock-encryptor');
 
 const mockAddress = '0xeF35cA8EbB9669A35c31b5F6f249A9941a812AC1'.toLowerCase();
 
