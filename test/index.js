@@ -39,17 +39,9 @@ describe('KeyringController', function () {
 
       await keyringController.setLocked();
 
-      assert.equal(keyringController.password, null, 'password should be null');
-      assert.equal(
-        keyringController.memStore.getState().isUnlocked,
-        false,
-        'isUnlocked should be false',
-      );
-      assert.deepEqual(
-        keyringController.keyrings,
-        [],
-        'keyrings should be empty',
-      );
+      expect(keyringController.password).toBeNull();
+      expect(keyringController.memStore.getState().isUnlocked).toBe(false);
+      expect(keyringController.keyrings).toHaveLength(0);
     });
 
     it('emits "lock" event', async function () {
@@ -58,7 +50,7 @@ describe('KeyringController', function () {
 
       await keyringController.setLocked();
 
-      assert.ok(spy.calledOnce, 'lock event fired');
+      expect(spy.calledOnce).toBe(true);
     });
   });
 
@@ -66,13 +58,13 @@ describe('KeyringController', function () {
     it('should not create new keyrings when called in series', async function () {
       await keyringController.createNewVaultAndKeychain(password);
       await keyringController.persistAllKeyrings();
-      assert.equal(keyringController.keyrings.length, 1, 'has one keyring');
+      expect(keyringController.keyrings).toHaveLength(1);
 
       await keyringController.submitPassword(`${password}a`);
-      assert.equal(keyringController.keyrings.length, 1, 'has one keyring');
+      expect(keyringController.keyrings).toHaveLength(1);
 
       await keyringController.submitPassword('');
-      assert.equal(keyringController.keyrings.length, 1, 'has one keyring');
+      expect(keyringController.keyrings).toHaveLength(1);
     });
 
     it('emits "unlock" event', async function () {
@@ -82,7 +74,7 @@ describe('KeyringController', function () {
       keyringController.on('unlock', spy);
 
       await keyringController.submitPassword(password);
-      assert.ok(spy.calledOnce, 'unlock event fired');
+      expect(spy.calledOnce).toBe(true);
     });
   });
 
@@ -93,7 +85,8 @@ describe('KeyringController', function () {
 
       await keyringController.createNewVaultAndKeychain(password);
       const { vault } = keyringController.store.getState();
-      assert(vault, 'vault created');
+      // eslint-disable-next-line jest/no-restricted-matchers
+      expect(vault).toBeTruthy();
     });
 
     it('should encrypt keyrings with the correct password each time they are persisted', async function () {
@@ -102,15 +95,16 @@ describe('KeyringController', function () {
 
       await keyringController.createNewVaultAndKeychain(password);
       const { vault } = keyringController.store.getState();
-      assert(vault, 'vault created');
+      // eslint-disable-next-line jest/no-restricted-matchers
+      expect(vault).toBeTruthy();
       keyringController.encryptor.encrypt.args.forEach(([actualPassword]) => {
-        assert.equal(actualPassword, password);
+        expect(actualPassword).toBe(password);
       });
     });
   });
 
   describe('addNewKeyring', function () {
-    it('Simple Key Pair', async function () {
+    it('should add simple key pair', async function () {
       const privateKey =
         'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3';
       const previousAccounts = await keyringController.getAccounts();
@@ -121,21 +115,13 @@ describe('KeyringController', function () {
       const expectedKeyringAccounts = [
         '0x627306090abab3a6e1400e9345bc60c78a8bef57',
       ];
-      assert.deepEqual(
-        keyringAccounts,
-        expectedKeyringAccounts,
-        'keyringAccounts match expectation',
-      );
+      expect(keyringAccounts).toStrictEqual(expectedKeyringAccounts);
 
       const allAccounts = await keyringController.getAccounts();
       const expectedAllAccounts = previousAccounts.concat(
         expectedKeyringAccounts,
       );
-      assert.deepEqual(
-        allAccounts,
-        expectedAllAccounts,
-        'allAccounts match expectation',
-      );
+      expect(allAccounts).toStrictEqual(expectedAllAccounts);
     });
   });
 
@@ -150,10 +136,10 @@ describe('KeyringController', function () {
       };
 
       const keyring = await keyringController.restoreKeyring(mockSerialized);
-      assert.equal(keyring.wallets.length, 1, 'one wallet restored');
+      expect(keyring.wallets).toHaveLength(1);
 
       const accounts = await keyring.getAccounts();
-      assert.equal(accounts[0], addresses[0]);
+      expect(accounts[0]).toBe(addresses[0]);
     });
   });
 
@@ -173,7 +159,7 @@ describe('KeyringController', function () {
       ];
 
       const result = await keyringController.getAccounts();
-      assert.deepEqual(result, [
+      expect(result).toStrictEqual([
         '0x01',
         '0x02',
         '0x03',
@@ -204,7 +190,7 @@ describe('KeyringController', function () {
 
       // fetch accounts after removal
       const result = await keyringController.getAccounts();
-      assert.deepEqual(result, accountsBeforeAdding);
+      expect(result).toStrictEqual(accountsBeforeAdding);
     });
 
     it('removes the keyring if there are no accounts after removal', async function () {
@@ -220,14 +206,14 @@ describe('KeyringController', function () {
       ]);
 
       // We should have 2 keyrings
-      assert.equal(keyringController.keyrings.length, 2);
+      expect(keyringController.keyrings).toHaveLength(2);
 
       // remove that account that we just added
       await keyringController.removeAccount(account.publicKey);
 
       // Check that the previous keyring with only one account
       // was also removed after removing the account
-      assert.equal(keyringController.keyrings.length, 1);
+      expect(keyringController.keyrings).toHaveLength(1);
     });
   });
 
@@ -235,9 +221,9 @@ describe('KeyringController', function () {
     it('returns the list of keyrings', async function () {
       await keyringController.setLocked();
       const keyrings = await keyringController.unlockKeyrings(password);
-      assert.notStrictEqual(keyrings.length, 0);
+      expect(keyrings).toHaveLength(1);
       keyrings.forEach((keyring) => {
-        assert.strictEqual(keyring.wallets.length, 1);
+        expect(keyring.wallets).toHaveLength(1);
       });
     });
   });
@@ -259,13 +245,12 @@ describe('KeyringController', function () {
 
       await keyringController.getAppKeyAddress(address, 'someapp.origin.io');
 
-      assert(keyringController.getKeyringForAccount.calledOnce);
-      assert.equal(
-        keyringController.getKeyringForAccount.getCall(0).args[0],
+      expect(keyringController.getKeyringForAccount.calledOnce).toBe(true);
+      expect(keyringController.getKeyringForAccount.getCall(0).args[0]).toBe(
         normalizeAddress(address),
       );
-      assert(keyring.getAppKeyAddress.calledOnce);
-      assert.deepEqual(keyring.getAppKeyAddress.getCall(0).args, [
+      expect(keyring.getAppKeyAddress.calledOnce).toBe(true);
+      expect(keyring.getAppKeyAddress.getCall(0).args).toStrictEqual([
         normalizeAddress(address),
         'someapp.origin.io',
       ]);
@@ -291,12 +276,8 @@ describe('KeyringController', function () {
       const wallet = Wallet.fromPrivateKey(Buffer.from(privateAppKey, 'hex'));
       const recoveredAddress = `0x${wallet.getAddress().toString('hex')}`;
 
-      assert.equal(
-        recoveredAddress,
-        appKeyAddress,
-        'Exported the appropriate private key',
-      );
-      assert.notEqual(privateAppKey, privateKey);
+      expect(recoveredAddress).toBe(appKeyAddress);
+      expect(privateAppKey).not.toBe(privateKey);
     });
   });
 });
