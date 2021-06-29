@@ -66,20 +66,20 @@
     semver "^7.3.5"
     yargs "^17.0.1"
 
-"@metamask/eslint-config-mocha@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eslint-config-mocha/-/eslint-config-mocha-6.0.0.tgz#407fc07d4bdfbc79b64989fa9a56a5a671aa4721"
-  integrity sha512-Hf1JYLWsW9JQWWwlLHltK1l0wqLOjCF0z5V2Dwt0oGUjFdAoVm8fOa2TisrgHNHYuAtyd+ZaIEm/xQce1L2ovg==
+"@metamask/eslint-config-mocha@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eslint-config-mocha/-/eslint-config-mocha-7.0.0.tgz#bc1b0be00b32da2a3d888003c3b4587fff83629e"
+  integrity sha512-fS7WCVd+jytejLHqplnALot46jxozQ75ZgpcTypRmEi1eR1Ue3Km2BWp/EdjVG2wfgous4mbIUK8ZVr/lvCO6w==
 
-"@metamask/eslint-config-nodejs@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eslint-config-nodejs/-/eslint-config-nodejs-6.0.0.tgz#df77bb35b91556030f1b23ad4ff51c1caf033339"
-  integrity sha512-nx7VhJRpJKQrcdDvy2bLCSWqBmWftgqxyG+BUw06XcWQzbmZTn94EXdLlH6zTQxmR4C+m+AOy5ung0NSUwmY3g==
+"@metamask/eslint-config-nodejs@^7.0.1":
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/eslint-config-nodejs/-/eslint-config-nodejs-7.0.1.tgz#7d3214b2c8eccfe2dbc9156b484456dce2dca91c"
+  integrity sha512-V9C1jYuLnhZOhW9dAKB7zMDmDKS1r907rYirUMcoU4mi8ggPTP6JqT87EAEX9bsA2ZpeTYXUXf5bkfLM+BTGyA==
 
-"@metamask/eslint-config@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eslint-config/-/eslint-config-6.0.0.tgz#ec53e8ab278073e882411ed89705bc7d06b78c81"
-  integrity sha512-LyakGYGwM8UQOGhwWa+5erAI1hXuiTgf/y7USzOomX6H9KiuY09IAUYnPh7ToPG2sedD2F48UF1bUm8yvCoZOw==
+"@metamask/eslint-config@^7.0.1":
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/eslint-config/-/eslint-config-7.0.1.tgz#eeb87baa902965ca7931c26911d7027373706f34"
+  integrity sha512-dMZ+iyZrHdZK0D1uStTx8UN6Q6IK9YGbqPUwxgTj63M0mZOsuqs8qpGf+9Dn7uqS+8Oe9jNqejKxozjTiJvsEw==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
