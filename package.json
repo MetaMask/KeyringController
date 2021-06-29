@@ -2,10 +2,26 @@
   "name": "eth-keyring-controller",
   "version": "6.2.1",
   "description": "A module for managing various keyrings of Ethereum accounts, encrypting them, and using them.",
-  "main": "index.js",
-  "engines": {
-    "node": ">=12.0.0"
+  "keywords": [
+    "ethereum",
+    "metamask",
+    "accounts",
+    "keys"
+  ],
+  "homepage": "https://github.com/MetaMask/KeyringController#readme",
+  "bugs": {
+    "url": "https://github.com/MetaMask/KeyringController/issues"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MetaMask/KeyringController.git"
+  },
+  "license": "ISC",
+  "author": "Dan Finlay <dan@danfinlay.com>",
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
   "scripts": {
     "setup": "yarn install && yarn allow-scripts",
     "test": "mocha --timeout 10000 test/index.js",
@@ -14,22 +30,14 @@
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/MetaMask/KeyringController.git"
+  "dependencies": {
+    "bip39": "^3.0.4",
+    "browser-passworder": "^2.0.3",
+    "eth-hd-keyring": "^3.6.0",
+    "eth-sig-util": "^3.0.1",
+    "eth-simple-keyring": "^4.2.0",
+    "obs-store": "^4.0.3"
   },
-  "keywords": [
-    "ethereum",
-    "metamask",
-    "accounts",
-    "keys"
-  ],
-  "author": "Dan Finlay <dan@danfinlay.com>",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/MetaMask/KeyringController/issues"
-  },
-  "homepage": "https://github.com/MetaMask/KeyringController#readme",
   "devDependencies": {
     "@lavamoat/allow-scripts": "^1.0.6",
     "@metamask/auto-changelog": "^2.3.0",
@@ -45,19 +53,12 @@
     "ethereumjs-wallet": "^1.0.1",
     "mocha": "^9.0.1",
     "prettier": "^2.3.2",
+    "prettier-plugin-packagejson": "^2.2.11",
     "sinon": "^11.1.1"
   },
-  "dependencies": {
-    "bip39": "^3.0.4",
-    "browser-passworder": "^2.0.3",
-    "eth-hd-keyring": "^3.6.0",
-    "eth-sig-util": "^3.0.1",
-    "eth-simple-keyring": "^4.2.0",
-    "obs-store": "^4.0.3"
+  "engines": {
+    "node": ">=12.0.0"
   },
-  "files": [
-    "index.js"
-  ],
   "lavamoat": {
     "allowScripts": {
       "@lavamoat/preinstall-always-fail": false,
