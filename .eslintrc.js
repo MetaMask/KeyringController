@@ -8,7 +8,7 @@ module.exports = {
     {
       files: ['test/**/*.js'],
       extends: [
-        '@metamask/eslint-config-mocha',
+        '@metamask/eslint-config-jest',
         '@metamask/eslint-config-nodejs',
       ],
     },
