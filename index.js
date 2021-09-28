@@ -725,6 +725,7 @@ class KeyringController extends EventEmitter {
    * Deallocates all currently managed keyrings and accounts.
    * Used before initializing a new vault.
    */
+
   /* eslint-disable require-await */
   async clearKeyrings() {
     // clear keyrings from memory
@@ -756,6 +757,24 @@ class KeyringController extends EventEmitter {
   setUnlocked() {
     this.memStore.updateState({ isUnlocked: true });
     this.emit('unlock');
+  }
+
+  /**
+   * Forget hardware keyring
+   *
+   * Forget hardware and update memorized state.
+   * @param {Keyring} keyring
+   */
+  forgetKeyring(keyring) {
+    if (keyring.forgetDevice) {
+      keyring.forgetDevice();
+      this.persistAllKeyrings.bind(this)();
+      this._updateMemStoreKeyrings.bind(this)();
+    } else {
+      throw new Error(
+        `KeyringController - keyring does not have method "forgetDevice", keyring type: ${keyring.type}`,
+      );
+    }
   }
 }
 

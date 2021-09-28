@@ -280,4 +280,27 @@ describe('KeyringController', function () {
       expect(privateAppKey).not.toBe(privateKey);
     });
   });
+
+  describe('forgetHardwareDevice', function () {
+    it('throw when keyring is not hardware device', async function () {
+      const privateKey =
+        '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952';
+      const keyring = await keyringController.addNewKeyring('Simple Key Pair', [
+        privateKey,
+      ]);
+      expect(keyringController.keyrings).toHaveLength(2);
+      expect(() => keyringController.forgetKeyring(keyring)).toThrow(
+        new Error(
+          'KeyringController - keyring does not have method "forgetDevice", keyring type: Simple Key Pair',
+        ),
+      );
+    });
+
+    it('forget hardware device', async function () {
+      const hdKeyring = keyringController.getKeyringsByType('HD Key Tree');
+      hdKeyring.forgetDevice = sinon.spy();
+      keyringController.forgetKeyring(hdKeyring);
+      expect(hdKeyring.forgetDevice.calledOnce).toBe(true);
+    });
+  });
 });
