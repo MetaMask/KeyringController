@@ -687,18 +687,16 @@ class KeyringController extends EventEmitter {
       }
 
       // Adding more info to the error
-      let errorInfo = 'Error info: ';
+      let errorInfo = '';
       if (!address) {
-        errorInfo += 'The address passed in is invalid/empty; ';
-      }
-      if (!candidates || !candidates.length) {
-        errorInfo += 'There are no keyrings; ';
-      }
-      if (!winners || !winners.length) {
-        errorInfo += 'There are keyrings, but none match the address;';
+        errorInfo = 'The address passed in is invalid/empty';
+      } else if (!candidates || !candidates.length) {
+        errorInfo = 'There are no keyrings';
+      } else if (!winners || !winners.length) {
+        errorInfo = 'There are keyrings, but none match the address';
       }
       throw new Error(
-        `No keyring found for the requested account. ${errorInfo}`,
+        `No keyring found for the requested account. Error info: ${errorInfo}`,
       );
     });
   }
