@@ -303,4 +303,44 @@ describe('KeyringController', function () {
       expect(hdKeyring.forgetDevice.calledOnce).toBe(true);
     });
   });
+
+  describe('getKeyringForAccount', function () {
+    it('throws error when address is not provided', async function () {
+      await expect(
+        keyringController.getKeyringForAccount(undefined),
+      ).rejects.toThrow(
+        new Error(
+          'No keyring found for the requested account. Error info: The address passed in is invalid/empty',
+        ),
+      );
+    });
+
+    it('throws error when there are no keyrings', async function () {
+      keyringController.keyrings = [];
+      await expect(
+        keyringController.getKeyringForAccount('0x04'),
+      ).rejects.toThrow(
+        new Error(
+          'No keyring found for the requested account. Error info: There are no keyrings',
+        ),
+      );
+    });
+
+    it('throws error when there are no matching keyrings', async function () {
+      keyringController.keyrings = [
+        {
+          getAccounts() {
+            return Promise.resolve([1, 2, 3]);
+          },
+        },
+      ];
+      await expect(
+        keyringController.getKeyringForAccount('0x04'),
+      ).rejects.toThrow(
+        new Error(
+          'No keyring found for the requested account. Error info: There are keyrings, but none match the address',
+        ),
+      );
+    });
+  });
 });
