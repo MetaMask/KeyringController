@@ -367,7 +367,7 @@ class KeyringController extends EventEmitter {
    * @param {Object} ethTx - The transaction to sign.
    * @param {string} _fromAddress - The transaction 'from' address.
    * @param {Object} opts - Signing options.
-   * @returns {Promise<Object>} The signed transactio object.
+   * @returns {Promise<Object>} The signed transaction object.
    */
   signTransaction(ethTx, _fromAddress, opts = {}) {
     const fromAddress = normalizeAddress(_fromAddress);
@@ -394,7 +394,7 @@ class KeyringController extends EventEmitter {
   /**
    * Sign Personal Message
    *
-   * Attempts to sign the provided message paramaters.
+   * Attempts to sign the provided message parameters.
    * Prefixes the hash before signing per the personal sign expectation.
    *
    * @param {Object} msgParams - The message parameters to sign.
@@ -496,7 +496,7 @@ class KeyringController extends EventEmitter {
    * - Faucets that account on testnet
    * - Puts the current seed words into the state tree
    *
-   * @returns {Promise<void>} - A promise that resovles if the operation was successful.
+   * @returns {Promise<void>} - A promise that resolves if the operation was successful.
    */
   createFirstKeyTree() {
     this.clearKeyrings();
@@ -735,7 +735,7 @@ class KeyringController extends EventEmitter {
   }
 
   /**
-   * Update Memstore Keyrings
+   * Update memStore Keyrings
    *
    * Updates the in-memory keyrings, without persisting.
    */
