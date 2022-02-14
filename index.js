@@ -74,7 +74,7 @@ class KeyringController extends EventEmitter {
    */
   createNewVaultAndKeychain(password) {
     return this.clearKeyrings()
-      .then(persistAllKeyrings(password))
+      .then(this.persistAllKeyrings.bind(this, password))
       .then(this.createFirstKeyTree.bind(this))
       .then(this.persistAllKeyrings.bind(this, password))
       .then(this.setUnlocked.bind(this))
