@@ -497,6 +497,7 @@ class KeyringController extends EventEmitter {
    * - Faucets that account on testnet
    * - Puts the current seed words into the state tree
    *
+   * @param {string} password - The keyring controller password.
    * @returns {Promise<void>} - A promise that resolves if the operation was successful.
    */
   createFirstKeyTree(password) {
