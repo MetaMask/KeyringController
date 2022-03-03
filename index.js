@@ -73,8 +73,7 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   createNewVaultAndKeychain(password) {
-    return this.createFirstKeyTree
-      .bind(this)(password)
+    return this.createFirstKeyTree(password)
       .then(this.persistAllKeyrings.bind(this, password))
       .then(this.setUnlocked.bind(this))
       .then(this.fullUpdate.bind(this));
