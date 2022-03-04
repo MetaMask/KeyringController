@@ -73,8 +73,7 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   createNewVaultAndKeychain(password) {
-    return this.persistAllKeyrings(password)
-      .then(this.createFirstKeyTree.bind(this))
+    return this.createFirstKeyTree(password)
       .then(this.persistAllKeyrings.bind(this, password))
       .then(this.setUnlocked.bind(this))
       .then(this.fullUpdate.bind(this));
@@ -498,9 +497,11 @@ class KeyringController extends EventEmitter {
    * - Faucets that account on testnet
    * - Puts the current seed words into the state tree
    *
+   * @param {string} password - The keyring controller password.
    * @returns {Promise<void>} - A promise that resolves if the operation was successful.
    */
-  createFirstKeyTree() {
+  createFirstKeyTree(password) {
+    this.password = password;
     this.clearKeyrings();
     return this.addNewKeyring('HD Key Tree', { numberOfAccounts: 1 })
       .then((keyring) => {
