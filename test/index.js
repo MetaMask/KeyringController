@@ -78,6 +78,14 @@ describe('KeyringController', function () {
     });
   });
 
+  describe.only('createNewVaultAndRestore', function () {
+    it('should throw error if password is not a string', async function () {
+      await expect(() =>
+        keyringController.createNewVaultAndRestore([123], seedWords),
+      ).rejects.toThrow('Password must be text.');
+    });
+  });
+
   describe('createNewVaultAndKeychain', function () {
     it('should set a vault on the configManager', async function () {
       keyringController.store.updateState({ vault: null });
