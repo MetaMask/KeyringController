@@ -5,10 +5,14 @@ const encryptor = require('browser-passworder');
 const { normalize: normalizeAddress } = require('eth-sig-util');
 
 const SimpleKeyring = require('eth-simple-keyring');
-const HdKeyring = require('eth-hd-keyring');
+const HdKeyring = require('@metamask/eth-hd-keyring');
 
 const keyringTypes = [SimpleKeyring, HdKeyring];
 
+const KEYRINGS_TYPE_MAP = {
+  HD_KEYRING: 'HD Key Tree',
+  SIMPLE_KEYRING: 'Simple Key Pair',
+};
 /**
  * Strip the hex prefix from an address, if present
  * @param {string} address - The address that might be hex prefixed.
@@ -107,7 +111,7 @@ class KeyringController extends EventEmitter {
 
     return this.persistAllKeyrings(password)
       .then(() => {
-        return this.addNewKeyring('HD Key Tree', {
+        return this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {
           mnemonic: seed,
           numberOfAccounts: 1,
         });
@@ -194,9 +198,14 @@ class KeyringController extends EventEmitter {
    * @param {Object} opts - The constructor options for the keyring.
    * @returns {Promise<Keyring>} The new keyring.
    */
-  addNewKeyring(type, opts) {
+  addNewKeyring(type, opts = {}) {
     const Keyring = this.getKeyringClassForType(type);
     const keyring = new Keyring(opts);
+    if (!opts.mnemonic && type === KEYRINGS_TYPE_MAP.HD_KEYRING) {
+      keyring.generateRandomMnemonic();
+      keyring.addAccounts();
+    }
+
     return keyring
       .getAccounts()
       .then((accounts) => {
@@ -250,7 +259,7 @@ class KeyringController extends EventEmitter {
   checkForDuplicate(type, newAccountArray) {
     return this.getAccounts().then((accounts) => {
       switch (type) {
-        case 'Simple Key Pair': {
+        case KEYRINGS_TYPE_MAP.SIMPLE_KEYRING: {
           const isIncluded = Boolean(
             accounts.find(
               (key) =>
@@ -503,7 +512,7 @@ class KeyringController extends EventEmitter {
   createFirstKeyTree(password) {
     this.password = password;
     this.clearKeyrings();
-    return this.addNewKeyring('HD Key Tree', { numberOfAccounts: 1 })
+    return this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING)
       .then((keyring) => {
         return keyring.getAccounts();
       })

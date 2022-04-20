@@ -8,14 +8,20 @@ const Wallet = require('ethereumjs-wallet').default;
 const KeyringController = require('..');
 const mockEncryptor = require('./lib/mock-encryptor');
 
-const mockAddress = '0xeF35cA8EbB9669A35c31b5F6f249A9941a812AC1'.toLowerCase();
+const password = 'password123';
+const walletOneSeedWords =
+  'puzzle seed penalty soldier say clay field arctic metal hen cage runway';
+const walletOneAddresses = ['0xef35ca8ebb9669a35c31b5f6f249a9941a812ac1'];
 
+const walletTwoSeedWords =
+  'urge letter protect palace city barely security section midnight wealth south deer';
+
+const walletTwoAddresses = [
+  '0xbbafcf3d00fb625b65bb1497c94bf42c1f4b3e78',
+  '0x49dd2653f38f75d40fdbd51e83b9c9724c87f7eb',
+];
 describe('KeyringController', function () {
   let keyringController;
-  const password = 'password123';
-  const seedWords =
-    'puzzle seed penalty soldier say clay field arctic metal hen cage runway';
-  const addresses = [mockAddress];
 
   beforeEach(async function () {
     keyringController = new KeyringController({
@@ -103,6 +109,41 @@ describe('KeyringController', function () {
     });
   });
 
+  describe('createNewVaultAndRestore', function () {
+    it('clears old keyrings and creates a one', async function () {
+      const initialAccounts = await keyringController.getAccounts();
+      expect(initialAccounts).toHaveLength(1);
+      await keyringController.addNewKeyring('HD Key Tree');
+
+      const allAccounts = await keyringController.getAccounts();
+      expect(allAccounts).toHaveLength(2);
+
+      await keyringController.createNewVaultAndRestore(
+        password,
+        walletOneSeedWords,
+      );
+
+      const allAccountsAfter = await keyringController.getAccounts();
+      expect(allAccountsAfter).toHaveLength(1);
+      expect(allAccountsAfter[0]).toBe(walletOneAddresses[0]);
+    });
+
+    it('throws error if argument password is not a string', async function () {
+      await expect(() =>
+        keyringController.createNewVaultAndRestore(12, walletTwoSeedWords),
+      ).rejects.toThrow('Password must be text.');
+    });
+
+    it('throws error if mnemonic passed is invalid', async function () {
+      await expect(() =>
+        keyringController.createNewVaultAndRestore(
+          password,
+          'test test test palace city barely security section midnight wealth south deer',
+        ),
+      ).rejects.toThrow('Seed phrase is invalid.');
+    });
+  });
+
   describe('addNewKeyring', function () {
     it('should add simple key pair', async function () {
       const privateKey =
@@ -123,6 +164,31 @@ describe('KeyringController', function () {
       );
       expect(allAccounts).toStrictEqual(expectedAllAccounts);
     });
+
+    it('should add HD Key Tree without mnemonic passed as an argument', async function () {
+      const previousAllAccounts = await keyringController.getAccounts();
+      expect(previousAllAccounts).toHaveLength(1);
+      const keyring = await keyringController.addNewKeyring('HD Key Tree');
+      const keyringAccounts = await keyring.getAccounts();
+      expect(keyringAccounts).toHaveLength(1);
+      const allAccounts = await keyringController.getAccounts();
+      expect(allAccounts).toHaveLength(2);
+    });
+
+    it('should add HD Key Tree with mnemonic passed as an argument', async function () {
+      const previousAllAccounts = await keyringController.getAccounts();
+      expect(previousAllAccounts).toHaveLength(1);
+      const keyring = await keyringController.addNewKeyring('HD Key Tree', {
+        numberOfAccounts: 2,
+        mnemonic: walletTwoSeedWords,
+      });
+      const keyringAccounts = await keyring.getAccounts();
+      expect(keyringAccounts).toHaveLength(2);
+      expect(keyringAccounts[0]).toStrictEqual(walletTwoAddresses[0]);
+      expect(keyringAccounts[1]).toStrictEqual(walletTwoAddresses[1]);
+      const allAccounts = await keyringController.getAccounts();
+      expect(allAccounts).toHaveLength(3);
+    });
   });
 
   describe('restoreKeyring', function () {
@@ -130,7 +196,7 @@ describe('KeyringController', function () {
       const mockSerialized = {
         type: 'HD Key Tree',
         data: {
-          mnemonic: seedWords,
+          mnemonic: walletOneSeedWords,
           numberOfAccounts: 1,
         },
       };
@@ -139,7 +205,7 @@ describe('KeyringController', function () {
       expect(keyring.wallets).toHaveLength(1);
 
       const accounts = await keyring.getAccounts();
-      expect(accounts[0]).toBe(addresses[0]);
+      expect(accounts[0]).toBe(walletOneAddresses[0]);
     });
   });
 
@@ -225,6 +291,31 @@ describe('KeyringController', function () {
       keyrings.forEach((keyring) => {
         expect(keyring.wallets).toHaveLength(1);
       });
+    });
+  });
+
+  describe('verifyPassword', function () {
+    it('throws an error if no encrypted vault is in controller state', async function () {
+      keyringController = new KeyringController({
+        encryptor: mockEncryptor,
+      });
+      await expect(() =>
+        keyringController.verifyPassword('test'),
+      ).rejects.toThrow('Cannot unlock without a previous vault.');
+    });
+  });
+
+  describe('addNewAccount', function () {
+    it('adds a new account to the keyring it receives as an argument', async function () {
+      const [HDKeyring] = await keyringController.getKeyringsByType(
+        'HD Key Tree',
+      );
+      const initialAccounts = await HDKeyring.getAccounts();
+      expect(initialAccounts).toHaveLength(1);
+
+      await keyringController.addNewAccount(HDKeyring);
+      const accountsAfterAdd = await HDKeyring.getAccounts();
+      expect(accountsAfterAdd).toHaveLength(2);
     });
   });
 
