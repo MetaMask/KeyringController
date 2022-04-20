@@ -109,6 +109,41 @@ describe('KeyringController', function () {
     });
   });
 
+  describe('createNewVaultAndRestore', function () {
+    it('clears old keyrings and creates a one', async function () {
+      const initialAccounts = await keyringController.getAccounts();
+      expect(initialAccounts).toHaveLength(1);
+      await keyringController.addNewKeyring('HD Key Tree');
+
+      const allAccounts = await keyringController.getAccounts();
+      expect(allAccounts).toHaveLength(2);
+
+      await keyringController.createNewVaultAndRestore(
+        password,
+        walletOneSeedWords,
+      );
+
+      const allAccountsAfter = await keyringController.getAccounts();
+      expect(allAccountsAfter).toHaveLength(1);
+      expect(allAccountsAfter[0]).toBe(walletOneAddresses[0]);
+    });
+
+    it('throws error if argument password is not a string', async function () {
+      await expect(() =>
+        keyringController.createNewVaultAndRestore(12, walletTwoSeedWords),
+      ).rejects.toThrow('Password must be text.');
+    });
+
+    it('throws error if mnemonic passed is invalid', async function () {
+      await expect(() =>
+        keyringController.createNewVaultAndRestore(
+          password,
+          'test test test palace city barely security section midnight wealth south deer',
+        ),
+      ).rejects.toThrow('Seed phrase is invalid.');
+    });
+  });
+
   describe('addNewKeyring', function () {
     it('should add simple key pair', async function () {
       const privateKey =
@@ -256,6 +291,31 @@ describe('KeyringController', function () {
       keyrings.forEach((keyring) => {
         expect(keyring.wallets).toHaveLength(1);
       });
+    });
+  });
+
+  describe('verifyPassword', function () {
+    it('throws an error if no encrypted vault is in controller state', async function () {
+      keyringController = new KeyringController({
+        encryptor: mockEncryptor,
+      });
+      await expect(() =>
+        keyringController.verifyPassword('test'),
+      ).rejects.toThrow('Cannot unlock without a previous vault.');
+    });
+  });
+
+  describe('addNewAccount', function () {
+    it('adds a new account to the keyring it receives as an argument', async function () {
+      const [HDKeyring] = await keyringController.getKeyringsByType(
+        'HD Key Tree',
+      );
+      const initialAccounts = await HDKeyring.getAccounts();
+      expect(initialAccounts).toHaveLength(1);
+
+      await keyringController.addNewAccount(HDKeyring);
+      const accountsAfterAdd = await HDKeyring.getAccounts();
+      expect(accountsAfterAdd).toHaveLength(2);
     });
   });
 
