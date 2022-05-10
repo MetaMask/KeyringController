@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.0.2]
 ### Fixed
-- `createNewVaultAndRestore` now accepts a seedphrase argument passed as an arrays of numbers ([#138](https://github.com/MetaMask/KeyringController/pull/138))
+- `createNewVaultAndRestore` now accepts a seedphrase formatted as an array of numbers ([#138](https://github.com/MetaMask/KeyringController/pull/138))
 
 ## [7.0.1]
 ### Fixed
