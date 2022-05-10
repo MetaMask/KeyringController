@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.0.2]
+### Fixed
+- `createNewVaultAndRestore` now accepts a seedphrase formatted as an array of numbers ([#138](https://github.com/MetaMask/KeyringController/pull/138))
+
 ## [7.0.1]
 ### Fixed
 - Fix breaking change in `addNewKeyring` function that was accidentally introduced in v7.0.0 ([#136](https://github.com/MetaMask/KeyringController/pull/136))
@@ -23,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v7.0.1...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...HEAD
+[7.0.2]: https://github.com/MetaMask/KeyringController/compare/v7.0.1...v7.0.2
 [7.0.1]: https://github.com/MetaMask/KeyringController/compare/v7.0.0...v7.0.1
 [7.0.0]: https://github.com/MetaMask/KeyringController/releases/tag/v7.0.0
