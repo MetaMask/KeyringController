@@ -1,5 +1,6 @@
 const { EventEmitter } = require('events');
-const bip39 = require('bip39');
+const { Buffer } = require('buffer');
+const bip39 = require('@metamask/bip39');
 const ObservableStore = require('obs-store');
 const encryptor = require('browser-passworder');
 const { normalize: normalizeAddress } = require('eth-sig-util');
@@ -92,17 +93,25 @@ class KeyringController extends EventEmitter {
    *
    * @emits KeyringController#unlock
    * @param {string} password - The password to encrypt the vault with
-   * @param {string} seed - The BIP44-compliant seed phrase.
+   * @param {string|Array<number>} seedPhrase - The BIP39-compliant seed phrase,
+   * either as a string or an array of UTF-8 bytes that represent the string.
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
-  createNewVaultAndRestore(password, seed) {
+  createNewVaultAndRestore(password, seedPhrase) {
+    const seedPhraseAsBuffer =
+      typeof seedPhrase === 'string'
+        ? Buffer.from(seedPhrase, 'utf8')
+        : Buffer.from(seedPhrase);
+
     if (typeof password !== 'string') {
       return Promise.reject(new Error('Password must be text.'));
     }
 
     const wordlists = Object.values(bip39.wordlists);
     if (
-      wordlists.every((wordlist) => !bip39.validateMnemonic(seed, wordlist))
+      wordlists.every(
+        (wordlist) => !bip39.validateMnemonic(seedPhraseAsBuffer, wordlist),
+      )
     ) {
       return Promise.reject(new Error('Seed phrase is invalid.'));
     }
@@ -112,7 +121,7 @@ class KeyringController extends EventEmitter {
     return this.persistAllKeyrings(password)
       .then(() => {
         return this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {
-          mnemonic: seed,
+          mnemonic: seedPhraseAsBuffer,
           numberOfAccounts: 1,
         });
       })

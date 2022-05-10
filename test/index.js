@@ -142,6 +142,23 @@ describe('KeyringController', function () {
         ),
       ).rejects.toThrow('Seed phrase is invalid.');
     });
+
+    it('accepts mnemonic passed as type array of numbers', async function () {
+      const allAccountsBefore = await keyringController.getAccounts();
+      expect(allAccountsBefore[0]).not.toBe(walletTwoAddresses[0]);
+      const mnemonicAsArrayOfNumbers = Array.from(
+        Buffer.from(walletTwoSeedWords).values(),
+      );
+
+      await keyringController.createNewVaultAndRestore(
+        password,
+        mnemonicAsArrayOfNumbers,
+      );
+
+      const allAccountsAfter = await keyringController.getAccounts();
+      expect(allAccountsAfter).toHaveLength(1);
+      expect(allAccountsAfter[0]).toBe(walletTwoAddresses[0]);
+    });
   });
 
   describe('addNewKeyring', function () {
