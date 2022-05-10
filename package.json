@@ -31,8 +31,8 @@
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write"
   },
   "dependencies": {
+    "@metamask/bip39": "^4.0.0",
     "@metamask/eth-hd-keyring": "^4.0.2",
-    "bip39": "^3.0.4",
     "browser-passworder": "^2.0.3",
     "eth-sig-util": "^3.0.1",
     "eth-simple-keyring": "^4.2.0",
