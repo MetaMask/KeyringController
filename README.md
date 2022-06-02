@@ -12,7 +12,7 @@ The KeyringController has three main responsibilities:
 
 ## Installation
 
-`yarn install eth-keyring-controller --save`
+`yarn add eth-keyring-controller`
 
 ## Usage
 
