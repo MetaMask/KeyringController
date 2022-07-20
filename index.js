@@ -179,6 +179,22 @@ class KeyringController extends EventEmitter {
   }
 
   /**
+   * Submit Password
+   *
+   * Attempts to decrypt the current vault and load its keyrings
+   * into memory.
+   *
+   * @emits KeyringController#unlock
+   * @param {string} key - The decrypted vault key
+   * @returns {Promise<Object>} A Promise that resolves to the state.
+   */
+  async submitDecryptedKey(key) {
+    this.keyrings = await this.unlockKeyringsByDecryptedKey(key);
+    this.setUnlocked();
+    return this.fullUpdate();
+  }
+
+  /**
    * Verify Password
    *
    * Attempts to decrypt the current vault with a given password
@@ -592,11 +608,48 @@ class KeyringController extends EventEmitter {
     }
 
     await this.clearKeyrings();
-    const vault = await this.encryptor.decrypt(password, encryptedVault);
+    const { result: vault, key } = await this.encryptor.decrypt(password, encryptedVault);
     this.password = password;
+    this.decryptedKey = key;
+
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));
     await this._updateMemStoreKeyrings();
     return this.keyrings;
+  }
+
+  /**
+   * Unlock Keyrings By Decrypted Key
+   *
+   * Attempts to unlock the persisted encrypted storage,
+   * initializing the persisted keyrings to RAM.
+   *
+   * @param {string} key - The decrypted key
+   * @returns {Promise<Array<Keyring>>} The keyrings.
+   */
+  async unlockKeyringsByDecryptedKey(key) {
+    const encryptedVault = this.store.getState().vault;
+    if (!encryptedVault) {
+      throw new Error('Cannot unlock without a previous vault.');
+    }
+
+    await this.clearKeyrings();
+    const { result: vault, key: decryptedKey } = await this.encryptor.decryptWithKey(key, encryptedVault);
+    this.decryptedKey = decryptedKey;
+
+    await Promise.all(vault.map(this._restoreKeyring.bind(this)));
+    await this._updateMemStoreKeyrings();
+    return this.keyrings;
+  }
+
+  /**
+   * Get Decrypted Key
+   *
+   * Provides the decypted key to the caller
+   *
+   * @returns {string} The decrypted key
+   */
+  getDecryptedKey() {
+    return this.decryptedKey;
   }
 
   /**
