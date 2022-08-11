@@ -10,6 +10,8 @@ const HdKeyring = require('@metamask/eth-hd-keyring');
 
 const keyringTypes = [SimpleKeyring, HdKeyring];
 
+const VAULT_SEPARATOR = ':::';
+
 const KEYRINGS_TYPE_MAP = {
   HD_KEYRING: 'HD Key Tree',
   SIMPLE_KEYRING: 'Simple Key Pair',
@@ -171,6 +173,19 @@ class KeyringController extends EventEmitter {
     this.keyrings = await this.unlockKeyrings(password);
     this.setUnlocked();
     this.fullUpdate();
+
+    return this.encryptedKey;
+  }
+
+  /* 
+    MV3:  Unlock by encrypted key
+  */
+  async submitEncryptedKey(encryptedKey) {
+    this.keyrings = await this.unlockKeyrings(undefined, encryptedKey);
+    this.setUnlocked();
+    this.fullUpdate();
+
+    return this.encryptedKey;
   }
 
   /**
@@ -521,6 +536,10 @@ class KeyringController extends EventEmitter {
       throw new Error('KeyringController - password is not a string');
     }
 
+    const salt = this._generateSalt();
+    const encrypedKey = this._generateEncryptedKey(password, salt);
+    this.encrypedKey = encrypedKey;
+
     this.password = password;
     const serializedKeyrings = await Promise.all(
       this.keyrings.map(async (keyring) => {
@@ -548,18 +567,51 @@ class KeyringController extends EventEmitter {
    * @param {string} password - The keyring controller password.
    * @returns {Promise<Array<Keyring>>} The keyrings.
    */
-  async unlockKeyrings(password) {
+  async unlockKeyrings(password, encryptedKey) {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
       throw new Error('Cannot unlock without a previous vault.');
     }
 
+    /* 
+      MV3:  Store an encrypted key now that we have verified password
+    */
+    const loginByPassword =
+      password !== undefined && encryptedKey === undefined;
+    const [, salt] = encryptedVault.split(VAULT_SEPARATOR);
+    this.encryptedKey =
+      encryptedKey || this._generateEncryptedKey(password, salt);
+
     await this.clearKeyrings();
-    const vault = await this.encryptor.decrypt(password, encryptedVault);
+    const vault = loginByPassword
+      ? await this.encryptor.decrypt(password, encryptedVault)
+      : await this.encryptor.decrypt(this.encryptedKey, encryptedVault);
+
     this.password = password;
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));
     await this._updateMemStoreKeyrings();
     return this.keyrings;
+  }
+
+  /* 
+    MV3:  Generates the encrypted key
+  */
+  _generateEncryptedKey() {
+    return '...';
+  }
+
+  /* 
+    MV3:  Returns the encrypted key so it's accessible from the extension
+  */
+  getEncryptedKey() {
+    return this.encryptedKey;
+  }
+
+  /* 
+    MV3:  Creates a salt to be used in encrypted key unlocking
+  */
+  _generateSalt() {
+    return '...';
   }
 
   /**
