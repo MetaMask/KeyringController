@@ -5,11 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-
-## [7.0.3]
 ### Changed
 - **BREAKING:** Removed support for Node v12 in favor of v14 ([#137](https://github.com/MetaMask/eth-json-rpc-middleware/pull/137))
-
 
 ## [7.0.2]
 ### Fixed
@@ -32,8 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v7.0.3...HEAD
-[7.0.3]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...v7.0.3
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...HEAD
 [7.0.2]: https://github.com/MetaMask/KeyringController/compare/v7.0.1...v7.0.2
 [7.0.1]: https://github.com/MetaMask/KeyringController/compare/v7.0.0...v7.0.1
 [7.0.0]: https://github.com/MetaMask/KeyringController/releases/tag/v7.0.0
