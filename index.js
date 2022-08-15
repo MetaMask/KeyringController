@@ -576,8 +576,7 @@ class KeyringController extends EventEmitter {
     /* 
       MV3:  Store an encrypted key now that we have verified password
     */
-    const loginByPassword =
-      password !== undefined && encryptedKey === undefined;
+    const loginByPassword = encryptedKey === undefined;
     const [, salt] = encryptedVault.split(VAULT_SEPARATOR);
     this.encryptedKey =
       encryptedKey || this._generateEncryptedKey(password, salt);
@@ -589,6 +588,9 @@ class KeyringController extends EventEmitter {
       : await this.encryptor.decrypt(this.encryptedKey, encryptedVault);
 
     this.password = password;
+
+    if (loginByPassword) {
+    }
 
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));
 
