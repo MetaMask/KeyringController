@@ -451,4 +451,36 @@ describe('KeyringController', function () {
       );
     });
   });
+
+  describe('Manifest v3 changes', function () {
+    it('can still log in with password after encryption key strategy is enacted', async function () {
+      // Log in with correct password, which will trigger generation of key
+      await keyringController.createNewVaultAndKeychain(password);
+      await keyringController.persistAllKeyrings();
+      await keyringController.submitPassword(password);
+
+      // Log the user out
+      await keyringController.setLocked();
+
+      // Log in again, should work with just the password
+      await keyringController.submitPassword(password);
+    });
+
+    it('can still verify password', async function () {
+      // Log in with correct password, which will trigger generation of key
+      await keyringController.createNewVaultAndKeychain(password);
+      await keyringController.persistAllKeyrings();
+
+      // Log the user out
+      await keyringController.setLocked();
+
+      // Attempt to verify the user
+      const result = await keyringController.verifyPassword(password);
+      expect(result).toBe(); // TODO: ??
+    });
+
+    it.todo('does not unlock with incorrect encryption key');
+
+    it.todo('unlocks with correct encryption key');
+  });
 });
