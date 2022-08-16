@@ -147,7 +147,6 @@ class KeyringController extends EventEmitter {
    */
   async setLocked() {
     // set locked
-    this.password = null;
     this.memStore.updateState({ isUnlocked: false });
     // remove keyrings
     this.keyrings = [];
@@ -201,6 +200,8 @@ class KeyringController extends EventEmitter {
     if (!encryptedVault) {
       throw new Error('Cannot unlock without a previous vault.');
     }
+    
+    // TODO: MV3: Should we persist keyrings here as well?
     await this.encryptor.decrypt(password, encryptedVault);
   }
 
@@ -506,7 +507,6 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<void>} - A promise that resolves if the operation was successful.
    */
   async createFirstKeyTree(password) {
-    this.password = password;
     this.clearKeyrings();
 
     const keyring = await this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING);
@@ -531,16 +531,38 @@ class KeyringController extends EventEmitter {
    * @param {string} password - The keyring controller password.
    * @returns {Promise<boolean>} Resolves to true once keyrings are persisted.
    */
-  async persistAllKeyrings(password = this.password) {
-    if (typeof password !== 'string') {
+  async persistAllKeyrings(password) {
+    if (password && typeof password !== 'string') {
       throw new Error('KeyringController - password is not a string');
     }
 
-    const salt = this._generateSalt();
-    const encrypedKey = this._generateEncryptedKey(password, salt);
-    this.encrypedKey = encrypedKey;
+    // MV3: Since we also allow persisting without a password, we should require this.encryptedKey
+    if (password === undefined && this.encryptedKey === undefined) {
+      return Promise.reject(
+        new Error(
+          'KeyringController - a password or encryptedKey must exist to persist keyrings',
+        ),
+      );
+    }
 
-    this.password = password;
+    let salt = null;
+    if (password) {
+      // MV3: If this is a migration or new password-driven login, we should
+      // create or rotate the salt
+      salt = this._generateSalt();
+
+      // MV3: Since there's a new salt, we need to generate a new encrypted key
+      // for use in the
+      this.encryptedKey = this._generateEncryptedKey(password, salt);
+    } else {
+      const encryptedVault = this.store.getState().vault;
+      if (!encryptedVault) {
+        throw new Error('Cannot unlock without a previous vault.');
+      }
+      // MV3: We can use an existing salt if one exists in the encrypted key
+      [, salt] = encryptedVault.split(VAULT_SEPARATOR);
+    }
+
     const serializedKeyrings = await Promise.all(
       this.keyrings.map(async (keyring) => {
         const [type, data] = await Promise.all([
@@ -551,10 +573,11 @@ class KeyringController extends EventEmitter {
       }),
     );
     const encryptedString = await this.encryptor.encrypt(
-      this.password,
+      this.encryptedKey,
       serializedKeyrings,
     );
-    this.store.updateState({ vault: encryptedString });
+    // MV3: The encrypted string gets concatenated with a separator and salt
+    this.store.updateState({ vault: [encryptedString, VAULT_SEPARATOR, salt].join('') });
     return true;
   }
 
@@ -573,49 +596,46 @@ class KeyringController extends EventEmitter {
       throw new Error('Cannot unlock without a previous vault.');
     }
 
-    /* 
-      MV3:  Store an encrypted key now that we have verified password
-    */
-    const loginByPassword = encryptedKey === undefined;
-    const [, salt] = encryptedVault.split(VAULT_SEPARATOR);
-    this.encryptedKey =
-      encryptedKey || this._generateEncryptedKey(password, salt);
-
     await this.clearKeyrings();
 
-    const vault = loginByPassword
-      ? await this.encryptor.decrypt(password, encryptedVault)
-      : await this.encryptor.decrypt(this.encryptedKey, encryptedVault);
-
-    this.password = password;
-
-    if (loginByPassword) {
+    // MV3: If the separator string is in the vault string, the user has already migrated
+    // from the previous password-only model
+    let vault = null;
+    if (encryptedVault.includes(VAULT_SEPARATOR)) {
+      const [, salt] = encryptedVault.split(VAULT_SEPARATOR);
+      this.encryptedKey =
+        encryptedKey || this._generateEncryptedKey(password, salt);
+      vault = await this.encryptor.decrypt(this.encryptedKey, encryptedVault);
+    } else {
+      vault = await this.encryptor.decrypt(password, encryptedVault);
     }
 
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));
 
     await this._updateMemStoreKeyrings();
+
+    // MV3: If we're provided a password, we should persist keyrings
+    // so that we can either (1) migrate or (2) create a new salt
+    if (password) {
+      await this.persistAllKeyrings(password);
+    }
+
     return this.keyrings;
   }
 
-  /* 
-    MV3:  Generates the encrypted key
-  */
-  _generateEncryptedKey() {
-    return '...';
+  // MV3:  Generates the encrypted key
+  _generateEncryptedKey(password, salt) {
+    // TODO: How complicaated do we want this to be?
+    return window.btoa(password + salt);
   }
 
-  /* 
-    MV3:  Returns the encrypted key so it's accessible from the extension
-  */
+  // MV3:  Returns the encrypted key so it's accessible from the extension
   getEncryptedKey() {
     return this.encryptedKey;
   }
 
-  /* 
-    MV3:  Creates a salt to be used in encrypted key unlocking
-    https://github.com/MetaMask/browser-passworder/blob/d24b66934ab4d39d97ccff9ff0c3d25f86f1a141/src/index.ts#L180
-  */
+  // MV3:  Creates a salt to be used in encrypted key unlocking
+  // https://github.com/MetaMask/browser-passworder/blob/d24b66934ab4d39d97ccff9ff0c3d25f86f1a141/src/index.ts#L180
   _generateSalt(byteCount = 32) {
     const view = new Uint8Array(byteCount);
     global.crypto.getRandomValues(view);

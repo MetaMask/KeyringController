@@ -29,6 +29,7 @@ describe('KeyringController', function () {
     });
 
     await keyringController.createNewVaultAndKeychain(password);
+    await keyringController.submitPassword(password);
   });
 
   afterEach(function () {
@@ -470,6 +471,7 @@ describe('KeyringController', function () {
       // Log in with correct password, which will trigger generation of key
       await keyringController.createNewVaultAndKeychain(password);
       await keyringController.persistAllKeyrings();
+      await keyringController.submitPassword(password);
 
       // Log the user out
       await keyringController.setLocked();
