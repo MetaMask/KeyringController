@@ -200,7 +200,7 @@ class KeyringController extends EventEmitter {
     if (!encryptedVault) {
       throw new Error('Cannot unlock without a previous vault.');
     }
-    
+
     // TODO: MV3: Should we persist keyrings here as well?
     await this.encryptor.decrypt(password, encryptedVault);
   }
@@ -536,7 +536,8 @@ class KeyringController extends EventEmitter {
       throw new Error('KeyringController - password is not a string');
     }
 
-    // MV3: Since we also allow persisting without a password, we should require this.encryptedKey
+    // MV3: Since we also allow persisting without a password,
+    // we should require this.encryptedKey
     if (password === undefined && this.encryptedKey === undefined) {
       return Promise.reject(
         new Error(
@@ -601,10 +602,19 @@ class KeyringController extends EventEmitter {
     // MV3: If the separator string is in the vault string, the user has already migrated
     // from the previous password-only model
     let vault = null;
-    if (encryptedVault.includes(VAULT_SEPARATOR)) {
+    if (encryptedVault && encryptedVault.includes(VAULT_SEPARATOR)) {
       const [, salt] = encryptedVault.split(VAULT_SEPARATOR);
-      this.encryptedKey =
-        encryptedKey || this._generateEncryptedKey(password, salt);
+
+      if (password) {
+        this.encryptedKey = this._generateEncryptedKey(password, salt);
+      } else if (encryptedKey) {
+        this.encryptedKey = encryptedKey;
+      } else {
+        throw new Error(
+          'No way to decrypt a salted vault without a password or encrypted key',
+        );
+      }
+
       vault = await this.encryptor.decrypt(this.encryptedKey, encryptedVault);
     } else {
       vault = await this.encryptor.decrypt(password, encryptedVault);
