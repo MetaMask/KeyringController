@@ -1,6 +1,7 @@
 const { EventEmitter } = require('events');
 const { Buffer } = require('buffer');
-const bip39 = require('@metamask/bip39');
+const bip39 = require('@scure/bip39');
+const { wordlist } = require('@scure/bip39/wordlists/english');
 const ObservableStore = require('obs-store');
 const encryptor = require('browser-passworder');
 const { normalize: normalizeAddress } = require('eth-sig-util');
@@ -93,26 +94,30 @@ class KeyringController extends EventEmitter {
    *
    * @emits KeyringController#unlock
    * @param {string} password - The password to encrypt the vault with
-   * @param {string|Array<number>} seedPhrase - The BIP39-compliant seed phrase,
-   * either as a string or an array of UTF-8 bytes that represent the string.
+   * @param {Uint8Array | string} seedPhrase - The BIP39-compliant seed phrase,
+   * either as a string or Uint8Array.
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   createNewVaultAndRestore(password, seedPhrase) {
-    const seedPhraseAsBuffer =
-      typeof seedPhrase === 'string'
-        ? Buffer.from(seedPhrase, 'utf8')
-        : Buffer.from(seedPhrase);
+    let encodedSeedPhrase = seedPhrase;
+    if (typeof encodedSeedPhrase === 'string') {
+      const indices = seedPhrase
+        .split(' ')
+        .map((word) => wordlist.indexOf(word));
+      encodedSeedPhrase = new Uint8Array(new Uint16Array(indices).buffer);
+    } else if (
+      seedPhrase instanceof Object &&
+      !(seedPhrase instanceof Uint8Array)
+    ) {
+      // when passed from the frontend to the background process a Uint8Array becomes a javascript object
+      encodedSeedPhrase = Uint8Array.from(Object.values(seedPhrase));
+    }
 
     if (typeof password !== 'string') {
       return Promise.reject(new Error('Password must be text.'));
     }
 
-    const wordlists = Object.values(bip39.wordlists);
-    if (
-      wordlists.every(
-        (wordlist) => !bip39.validateMnemonic(seedPhraseAsBuffer, wordlist),
-      )
-    ) {
+    if (!bip39.validateMnemonic(encodedSeedPhrase, wordlist)) {
       return Promise.reject(new Error('Seed phrase is invalid.'));
     }
 
@@ -121,7 +126,7 @@ class KeyringController extends EventEmitter {
     return this.persistAllKeyrings(password)
       .then(() => {
         return this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {
-          mnemonic: seedPhraseAsBuffer,
+          mnemonic: encodedSeedPhrase,
           numberOfAccounts: 1,
         });
       })
