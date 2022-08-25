@@ -550,7 +550,7 @@ class KeyringController extends EventEmitter {
     if (password) {
       // MV3: If this is a migration or new password-driven login, we should
       // create or rotate the salt
-      salt = this._generateSalt();
+      salt = encryptor.generateSalt();
 
       // MV3: Since there's a new salt, we need to generate a new encrypted key
       // for use in the
@@ -642,20 +642,6 @@ class KeyringController extends EventEmitter {
   // MV3:  Returns the encrypted key so it's accessible from the extension
   getEncryptedKey() {
     return this.encryptedKey;
-  }
-
-  // MV3:  Creates a salt to be used in encrypted key unlocking
-  // https://github.com/MetaMask/browser-passworder/blob/d24b66934ab4d39d97ccff9ff0c3d25f86f1a141/src/index.ts#L180
-  _generateSalt(byteCount = 32) {
-    const view = new Uint8Array(byteCount);
-    global.crypto.getRandomValues(view);
-    // Uint8Array is a fixed length array and thus does not have methods like pop, etc
-    // so TypeScript complains about casting it to an array. Array.from() works here for
-    // getting the proper type, but it results in a functional difference. In order to
-    // cast, you have to first cast view to unknown then cast the unknown value to number[]
-    // TypeScript ftw: double opt in to write potentially type-mismatched code.
-    const b64encoded = window.btoa(String.fromCharCode.apply(null, view));
-    return b64encoded;
   }
 
   /**
