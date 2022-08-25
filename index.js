@@ -561,7 +561,7 @@ class KeyringController extends EventEmitter {
         throw new Error('Cannot unlock without a previous vault.');
       }
       // MV3: We can use an existing salt if one exists in the encrypted key
-      [, salt] = encryptedVault.split(VAULT_SEPARATOR);
+      salt = this.parseVault(encryptedVault).salt;
     }
 
     const serializedKeyrings = await Promise.all(
@@ -603,7 +603,7 @@ class KeyringController extends EventEmitter {
     // from the previous password-only model
     let vault = null;
     if (encryptedVault && encryptedVault.includes(VAULT_SEPARATOR)) {
-      const [, salt] = encryptedVault.split(VAULT_SEPARATOR);
+      const { salt } = this.parseVault(encryptedVault);
 
       if (password) {
         this.encryptedKey = this._generateEncryptedKey(password, salt);
@@ -631,6 +631,11 @@ class KeyringController extends EventEmitter {
     }
 
     return this.keyrings;
+  }
+
+  parseVault(encryptedVault) {
+    const [vault, salt] = encryptedVault.split(VAULT_SEPARATOR);
+    return { vault, salt };
   }
 
   // MV3:  Generates the encrypted key
