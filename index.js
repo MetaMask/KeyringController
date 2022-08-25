@@ -104,7 +104,7 @@ class KeyringController extends EventEmitter {
         : Buffer.from(seedPhrase);
 
     if (typeof password !== 'string') {
-      return Promise.reject(new Error('Password must be text.'));
+      throw new Error('Password must be text.');
     }
 
     const wordlists = Object.values(bip39.wordlists);
@@ -113,7 +113,7 @@ class KeyringController extends EventEmitter {
         (wordlist) => !bip39.validateMnemonic(seedPhraseAsBuffer, wordlist),
       )
     ) {
-      return Promise.reject(new Error('Seed phrase is invalid.'));
+      throw new Error('Seed phrase is invalid.');
     }
 
     this.clearKeyrings();
@@ -170,7 +170,7 @@ class KeyringController extends EventEmitter {
   async submitPassword(password) {
     this.keyrings = await this.unlockKeyrings(password);
     this.setUnlocked();
-    this.fullUpdate(); // needs await?
+    this.fullUpdate();
   }
 
   /**
@@ -315,8 +315,7 @@ class KeyringController extends EventEmitter {
    */
   async exportAccount(address) {
     const keyring = await this.getKeyringForAccount(address);
-    const exported = keyring.exportAccount(normalizeAddress(address));
-    return exported;
+    return await keyring.exportAccount(normalizeAddress(address));
   }
 
   /**
@@ -370,7 +369,7 @@ class KeyringController extends EventEmitter {
   async signTransaction(ethTx, _fromAddress, opts = {}) {
     const fromAddress = normalizeAddress(_fromAddress);
     const keyring = await this.getKeyringForAccount(fromAddress);
-    return keyring.signTransaction(fromAddress, ethTx, opts);
+    return await keyring.signTransaction(fromAddress, ethTx, opts);
   }
 
   /**
@@ -384,7 +383,7 @@ class KeyringController extends EventEmitter {
   async signMessage(msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from);
     const keyring = await this.getKeyringForAccount(address);
-    return keyring.signMessage(address, msgParams.data, opts);
+    return await keyring.signMessage(address, msgParams.data, opts);
   }
 
   /**
@@ -399,7 +398,7 @@ class KeyringController extends EventEmitter {
   async signPersonalMessage(msgParams, opts = {}) {
     const address = normalizeAddress(msgParams.from);
     const keyring = await this.getKeyringForAccount(address);
-    return keyring.signPersonalMessage(address, msgParams.data, opts);
+    return await keyring.signPersonalMessage(address, msgParams.data, opts);
   }
 
   /**
@@ -413,7 +412,7 @@ class KeyringController extends EventEmitter {
   async getEncryptionPublicKey(_address, opts = {}) {
     const address = normalizeAddress(_address);
     const keyring = await this.getKeyringForAccount(address);
-    return keyring.getEncryptionPublicKey(address, opts);
+    return await keyring.getEncryptionPublicKey(address, opts);
   }
 
   /**
@@ -524,16 +523,12 @@ class KeyringController extends EventEmitter {
 
     this.password = password;
     const serializedKeyrings = await Promise.all(
-      this.keyrings.map((keyring) => {
-        return Promise.all([keyring.type, keyring.serialize()]).then(
-          (serializedKeyringArray) => {
-            // Label the output values on each serialized Keyring:
-            return {
-              type: serializedKeyringArray[0],
-              data: serializedKeyringArray[1],
-            };
-          },
-        );
+      this.keyrings.map(async (keyring) => {
+        const [type, data] = await Promise.all([
+          keyring.type,
+          keyring.serialize(),
+        ]);
+        return { type, data };
       }),
     );
     const encryptedString = await this.encryptor.encrypt(
@@ -641,14 +636,15 @@ class KeyringController extends EventEmitter {
    */
   async getAccounts() {
     const keyrings = this.keyrings || [];
-    const addrs = await Promise.all(
-      keyrings.map((kr) => kr.getAccounts()),
-    ).then((keyringArrays) => {
-      return keyringArrays.reduce((res, arr) => {
-        return res.concat(arr);
-      }, []);
-    });
-    return addrs.map(normalizeAddress);
+
+    const keyringArrays = await Promise.all(
+      keyrings.map((keyring) => keyring.getAccounts()),
+    );
+    const addresses = keyringArrays.reduce((res, arr) => {
+      return res.concat(arr);
+    }, []);
+
+    return addresses.map(normalizeAddress);
   }
 
   /**
