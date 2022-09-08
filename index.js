@@ -127,6 +127,7 @@ class KeyringController extends EventEmitter {
         mnemonic: seedPhraseAsBuffer,
         numberOfAccounts: 1,
       },
+      password,
     );
     const [firstAccount] = await firstKeyring.getAccounts();
     if (!firstAccount) {
@@ -148,6 +149,7 @@ class KeyringController extends EventEmitter {
   async setLocked() {
     // set locked
     this.memStore.updateState({ isUnlocked: false });
+    this.encryptedKey = null;
     // remove keyrings
     this.keyrings = [];
     await this._updateMemStoreKeyrings();
@@ -218,7 +220,7 @@ class KeyringController extends EventEmitter {
    * @param {Object} opts - The constructor options for the keyring.
    * @returns {Promise<Keyring>} The new keyring.
    */
-  async addNewKeyring(type, opts) {
+  async addNewKeyring(type, opts, password) {
     const Keyring = this.getKeyringClassForType(type);
     const keyring = new Keyring(opts);
     if ((!opts || !opts.mnemonic) && type === KEYRINGS_TYPE_MAP.HD_KEYRING) {
@@ -230,7 +232,7 @@ class KeyringController extends EventEmitter {
     await this.checkForDuplicate(type, accounts);
 
     this.keyrings.push(keyring);
-    await this.persistAllKeyrings();
+    await this.persistAllKeyrings(password);
 
     await this._updateMemStoreKeyrings();
     this.fullUpdate();
@@ -509,7 +511,7 @@ class KeyringController extends EventEmitter {
   async createFirstKeyTree(password) {
     this.clearKeyrings();
 
-    const keyring = await this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING);
+    const keyring = await this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {}, password);
     const [firstAccount] = await keyring.getAccounts();
     if (!firstAccount) {
       throw new Error('KeyringController - No account found on keychain.');
@@ -640,8 +642,8 @@ class KeyringController extends EventEmitter {
 
   // MV3:  Generates the encrypted key
   _generateEncryptedKey(password, salt) {
-    // TODO: How complicaated do we want this to be?
-    return window.btoa(password + salt);
+    // TODO: How complicated do we want this to be?
+    return global.btoa(password + salt);
   }
 
   // MV3:  Returns the encrypted key so it's accessible from the extension

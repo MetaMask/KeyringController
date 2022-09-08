@@ -20,6 +20,10 @@ const walletTwoAddresses = [
   '0xbbafcf3d00fb625b65bb1497c94bf42c1f4b3e78',
   '0x49dd2653f38f75d40fdbd51e83b9c9724c87f7eb',
 ];
+
+global.crypto = { getRandomValues: () => Date.now() };
+global.btoa = () => Date.now();
+
 describe('KeyringController', function () {
   let keyringController;
 
@@ -46,7 +50,7 @@ describe('KeyringController', function () {
 
       await keyringController.setLocked();
 
-      expect(keyringController.password).toBeNull();
+      expect(keyringController.encryptedKey).toBeNull();
       expect(keyringController.memStore.getState().isUnlocked).toBe(false);
       expect(keyringController.keyrings).toHaveLength(0);
     });
