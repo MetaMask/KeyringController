@@ -556,7 +556,7 @@ class KeyringController extends EventEmitter {
 
       // MV3: Since there's a new salt, we need to generate a new encrypted key
       // for use in the
-      this.encryptedKey = this._generateEncryptedKey(password, salt);
+      this.encryptedKey = await this._generateEncryptedKey(password, salt);
     } else {
       const encryptedVault = this.store.getState().vault;
       if (!encryptedVault) {
@@ -607,9 +607,9 @@ class KeyringController extends EventEmitter {
     if (encryptedVault && encryptedVault.includes(VAULT_SEPARATOR)) {
       const { salt } = this.parseVault(encryptedVault);
 
-      if (password) {
-        this.encryptedKey = this._generateEncryptedKey(password, salt);
-      } else if (encryptedKey) {
+      if (password !== undefined) {
+        this.encryptedKey = await this._generateEncryptedKey(password, salt);
+      } else if (encryptedKey !== undefined) {
         this.encryptedKey = encryptedKey;
       } else {
         throw new Error(
@@ -641,9 +641,10 @@ class KeyringController extends EventEmitter {
   }
 
   // MV3:  Generates the encrypted key
-  _generateEncryptedKey(password, salt) {
-    // TODO: How complicated do we want this to be?
-    return global.btoa(password + salt);
+  async _generateEncryptedKey(password, salt) {
+    const data = new TextEncoder().encode(password + salt);
+    const encryptedKey = await crypto.subtle.digest('SHA-256', data);
+    return encryptedKey;
   }
 
   // MV3:  Returns the encrypted key so it's accessible from the extension

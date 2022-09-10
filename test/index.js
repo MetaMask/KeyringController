@@ -1,4 +1,5 @@
 const { strict: assert } = require('assert');
+const { encode } = require('punycode');
 const sigUtil = require('eth-sig-util');
 
 const normalizeAddress = sigUtil.normalize;
@@ -21,8 +22,17 @@ const walletTwoAddresses = [
   '0x49dd2653f38f75d40fdbd51e83b9c9724c87f7eb',
 ];
 
-global.crypto = { getRandomValues: () => Date.now() };
+// Shims for globals that don't exist in test environment
+global.crypto = {
+  getRandomValues: () => Date.now(),
+  subtle: { digest: (text) => text },
+};
 global.btoa = () => Date.now();
+global.TextEncoder = function TextEncoderThing() {
+  return {
+    encode: (text) => text,
+  };
+};
 
 describe('KeyringController', function () {
   let keyringController;
@@ -68,7 +78,7 @@ describe('KeyringController', function () {
   describe('submitPassword', function () {
     it('should not create new keyrings when called in series', async function () {
       await keyringController.createNewVaultAndKeychain(password);
-      await keyringController.persistAllKeyrings();
+      await keyringController.persistAllKeyrings(password);
       expect(keyringController.keyrings).toHaveLength(1);
 
       await keyringController.submitPassword(`${password}a`);
@@ -482,7 +492,7 @@ describe('KeyringController', function () {
 
       // Attempt to verify the user
       const result = await keyringController.verifyPassword(password);
-      expect(result).toBe(); // TODO: ??
+      expect(result).toBe(''); // TODO: ??
     });
 
     it.todo('does not unlock with incorrect encryption key');
