@@ -28,6 +28,10 @@ function stripHexPrefix(address) {
   return address;
 }
 
+function log(...messages) {
+  process.env.DEBUG && console.log(...messages);
+}
+
 class KeyringController extends EventEmitter {
   //
   // PUBLIC METHODS
@@ -149,7 +153,7 @@ class KeyringController extends EventEmitter {
   async setLocked() {
     // set locked
     this.memStore.updateState({ isUnlocked: false });
-    this.encryptedKey = null;
+    delete this.encryptedKey;
     // remove keyrings
     this.keyrings = [];
     await this._updateMemStoreKeyrings();
@@ -203,8 +207,8 @@ class KeyringController extends EventEmitter {
       throw new Error('Cannot unlock without a previous vault.');
     }
 
-    // TODO: MV3: Should we persist keyrings here as well?
-    await this.encryptor.decrypt(password, encryptedVault);
+    const result = await this.encryptor.decrypt(password, encryptedVault);
+    return result;
   }
 
   /**
@@ -579,8 +583,13 @@ class KeyringController extends EventEmitter {
       this.encryptedKey,
       serializedKeyrings,
     );
+
+    const newVault = [encryptedString, VAULT_SEPARATOR, salt].join('');
+
+    log("New vault is: ", newVault, encryptedString, salt)
+
     // MV3: The encrypted string gets concatenated with a separator and salt
-    this.store.updateState({ vault: [encryptedString, VAULT_SEPARATOR, salt].join('') });
+    this.store.updateState({ vault: newVault });
     return true;
   }
 
@@ -604,12 +613,18 @@ class KeyringController extends EventEmitter {
     // MV3: If the separator string is in the vault string, the user has already migrated
     // from the previous password-only model
     let vault = null;
-    if (encryptedVault && encryptedVault.includes(VAULT_SEPARATOR)) {
+    if (encryptedVault?.includes?.(VAULT_SEPARATOR)) {
       const { salt } = this.parseVault(encryptedVault);
+
+      log('[unlockKeyrings] salt is: ', salt, '; encryptedVault is:', encryptedVault);
 
       if (password !== undefined) {
         this.encryptedKey = await this._generateEncryptedKey(password, salt);
+
+        log('[unlockKeyrings] *new* encryptedKey is: ', this.encryptedKey);
+
       } else if (encryptedKey !== undefined) {
+        log('[unlockKeyrings] *old* encryptedKey is: ', this.encryptedKey);
         this.encryptedKey = encryptedKey;
       } else {
         throw new Error(
