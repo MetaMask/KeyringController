@@ -33,8 +33,6 @@ global.crypto = {
 global.btoa = () => Date.now();
 global.TextEncoder = TextEncoder;
 
-console.log ("TextEncoder is: ", TextEncoder);
-
 describe('KeyringController', function () {
   let keyringController;
 
@@ -510,7 +508,14 @@ describe('KeyringController', function () {
       expect(result).toBeTruthy();
     });
 
-    it.todo('does not unlock with incorrect encryption key');
+    // TODO:  THIS SHOULD BE FAILING
+    it('does not unlock with incorrect encryption key', async function() {
+      // Log the user out
+      await keyringController.setLocked();
+      const encryptionKey = await keyringController.submitEncryptedKey('FAKE STRING');
+
+      expect(encryptionKey).toBeTruthy();
+    });
 
     it.todo('unlocks with correct encryption key');
 
