@@ -657,8 +657,9 @@ class KeyringController extends EventEmitter {
 
   // MV3:  Generates the encrypted key
   async _generateEncryptedKey(password, salt) {
-    const data = new TextEncoder().encode(password + salt);
-    const encryptedKey = await crypto.subtle.digest('SHA-256', data);
+    const data = new TextEncoder("utf-8").encode(password + salt);
+    const encryptedSha = await crypto.subtle.digest('SHA-256', data);
+    const encryptedKey = new TextDecoder("utf-8").decode(encryptedSha);
     return encryptedKey;
   }
 
