@@ -510,6 +510,11 @@ describe('KeyringController', function () {
 
     // TODO:  THIS SHOULD BE FAILING
     it('does not unlock with incorrect encryption key', async function() {
+      // Log in with correct password, which will trigger generation of key
+      await keyringController.createNewVaultAndKeychain(password);
+      await keyringController.persistAllKeyrings();
+      await keyringController.submitPassword(password);
+
       // Log the user out
       await keyringController.setLocked();
       const encryptionKey = await keyringController.submitEncryptedKey('FAKE STRING');
@@ -517,7 +522,12 @@ describe('KeyringController', function () {
       expect(encryptionKey).toBeTruthy();
     });
 
-    it.todo('unlocks with correct encryption key');
+    it('unlocks with correct encryption key', async function() {
+      // Log in with correct password, which will trigger generation of key
+      await keyringController.createNewVaultAndKeychain(password);
+      await keyringController.persistAllKeyrings();
+      await keyringController.submitPassword(password);
+    });
 
     it('removes encryption key when locked', async function () {
       // Log in with correct password, which will trigger generation of key
