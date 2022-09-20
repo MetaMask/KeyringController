@@ -614,7 +614,7 @@ class KeyringController extends EventEmitter {
     // from the previous password-only model
     let vault = null;
     if (encryptedVault?.includes?.(VAULT_SEPARATOR)) {
-      const { salt } = this.parseVault(encryptedVault);
+      const { salt, vault: vaultOnly } = this.parseVault(encryptedVault);
 
       log('[unlockKeyrings] salt is: ', salt, '; encryptedVault is:', encryptedVault);
 
@@ -632,7 +632,7 @@ class KeyringController extends EventEmitter {
         );
       }
 
-      vault = await this.encryptor.decrypt(this.encryptedKey, encryptedVault);
+      vault = await this.encryptor.decrypt(this.encryptedKey, vaultOnly);
     } else {
       vault = await this.encryptor.decrypt(password, encryptedVault);
     }
