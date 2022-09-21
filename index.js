@@ -16,6 +16,9 @@ const KEYRINGS_TYPE_MAP = {
   HD_KEYRING: 'HD Key Tree',
   SIMPLE_KEYRING: 'Simple Key Pair',
 };
+
+const TEXT_ENCODER_ENCODING = 'utf8';
+
 /**
  * Strip the hex prefix from an address, if present
  * @param {string} address - The address that might be hex prefixed.
@@ -106,7 +109,7 @@ class KeyringController extends EventEmitter {
   async createNewVaultAndRestore(password, seedPhrase) {
     const seedPhraseAsBuffer =
       typeof seedPhrase === 'string'
-        ? Buffer.from(seedPhrase, 'utf8')
+        ? Buffer.from(seedPhrase, TEXT_ENCODER_ENCODING)
         : Buffer.from(seedPhrase);
 
     if (typeof password !== 'string') {
@@ -657,9 +660,9 @@ class KeyringController extends EventEmitter {
 
   // MV3:  Generates the encrypted key
   async _generateEncryptedKey(password, salt) {
-    const data = new TextEncoder("utf-8").encode(password + salt);
+    const data = new TextEncoder(TEXT_ENCODER_ENCODING).encode(password + salt);
     const encryptedSha = await crypto.subtle.digest('SHA-256', data);
-    const encryptedKey = new TextDecoder("utf-8").decode(encryptedSha);
+    const encryptedKey = new TextDecoder(TEXT_ENCODER_ENCODING).decode(encryptedSha);
     return encryptedKey;
   }
 

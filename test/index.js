@@ -8,7 +8,7 @@ const Wallet = require('ethereumjs-wallet').default;
 
 const KeyringController = require('..');
 const mockEncryptor = require('./lib/mock-encryptor');
-const { TextEncoder } = require('./lib/text-encoder-shim')
+const { TextEncoder } = require('./lib/text-encoder-shim');
 
 const password = 'password123';
 const walletOneSeedWords =
@@ -26,9 +26,12 @@ const walletTwoAddresses = [
 // Shims for globals that don't exist in test environment
 global.crypto = {
   getRandomValues: () => {
-    return Math.floor(Math.random(1000000))
+    return Math.floor(Math.random(1000000));
   },
-  subtle: { digest: (algorithm, data) => Date.now() },
+  subtle: {
+    digest: (algorithm, data) =>
+      new Uint8Array(Date.now().toString().split('')).buffer,
+  },
 };
 global.btoa = () => Date.now();
 global.TextEncoder = TextEncoder;
@@ -43,6 +46,11 @@ describe('KeyringController', function () {
 
     await keyringController.createNewVaultAndKeychain(password);
     await keyringController.submitPassword(password);
+
+    // MV3: Remove salt from vault string to preserve legacy vault format
+    const { vault } = keyringController.store.getState();
+    const newVault = keyringController.parseVault(vault).vault;
+    keyringController.store.updateState({ vault: newVault });
   });
 
   afterEach(function () {
@@ -59,7 +67,7 @@ describe('KeyringController', function () {
 
       await keyringController.setLocked();
 
-      expect(keyringController.encryptedKey).toBe(undefined);
+      expect(keyringController.encryptedKey).toBeUndefined();
       expect(keyringController.memStore.getState().isUnlocked).toBe(false);
       expect(keyringController.keyrings).toHaveLength(0);
     });
@@ -467,85 +475,66 @@ describe('KeyringController', function () {
   });
 
   describe('Manifest v3 changes', function () {
-    it('can still log in with password after encryption key strategy is enacted', async function () {
-      // Log in with correct password, which will trigger generation of key
-      await keyringController.createNewVaultAndKeychain(password);
-      await keyringController.persistAllKeyrings();
-      await keyringController.submitPassword(password);
-
-      // Log the user out
-      await keyringController.setLocked();
-
-      // Log in again, should work with just the password
-      await keyringController.submitPassword(password);
-    });
-
     it('can still verify password', async function () {
-      // Log in with correct password, which will trigger generation of key
-      await keyringController.createNewVaultAndKeychain(password);
-      await keyringController.persistAllKeyrings();
-      await keyringController.submitPassword(password);
-
       // Log the user out
       await keyringController.setLocked();
 
-      // Attempt to verify the user
+      // Attempt to verify the password
       const result = await keyringController.verifyPassword(password);
       expect(result).toBeTruthy();
     });
 
     it('can still unlock with password after being migrated and locked', async function () {
-      // Log in with correct password, which will trigger generation of key
-      await keyringController.createNewVaultAndKeychain(password);
-      await keyringController.persistAllKeyrings();
-      await keyringController.submitPassword(password);
-
       // Log the user out
       await keyringController.setLocked();
 
-      // Attempt to verify the user
+      // Attempt to unlock the keychaing via old password
       const result = await keyringController.submitPassword(password);
       expect(result).toBeTruthy();
+
+      // Ensure the new vault value has separator and salt
+      const { vault, salt } = keyringController.store.getState();
+      expect(vault).toContain(':::');
+      expect(salt).toBeTruthy();
     });
 
     // TODO:  THIS SHOULD BE FAILING
-    it('does not unlock with incorrect encryption key', async function() {
-      // Log in with correct password, which will trigger generation of key
-      await keyringController.createNewVaultAndKeychain(password);
-      await keyringController.persistAllKeyrings();
+    it('does not unlock with incorrect encryption key', async function () {
       await keyringController.submitPassword(password);
 
       // Log the user out
       await keyringController.setLocked();
-      const encryptionKey = await keyringController.submitEncryptedKey('FAKE STRING');
 
-      expect(encryptionKey).toBeTruthy();
+      // Attempt to login with an incorrect encryption key
+      const encryptionKey = await keyringController.submitEncryptedKey(
+        'FAKE KEY',
+      );
+
+      expect(encryptionKey).rejects.toThrow();
     });
 
-    it('unlocks with correct encryption key', async function() {
-      // Log in with correct password, which will trigger generation of key
-      await keyringController.createNewVaultAndKeychain(password);
-      await keyringController.persistAllKeyrings();
+    it('unlocks with correct encryption key', async function () {
       await keyringController.submitPassword(password);
+
+      const encryptionKey = keyringController.getEncryptedKey();
+
+      // Log the user out
+      await keyringController.setLocked();
+
+      // Attempt to login with an incorrect encryption key
+      const key = await keyringController.submitEncryptedKey(encryptionKey);
+
+      expect(key).toBeTruthy();
     });
 
     it('removes encryption key when locked', async function () {
-      // Log in with correct password, which will trigger generation of key
-      await keyringController.createNewVaultAndKeychain(password);
-      await keyringController.persistAllKeyrings();
-      await keyringController.submitPassword(password);
-
-      expect(keyringController.getEncryptedKey()).toBeTruthy();
-
       await keyringController.setLocked();
 
       expect(keyringController.getEncryptedKey()).toBeUndefined();
     });
 
-    it('rotates encrypted keys between logins', async function() {
+    it('rotates encrypted keys between logins', async function () {
       // Log in with correct password, which will trigger generation of key
-      await keyringController.createNewVaultAndKeychain(password);
-      await keyringController.persistAllKeyrings();
       await keyringController.submitPassword(password);
 
       const currentKey = keyringController.getEncryptedKey();
@@ -557,6 +546,6 @@ describe('KeyringController', function () {
       const newKey = keyringController.getEncryptedKey();
 
       expect(currentKey === newKey).toBe(false);
-    })
+    });
   });
 });
