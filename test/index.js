@@ -67,7 +67,7 @@ describe('KeyringController', function () {
 
       await keyringController.setLocked();
 
-      expect(keyringController.encryptedKey).toBeUndefined();
+      expect(keyringController.encryptionKey).toBeUndefined();
       expect(keyringController.memStore.getState().isUnlocked).toBe(false);
       expect(keyringController.keyrings).toHaveLength(0);
     });
@@ -480,8 +480,9 @@ describe('KeyringController', function () {
       await keyringController.setLocked();
 
       // Attempt to verify the password
-      const result = await keyringController.verifyPassword(password);
-      expect(result).toBeTruthy();
+      await expect(
+        keyringController.verifyPassword(password),
+      ).resolves.toBeTruthy();
     });
 
     it('can still unlock with password after being migrated and locked', async function () {
@@ -506,46 +507,45 @@ describe('KeyringController', function () {
       await keyringController.setLocked();
 
       // Attempt to login with an incorrect encryption key
-      const encryptionKey = await keyringController.submitEncryptedKey(
-        'FAKE KEY',
-      );
+      const encryptionKeyPromise =
+        keyringController.submitEncryptionKey('FAKE KEY');
 
-      expect(encryptionKey).rejects.toThrow();
+      expect(encryptionKeyPromise).rejects.toThrow();
     });
 
     it('unlocks with correct encryption key', async function () {
       await keyringController.submitPassword(password);
 
-      const encryptionKey = keyringController.getEncryptedKey();
+      const { encryptionKey } = keyringController;
 
       // Log the user out
       await keyringController.setLocked();
 
       // Attempt to login with an incorrect encryption key
-      const key = await keyringController.submitEncryptedKey(encryptionKey);
+      await keyringController.submitEncryptionKey(encryptionKey);
 
-      expect(key).toBeTruthy();
+      expect(keyringController.encryptionKey).toBeTruthy();
     });
 
     it('removes encryption key when locked', async function () {
       await keyringController.setLocked();
 
-      expect(keyringController.getEncryptedKey()).toBeUndefined();
+      expect(keyringController.encryptionKey).toBeUndefined();
     });
 
     it('rotates encrypted keys between logins', async function () {
       // Log in with correct password, which will trigger generation of key
       await keyringController.submitPassword(password);
 
-      const currentKey = keyringController.getEncryptedKey();
+      const currentKey = keyringController.encryptionKey;
 
       await keyringController.setLocked();
 
       await keyringController.submitPassword(password);
 
-      const newKey = keyringController.getEncryptedKey();
+      const newKey = keyringController.encryptionKey;
 
-      expect(currentKey === newKey).toBe(false);
+      expect(currentKey !== newKey).toBe(true);
     });
   });
 });

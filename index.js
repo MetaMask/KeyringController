@@ -156,7 +156,7 @@ class KeyringController extends EventEmitter {
   async setLocked() {
     // set locked
     this.memStore.updateState({ isUnlocked: false });
-    delete this.encryptedKey;
+    delete this.encryptionKey;
     // remove keyrings
     this.keyrings = [];
     await this._updateMemStoreKeyrings();
@@ -182,18 +182,16 @@ class KeyringController extends EventEmitter {
     this.setUnlocked();
     this.fullUpdate();
 
-    return this.encryptedKey;
+    return this.encryptionKey;
   }
 
   /* 
     MV3:  Unlock by encrypted key
   */
-  async submitEncryptedKey(encryptedKey) {
-    this.keyrings = await this.unlockKeyrings(undefined, encryptedKey);
+  async submitEncryptionKey(encryptionKey) {
+    this.keyrings = await this.unlockKeyrings(undefined, encryptionKey);
     this.setUnlocked();
     this.fullUpdate();
-
-    return this.encryptedKey;
   }
 
   /**
@@ -210,8 +208,7 @@ class KeyringController extends EventEmitter {
       throw new Error('Cannot unlock without a previous vault.');
     }
 
-    const result = await this.encryptor.decrypt(password, encryptedVault);
-    return result;
+    await this.encryptor.decrypt(password, encryptedVault);
   }
 
   /**
@@ -546,12 +543,10 @@ class KeyringController extends EventEmitter {
     }
 
     // MV3: Since we also allow persisting without a password,
-    // we should require this.encryptedKey
-    if (password === undefined && this.encryptedKey === undefined) {
-      return Promise.reject(
-        new Error(
-          'KeyringController - a password or encryptedKey must exist to persist keyrings',
-        ),
+    // we should require this.encryptionKey
+    if (password === undefined && this.encryptionKey === undefined) {
+      throw new Error(
+        'KeyringController - a password or encryptionKey must exist to persist keyrings',
       );
     }
 
@@ -563,7 +558,7 @@ class KeyringController extends EventEmitter {
 
       // MV3: Since there's a new salt, we need to generate a new encrypted key
       // for use in the
-      this.encryptedKey = await this._generateEncryptedKey(password, salt);
+      this.encryptionKey = await this._generateEncryptionKey(password, salt);
     } else {
       const encryptedVault = this.store.getState().vault;
       if (!encryptedVault) {
@@ -583,9 +578,13 @@ class KeyringController extends EventEmitter {
       }),
     );
     const encryptedString = await this.encryptor.encrypt(
-      this.encryptedKey,
+      this.encryptionKey,
       serializedKeyrings,
     );
+
+    if (!encryptedString || !salt) {
+      throw new Error('Cannot persist vault without salt or encrypted vault string');
+    }
 
     const newVault = [encryptedString, VAULT_SEPARATOR, salt].join('');
 
@@ -605,10 +604,16 @@ class KeyringController extends EventEmitter {
    * @param {string} password - The keyring controller password.
    * @returns {Promise<Array<Keyring>>} The keyrings.
    */
-  async unlockKeyrings(password, encryptedKey) {
+  async unlockKeyrings(password, encryptionKey) {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
       throw new Error('Cannot unlock without a previous vault.');
+    }
+
+    if(password === undefined && encryptionKey === undefined) {
+      throw new Error(
+        'No way to decrypt a salted vault without a password or encrypted key',
+      );
     }
 
     await this.clearKeyrings();
@@ -621,21 +626,9 @@ class KeyringController extends EventEmitter {
 
       log('[unlockKeyrings] salt is: ', salt, '; encryptedVault is:', encryptedVault);
 
-      if (password !== undefined) {
-        this.encryptedKey = await this._generateEncryptedKey(password, salt);
+      this.encryptionKey = password !== undefined ? await this._generateEncryptionKey(password, salt) : encryptionKey;
 
-        log('[unlockKeyrings] *new* encryptedKey is: ', this.encryptedKey);
-
-      } else if (encryptedKey !== undefined) {
-        log('[unlockKeyrings] *old* encryptedKey is: ', this.encryptedKey);
-        this.encryptedKey = encryptedKey;
-      } else {
-        throw new Error(
-          'No way to decrypt a salted vault without a password or encrypted key',
-        );
-      }
-
-      vault = await this.encryptor.decrypt(this.encryptedKey, vaultOnly);
+      vault = await this.encryptor.decrypt(this.encryptionKey, vaultOnly);
     } else {
       vault = await this.encryptor.decrypt(password, encryptedVault);
     }
@@ -659,16 +652,16 @@ class KeyringController extends EventEmitter {
   }
 
   // MV3:  Generates the encrypted key
-  async _generateEncryptedKey(password, salt) {
+  async _generateEncryptionKey(password, salt) {
     const data = new TextEncoder(TEXT_ENCODER_ENCODING).encode(password + salt);
     const encryptedSha = await crypto.subtle.digest('SHA-256', data);
-    const encryptedKey = new TextDecoder(TEXT_ENCODER_ENCODING).decode(encryptedSha);
-    return encryptedKey;
+    const encryptionKey = new TextDecoder(TEXT_ENCODER_ENCODING).decode(encryptedSha);
+    return encryptionKey;
   }
 
   // MV3:  Returns the encrypted key so it's accessible from the extension
-  getEncryptedKey() {
-    return this.encryptedKey;
+  getEncryptionKey() {
+    return this.encryptionKey;
   }
 
   /**
