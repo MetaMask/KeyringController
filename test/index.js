@@ -1,5 +1,4 @@
 const { strict: assert } = require('assert');
-const { encode } = require('punycode');
 const sigUtil = require('eth-sig-util');
 
 const normalizeAddress = sigUtil.normalize;
@@ -7,10 +6,13 @@ const sinon = require('sinon');
 const Wallet = require('ethereumjs-wallet').default;
 
 const KeyringController = require('..');
-const mockEncryptor = require('./lib/mock-encryptor');
-const { TextEncoder } = require('./lib/text-encoder-shim');
+const { MOCK_SALT } = require('./lib/constants');
+const generateMockEncryptor = require('./lib/mock-encryptor');
 
-const password = 'password123';
+const PASSWORD = 'password123';
+const encryptedPassword =
+  '60f78b86639ce48cc7b29cbe640506cce8c1c467841aaf816dd159df6ef94857'; // toHex(sha256(utf8ToBytes(PASSWORD + MOCK_SALT)))
+const mockEncryptor = generateMockEncryptor();
 const walletOneSeedWords =
   'puzzle seed penalty soldier say clay field arctic metal hen cage runway';
 const walletOneAddresses = ['0xef35ca8ebb9669a35c31b5f6f249a9941a812ac1'];
@@ -23,19 +25,6 @@ const walletTwoAddresses = [
   '0x49dd2653f38f75d40fdbd51e83b9c9724c87f7eb',
 ];
 
-// Shims for globals that don't exist in test environment
-global.crypto = {
-  getRandomValues: () => {
-    return Math.floor(Math.random(1000000));
-  },
-  subtle: {
-    digest: (algorithm, data) =>
-      new Uint8Array(Date.now().toString().split('')).buffer,
-  },
-};
-global.btoa = () => Date.now();
-global.TextEncoder = TextEncoder;
-
 describe('KeyringController', function () {
   let keyringController;
 
@@ -44,17 +33,18 @@ describe('KeyringController', function () {
       encryptor: mockEncryptor,
     });
 
-    await keyringController.createNewVaultAndKeychain(password);
-    await keyringController.submitPassword(password);
+    await keyringController.createNewVaultAndKeychain(PASSWORD);
+    await keyringController.submitPassword(PASSWORD);
 
     // MV3: Remove salt from vault string to preserve legacy vault format
-    const { vault } = keyringController.store.getState();
-    const newVault = keyringController.parseVault(vault).vault;
-    keyringController.store.updateState({ vault: newVault });
+    // const { vault } = keyringController.store.getState();
+    // const newVault = keyringController.parseVault(vault).vault;
+    // keyringController.store.updateState({ vault: newVault });
   });
 
   afterEach(function () {
     sinon.restore();
+    sinon.resetHistory();
   });
 
   describe('setLocked', function () {
@@ -84,14 +74,21 @@ describe('KeyringController', function () {
 
   describe('submitPassword', function () {
     it('should not create new keyrings when called in series', async function () {
-      await keyringController.createNewVaultAndKeychain(password);
-      await keyringController.persistAllKeyrings(password);
+      await keyringController.createNewVaultAndKeychain(PASSWORD);
+      await keyringController.persistAllKeyrings(PASSWORD);
       expect(keyringController.keyrings).toHaveLength(1);
 
-      await keyringController.submitPassword(`${password}a`);
+      await expect(
+        keyringController.submitPassword(`${PASSWORD}a`),
+      ).rejects.toThrow('Incorrect password');
       expect(keyringController.keyrings).toHaveLength(1);
 
-      await keyringController.submitPassword('');
+      await expect(keyringController.submitPassword('')).rejects.toThrow(
+        'Incorrect password',
+      );
+      expect(keyringController.keyrings).toHaveLength(1);
+
+      await keyringController.submitPassword(PASSWORD);
       expect(keyringController.keyrings).toHaveLength(1);
     });
 
@@ -101,7 +98,7 @@ describe('KeyringController', function () {
       const spy = sinon.spy();
       keyringController.on('unlock', spy);
 
-      await keyringController.submitPassword(password);
+      await keyringController.submitPassword(PASSWORD);
       expect(spy.calledOnce).toBe(true);
     });
   });
@@ -111,7 +108,7 @@ describe('KeyringController', function () {
       keyringController.store.updateState({ vault: null });
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
-      await keyringController.createNewVaultAndKeychain(password);
+      await keyringController.createNewVaultAndKeychain(PASSWORD);
       const { vault } = keyringController.store.getState();
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(vault).toBeTruthy();
@@ -120,13 +117,19 @@ describe('KeyringController', function () {
     it('should encrypt keyrings with the correct password each time they are persisted', async function () {
       keyringController.store.updateState({ vault: null });
       assert(!keyringController.store.getState().vault, 'no previous vault');
+      sinon.spy(keyringController, '_generateEncryptedKey');
+      await keyringController.createNewVaultAndKeychain(PASSWORD);
 
-      await keyringController.createNewVaultAndKeychain(password);
+      expect(keyringController._generateEncryptedKey.args[0]).toStrictEqual([
+        PASSWORD,
+        MOCK_SALT,
+      ]);
+
       const { vault } = keyringController.store.getState();
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(vault).toBeTruthy();
       keyringController.encryptor.encrypt.args.forEach(([actualPassword]) => {
-        expect(actualPassword).toBe(password);
+        expect(actualPassword).toBe(encryptedPassword);
       });
     });
   });
@@ -141,7 +144,7 @@ describe('KeyringController', function () {
       expect(allAccounts).toHaveLength(2);
 
       await keyringController.createNewVaultAndRestore(
-        password,
+        PASSWORD,
         walletOneSeedWords,
       );
 
@@ -159,7 +162,7 @@ describe('KeyringController', function () {
     it('throws error if mnemonic passed is invalid', async function () {
       await expect(() =>
         keyringController.createNewVaultAndRestore(
-          password,
+          PASSWORD,
           'test test test palace city barely security section midnight wealth south deer',
         ),
       ).rejects.toThrow('Seed phrase is invalid.');
@@ -173,7 +176,7 @@ describe('KeyringController', function () {
       );
 
       await keyringController.createNewVaultAndRestore(
-        password,
+        PASSWORD,
         mnemonicAsArrayOfNumbers,
       );
 
@@ -325,7 +328,7 @@ describe('KeyringController', function () {
   describe('unlockKeyrings', function () {
     it('returns the list of keyrings', async function () {
       await keyringController.setLocked();
-      const keyrings = await keyringController.unlockKeyrings(password);
+      const keyrings = await keyringController.unlockKeyrings(PASSWORD);
       expect(keyrings).toHaveLength(1);
       keyrings.forEach((keyring) => {
         expect(keyring.wallets).toHaveLength(1);
@@ -480,8 +483,8 @@ describe('KeyringController', function () {
       await keyringController.setLocked();
 
       // Attempt to verify the password
-      const result = await keyringController.verifyPassword(password);
-      expect(result).toBeTruthy();
+      const result = await keyringController.verifyPassword(PASSWORD);
+      expect(Boolean(result)).toBe(true);
     });
 
     it('can still unlock with password after being migrated and locked', async function () {
@@ -489,32 +492,31 @@ describe('KeyringController', function () {
       await keyringController.setLocked();
 
       // Attempt to unlock the keychaing via old password
-      const result = await keyringController.submitPassword(password);
-      expect(result).toBeTruthy();
+      const result = await keyringController.submitPassword(PASSWORD);
+      expect(Boolean(result)).toBe(true);
 
       // Ensure the new vault value has separator and salt
-      const { vault, salt } = keyringController.store.getState();
-      expect(vault).toContain(':::');
-      expect(salt).toBeTruthy();
+      const { vault: encryptedVault } = keyringController.store.getState();
+      expect(encryptedVault).toContain(':::');
+      const { salt } = keyringController.parseVault(encryptedVault);
+      expect(salt).toBe(MOCK_SALT);
     });
 
-    // TODO:  THIS SHOULD BE FAILING
     it('does not unlock with incorrect encryption key', async function () {
-      await keyringController.submitPassword(password);
+      await keyringController.submitPassword(PASSWORD);
 
       // Log the user out
       await keyringController.setLocked();
 
       // Attempt to login with an incorrect encryption key
-      const encryptionKey = await keyringController.submitEncryptedKey(
-        'FAKE KEY',
-      );
 
-      expect(encryptionKey).rejects.toThrow();
+      await expect(
+        keyringController.submitEncryptedKey('FAKE KEY'),
+      ).rejects.toThrow('Incorrect password');
     });
 
     it('unlocks with correct encryption key', async function () {
-      await keyringController.submitPassword(password);
+      await keyringController.submitPassword(PASSWORD);
 
       const encryptionKey = keyringController.getEncryptedKey();
 
@@ -524,7 +526,7 @@ describe('KeyringController', function () {
       // Attempt to login with an incorrect encryption key
       const key = await keyringController.submitEncryptedKey(encryptionKey);
 
-      expect(key).toBeTruthy();
+      expect(Boolean(key)).toBe(true);
     });
 
     it('removes encryption key when locked', async function () {
@@ -534,14 +536,20 @@ describe('KeyringController', function () {
     });
 
     it('rotates encrypted keys between logins', async function () {
+      keyringController = new KeyringController({
+        encryptor: generateMockEncryptor(true),
+      });
+
+      await keyringController.createNewVaultAndKeychain(PASSWORD);
+
       // Log in with correct password, which will trigger generation of key
-      await keyringController.submitPassword(password);
+      await keyringController.submitPassword(PASSWORD);
 
       const currentKey = keyringController.getEncryptedKey();
 
       await keyringController.setLocked();
 
-      await keyringController.submitPassword(password);
+      await keyringController.submitPassword(PASSWORD);
 
       const newKey = keyringController.getEncryptedKey();
 
