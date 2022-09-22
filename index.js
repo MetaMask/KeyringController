@@ -4,6 +4,8 @@ const bip39 = require('@metamask/bip39');
 const ObservableStore = require('obs-store');
 const encryptor = require('browser-passworder');
 const { normalize: normalizeAddress } = require('eth-sig-util');
+const { sha256 } = require('ethereum-cryptography/sha256');
+const { utf8ToBytes, toHex } = require('ethereum-cryptography/utils');
 
 const SimpleKeyring = require('eth-simple-keyring');
 const HdKeyring = require('@metamask/eth-hd-keyring');
@@ -29,10 +31,6 @@ function stripHexPrefix(address) {
     return address.slice(2);
   }
   return address;
-}
-
-function log(...messages) {
-  process.env.DEBUG && console.log(...messages);
 }
 
 class KeyringController extends EventEmitter {
@@ -178,7 +176,13 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async submitPassword(password) {
+    await this.verifyPassword(password);
     this.keyrings = await this.unlockKeyrings(password);
+
+    // MV3: If we're provided a password, we should persist keyrings
+    // so that we can either (1) migrate or (2) create a new salt
+    await this.persistAllKeyrings(password);
+
     this.setUnlocked();
     this.fullUpdate();
 
@@ -208,7 +212,11 @@ class KeyringController extends EventEmitter {
       throw new Error('Cannot unlock without a previous vault.');
     }
 
-    await this.encryptor.decrypt(password, encryptedVault);
+    const result = await this.attemptGetDecryptedVault(
+      encryptedVault,
+      password,
+    );
+    return result;
   }
 
   /**
@@ -515,7 +523,11 @@ class KeyringController extends EventEmitter {
   async createFirstKeyTree(password) {
     this.clearKeyrings();
 
-    const keyring = await this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {}, password);
+    const keyring = await this.addNewKeyring(
+      KEYRINGS_TYPE_MAP.HD_KEYRING,
+      {},
+      password,
+    );
     const [firstAccount] = await keyring.getAccounts();
     if (!firstAccount) {
       throw new Error('KeyringController - No account found on keychain.');
@@ -554,7 +566,7 @@ class KeyringController extends EventEmitter {
     if (password) {
       // MV3: If this is a migration or new password-driven login, we should
       // create or rotate the salt
-      salt = encryptor.generateSalt();
+      salt = this.encryptor.generateSalt();
 
       // MV3: Since there's a new salt, we need to generate a new encrypted key
       // for use in the
@@ -583,16 +595,37 @@ class KeyringController extends EventEmitter {
     );
 
     if (!encryptedString || !salt) {
-      throw new Error('Cannot persist vault without salt or encrypted vault string');
+      throw new Error(
+        'Cannot persist vault without salt or encrypted vault string',
+      );
     }
 
     const newVault = [encryptedString, VAULT_SEPARATOR, salt].join('');
 
-    log("New vault is: ", newVault, encryptedString, salt)
-
     // MV3: The encrypted string gets concatenated with a separator and salt
     this.store.updateState({ vault: newVault });
     return true;
+  }
+
+  async attemptGetDecryptedVault(encryptedVault, password, encryptionKey) {
+    if (password === undefined && encryptionKey === undefined) {
+      throw new Error(
+        'No way to decrypt a salted vault without a password or encryption key',
+      );
+    }
+
+    if (encryptedVault.includes(VAULT_SEPARATOR)) {
+      const { salt, vault: vaultOnly } = this.parseVault(encryptedVault);
+
+      if (password !== undefined) {
+        this.encryptionKey = await this._generateEncryptionKey(password, salt);
+      } else {
+        this.encryptionKey = encryptionKey;
+      }
+
+      return await this.encryptor.decrypt(this.encryptionKey, vaultOnly);
+    }
+    return await this.encryptor.decrypt(password, encryptedVault);
   }
 
   /**
@@ -610,7 +643,7 @@ class KeyringController extends EventEmitter {
       throw new Error('Cannot unlock without a previous vault.');
     }
 
-    if(password === undefined && encryptionKey === undefined) {
+    if (password === undefined && encryptionKey === undefined) {
       throw new Error(
         'No way to decrypt a salted vault without a password or encrypted key',
       );
@@ -620,28 +653,15 @@ class KeyringController extends EventEmitter {
 
     // MV3: If the separator string is in the vault string, the user has already migrated
     // from the previous password-only model
-    let vault = null;
-    if (encryptedVault?.includes?.(VAULT_SEPARATOR)) {
-      const { salt, vault: vaultOnly } = this.parseVault(encryptedVault);
-
-      log('[unlockKeyrings] salt is: ', salt, '; encryptedVault is:', encryptedVault);
-
-      this.encryptionKey = password !== undefined ? await this._generateEncryptionKey(password, salt) : encryptionKey;
-
-      vault = await this.encryptor.decrypt(this.encryptionKey, vaultOnly);
-    } else {
-      vault = await this.encryptor.decrypt(password, encryptedVault);
-    }
+    const vault = await this.attemptGetDecryptedVault(
+      encryptedVault,
+      password,
+      encryptionKey,
+    );
 
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));
 
     await this._updateMemStoreKeyrings();
-
-    // MV3: If we're provided a password, we should persist keyrings
-    // so that we can either (1) migrate or (2) create a new salt
-    if (password) {
-      await this.persistAllKeyrings(password);
-    }
 
     return this.keyrings;
   }
@@ -653,10 +673,7 @@ class KeyringController extends EventEmitter {
 
   // MV3:  Generates the encrypted key
   async _generateEncryptionKey(password, salt) {
-    const data = new TextEncoder(TEXT_ENCODER_ENCODING).encode(password + salt);
-    const encryptedSha = await crypto.subtle.digest('SHA-256', data);
-    const encryptionKey = new TextDecoder(TEXT_ENCODER_ENCODING).decode(encryptedSha);
-    return encryptionKey;
+    return toHex(sha256(utf8ToBytes(password + salt)));
   }
 
   // MV3:  Returns the encrypted key so it's accessible from the extension
