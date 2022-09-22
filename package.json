@@ -36,8 +36,8 @@
     "browser-passworder": "^2.0.3",
     "eth-sig-util": "^3.0.1",
     "eth-simple-keyring": "^4.2.0",
-    "obs-store": "^4.0.3",
-    "ethereum-cryptography":  "^1.1.2"
+    "ethereum-cryptography": "^1.1.2",
+    "obs-store": "^4.0.3"
   },
   "devDependencies": {
     "@lavamoat/allow-scripts": "^1.0.6",

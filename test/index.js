@@ -112,7 +112,7 @@ describe('KeyringController', function () {
       await keyringController.createNewVaultAndKeychain(PASSWORD);
       const { vault } = keyringController.store.getState();
       // eslint-disable-next-line jest/no-restricted-matchers
-      expect(vault).toBeTruthy();
+      expect(Boolean(vault)).toBe(true);
     });
 
     it('should encrypt keyrings with the correct password each time they are persisted', async function () {
@@ -486,6 +486,7 @@ describe('KeyringController', function () {
       // Attempt to verify the password
       await expect(
         keyringController.verifyPassword(PASSWORD),
+        // eslint-disable-next-line jest/no-restricted-matchers
       ).resolves.toBeTruthy();
     });
 
@@ -496,6 +497,7 @@ describe('KeyringController', function () {
       // Attempt to unlock the keychaing via old password
       await expect(
         keyringController.submitPassword(PASSWORD),
+        // eslint-disable-next-line jest/no-restricted-matchers
       ).resolves.toBeTruthy();
 
       // Ensure the new vault value has separator and salt

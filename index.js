@@ -617,10 +617,10 @@ class KeyringController extends EventEmitter {
     if (encryptedVault.includes(VAULT_SEPARATOR)) {
       const { salt, vault: vaultOnly } = this.parseVault(encryptedVault);
 
-      if (password !== undefined) {
-        this.encryptionKey = await this._generateEncryptionKey(password, salt);
-      } else {
+      if (encryptionKey) {
         this.encryptionKey = encryptionKey;
+      } else {
+        this.encryptionKey = await this._generateEncryptionKey(password, salt);
       }
 
       return await this.encryptor.decrypt(this.encryptionKey, vaultOnly);
