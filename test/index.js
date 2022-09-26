@@ -543,13 +543,13 @@ describe('KeyringController', function () {
       // Log in with correct password, which will trigger generation of key
       await keyringController.submitPassword(PASSWORD);
 
-      const currentKey = keyringController.getEncryptionKey();
+      const currentKey = keyringController.encryptionKey;
 
       await keyringController.setLocked();
 
       await keyringController.submitPassword(PASSWORD);
 
-      const newKey = keyringController.getEncryptionKey();
+      const newKey = keyringController.encryptionKey;
 
       expect(currentKey !== newKey).toBe(true);
     });

@@ -179,7 +179,7 @@ class KeyringController extends EventEmitter {
     await this.verifyPassword(password);
     this.keyrings = await this.unlockKeyrings(password);
 
-    // MV3: If we're provided a password, we should persist keyrings
+    // If we're provided a password, we should persist keyrings
     // so that we can either (1) migrate or (2) create a new salt
     await this.persistAllKeyrings(password);
 
@@ -189,9 +189,14 @@ class KeyringController extends EventEmitter {
     return this.encryptionKey;
   }
 
-  /* 
-    MV3:  Unlock by encrypted key
-  */
+  /**
+   * Submit Encrypted Key
+   *
+   * Attempts to decrypt the current vault with a given encryption key
+   * and loads its keyrings into memory
+   *
+   * @param {string} password
+   */
   async submitEncryptionKey(encryptionKey) {
     this.keyrings = await this.unlockKeyrings(undefined, encryptionKey);
     this.setUnlocked();
@@ -554,7 +559,7 @@ class KeyringController extends EventEmitter {
       throw new Error('KeyringController - password is not a string');
     }
 
-    // MV3: Since we also allow persisting without a password,
+    // Since we also allow persisting without a password,
     // we should require this.encryptionKey
     if (password === undefined && this.encryptionKey === undefined) {
       throw new Error(
@@ -564,11 +569,11 @@ class KeyringController extends EventEmitter {
 
     let salt = null;
     if (password) {
-      // MV3: If this is a migration or new password-driven login, we should
+      // If this is a migration or new password-driven login, we should
       // create or rotate the salt
       salt = this.encryptor.generateSalt();
 
-      // MV3: Since there's a new salt, we need to generate a new encrypted key
+      // Since there's a new salt, we need to generate a new encrypted key
       // for use in the
       this.encryptionKey = await this._generateEncryptionKey(password, salt);
     } else {
@@ -576,7 +581,7 @@ class KeyringController extends EventEmitter {
       if (!encryptedVault) {
         throw new Error('Cannot unlock without a previous vault.');
       }
-      // MV3: We can use an existing salt if one exists in the encrypted key
+      // We can use an existing salt if one exists in the encrypted key
       salt = this.parseVault(encryptedVault).salt;
     }
 
@@ -602,7 +607,7 @@ class KeyringController extends EventEmitter {
 
     const newVault = [encryptedString, VAULT_SEPARATOR, salt].join('');
 
-    // MV3: The encrypted string gets concatenated with a separator and salt
+    // The encrypted string gets concatenated with a separator and salt
     this.store.updateState({ vault: newVault });
     return true;
   }
@@ -651,7 +656,7 @@ class KeyringController extends EventEmitter {
 
     await this.clearKeyrings();
 
-    // MV3: If the separator string is in the vault string, the user has already migrated
+    // If the separator string is in the vault string, the user has already migrated
     // from the previous password-only model
     const vault = await this.attemptGetDecryptedVault(
       encryptedVault,
@@ -666,19 +671,31 @@ class KeyringController extends EventEmitter {
     return this.keyrings;
   }
 
+  /**
+   * Parse Vault
+   *
+   * Parses the vault string for vault and salt
+   *
+   * @param {string} encryptedVault - The stored, encrypted vault
+   * @returns {Boject} Contains salt and vault properties
+   */
   parseVault(encryptedVault) {
     const [vault, salt] = encryptedVault.split(VAULT_SEPARATOR);
     return { vault, salt };
   }
 
-  // MV3:  Generates the encrypted key
+  /**
+   * Generate Encryption Key
+   *
+   * Generates an encryption key which will be used to decrypt
+   * the vault.
+   *
+   * @param {Object} password - The user's submitted password
+   * @param {Object} salt - Salt to generate the encryption key
+   * @returns {string} The encryption key
+   */
   async _generateEncryptionKey(password, salt) {
     return toHex(sha256(utf8ToBytes(password + salt)));
-  }
-
-  // MV3:  Returns the encrypted key so it's accessible from the extension
-  getEncryptionKey() {
-    return this.encryptionKey;
   }
 
   /**
