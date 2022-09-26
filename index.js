@@ -19,8 +19,6 @@ const KEYRINGS_TYPE_MAP = {
   SIMPLE_KEYRING: 'Simple Key Pair',
 };
 
-const TEXT_ENCODER_ENCODING = 'utf8';
-
 /**
  * Strip the hex prefix from an address, if present
  * @param {string} address - The address that might be hex prefixed.
@@ -107,7 +105,7 @@ class KeyringController extends EventEmitter {
   async createNewVaultAndRestore(password, seedPhrase) {
     const seedPhraseAsBuffer =
       typeof seedPhrase === 'string'
-        ? Buffer.from(seedPhrase, TEXT_ENCODER_ENCODING)
+        ? Buffer.from(seedPhrase, 'utf8')
         : Buffer.from(seedPhrase);
 
     if (typeof password !== 'string') {
