@@ -36,11 +36,6 @@ describe('KeyringController', function () {
 
     await keyringController.createNewVaultAndKeychain(PASSWORD);
     await keyringController.submitPassword(PASSWORD);
-
-    // MV3: Remove salt from vault string to preserve legacy vault format
-    // const { vault } = keyringController.store.getState();
-    // const newVault = keyringController.parseVault(vault).vault;
-    // keyringController.store.updateState({ vault: newVault });
   });
 
   afterEach(function () {
