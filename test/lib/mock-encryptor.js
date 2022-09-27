@@ -15,7 +15,7 @@ module.exports = function generateMockEncryptor(changeSaltBetweenCalls) {
 
     decrypt(_password, _text) {
       if (_password !== cacheVal.password) {
-        throw new Error('Incorrect password');
+        throw new Error(`Incorrect password: ${_password} != ${cacheVal.password}`);
       }
       return Promise.resolve(cacheVal || {});
     },
