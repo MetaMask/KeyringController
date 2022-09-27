@@ -592,6 +592,7 @@ class KeyringController extends EventEmitter {
         return { type, data };
       }),
     );
+
     const encryptedString = await this.encryptor.encrypt(
       this.encryptionKey,
       serializedKeyrings,
@@ -617,6 +618,8 @@ class KeyringController extends EventEmitter {
       );
     }
 
+    // If the separator string is in the vault string, the user has already migrated
+    // from the previous password-only model
     if (encryptedVault.includes(VAULT_SEPARATOR)) {
       const { salt, vault } = this.parseVault(encryptedVault);
 
@@ -655,8 +658,6 @@ class KeyringController extends EventEmitter {
 
     await this.clearKeyrings();
 
-    // If the separator string is in the vault string, the user has already migrated
-    // from the previous password-only model
     const vault = await this.attemptGetDecryptedVault(
       encryptedVault,
       password,
