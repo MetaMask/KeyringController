@@ -177,8 +177,8 @@ class KeyringController extends EventEmitter {
     await this.verifyPassword(password);
     this.keyrings = await this.unlockKeyrings(password);
 
-    // If we're provided a password, we should persist keyrings
-    // so that we can either (1) migrate or (2) create a new salt
+    // We should persist keyrings so that we can either
+    // (1) migrate or (2) create a new salt
     await this.persistAllKeyrings(password);
 
     this.setUnlocked();
