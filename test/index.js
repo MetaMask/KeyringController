@@ -29,6 +29,7 @@ describe('KeyringController', function () {
     });
 
     await keyringController.createNewVaultAndKeychain(password);
+    await keyringController.submitPassword(password);
   });
 
   afterEach(function () {
@@ -63,7 +64,7 @@ describe('KeyringController', function () {
   describe('submitPassword', function () {
     it('should not create new keyrings when called in series', async function () {
       await keyringController.createNewVaultAndKeychain(password);
-      await keyringController.persistAllKeyrings();
+      await keyringController.persistAllKeyrings(password);
       expect(keyringController.keyrings).toHaveLength(1);
 
       await keyringController.submitPassword(`${password}a`);

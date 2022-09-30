@@ -10,6 +10,10 @@ module.exports = {
     return Promise.resolve(mockHex);
   }),
 
+  decryptWithEncryptedKeyString(_keyStr) {
+    return this.decrypt();
+  },
+
   decrypt(_password, _text) {
     return Promise.resolve(cacheVal || {});
   },
