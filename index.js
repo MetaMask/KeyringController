@@ -4,8 +4,8 @@ const bip39 = require('@metamask/bip39');
 const ObservableStore = require('obs-store');
 const encryptor = require('browser-passworder');
 const { normalize: normalizeAddress } = require('eth-sig-util');
-const { sha256 } = require('ethereum-cryptography/sha256');
-const { utf8ToBytes, toHex } = require('ethereum-cryptography/utils');
+//const { sha256 } = require('ethereum-cryptography/sha256');
+//const { utf8ToBytes, toHex } = require('ethereum-cryptography/utils');
 
 const SimpleKeyring = require('eth-simple-keyring');
 const HdKeyring = require('@metamask/eth-hd-keyring');
@@ -629,7 +629,8 @@ class KeyringController extends EventEmitter {
         this.encryptionKey = await this._generateEncryptionKey(password, salt);
       }
 
-      return await this.encryptor.decrypt(this.encryptionKey, vault);
+      //return await this.encryptor.decrypt(this.encryptionKey, vault);
+      return await this.encryptor.decryptWithKey(this.encryptionKey, encryptedVault);
     }
 
     return await this.encryptor.decrypt(password, encryptedVault);
@@ -695,7 +696,18 @@ class KeyringController extends EventEmitter {
    * @returns {string} The encryption key
    */
   async _generateEncryptionKey(password, salt) {
-    return toHex(sha256(utf8ToBytes(password + salt)));
+    //return toHex(sha256(utf8ToBytes(password + salt)));
+    const key = await encryptor.keyFromPassword(password, salt);
+    const exportedKey = await window.crypto.subtle.exportKey('jwk', key);
+    const keyString = JSON.stringify(exportedKey);
+    console.log("key is: ", key, exportedKey);
+    console.log("keystring is: ", keyString);
+
+    // recreate the key?
+    const restoredKey = await window.crypto.subtle.importKey('jwk', JSON.parse(keyString), 'AES-GCM', true, ['encrypt', 'decrypt']);
+    console.log('restored key is: ', restoredKey);
+
+    return keyString;
   }
 
   /**
