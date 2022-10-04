@@ -126,7 +126,7 @@ class KeyringController extends EventEmitter {
         mnemonic: seedPhraseAsBuffer,
         numberOfAccounts: 1,
       },
-      password
+      password,
     );
     const [firstAccount] = await firstKeyring.getAccounts();
     if (!firstAccount) {
@@ -148,6 +148,7 @@ class KeyringController extends EventEmitter {
   async setLocked() {
     // set locked
     delete this.encryptionKey;
+    delete this.encryptionData;
     this.memStore.updateState({ isUnlocked: false });
     // remove keyrings
     this.keyrings = [];
@@ -176,18 +177,22 @@ class KeyringController extends EventEmitter {
 
     // Keeping this.password is required because it's called by `getKeyringForDevice`
     // in the metamask extensions
-    this.password = password
+    this.password = password;
 
     this.setUnlocked();
     this.fullUpdate();
   }
 
   async submitEncryptionKey(encryptionKey, loginData) {
-    this.keyrings = await this.unlockKeyrings(undefined, encryptionKey, loginData);
+    this.keyrings = await this.unlockKeyrings(
+      undefined,
+      encryptionKey,
+      loginData,
+    );
     this.setUnlocked();
     this.fullUpdate();
 
-    console.log("Encryption key login successful!")
+    console.log('Encryption key login successful!');
     return true;
   }
 
@@ -552,12 +557,9 @@ class KeyringController extends EventEmitter {
       }),
     );
 
-    const vault = await this.encryptor.encrypt(
-      password,
-      serializedKeyrings,
-    );
+    const vault = await this.encryptor.encrypt(password, serializedKeyrings);
 
-    console.log("persistAllKeyrings: ", password, vault);
+    console.log('persistAllKeyrings: ', password, vault);
     this.store.updateState({ vault });
 
     return true;
@@ -587,7 +589,10 @@ class KeyringController extends EventEmitter {
       this.encryptionKey = result.extractedKeyString;
       this.encryptionData = result.data;
     } else {
-      vault = await this.encryptor.decryptWithEncryptedKeyString(encryptionKey, loginData);
+      vault = await this.encryptor.decryptWithEncryptedKeyString(
+        encryptionKey,
+        loginData,
+      );
     }
 
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));
