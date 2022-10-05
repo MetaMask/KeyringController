@@ -79,8 +79,10 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async createNewVaultAndKeychain(password) {
+    this.password = password;
+
     await this.createFirstKeyTree(password);
-    await this.persistAllKeyrings(password);
+    await this.persistAllKeyrings();
     this.setUnlocked.bind();
     this.fullUpdate();
   }
@@ -117,9 +119,11 @@ class KeyringController extends EventEmitter {
       throw new Error('Seed phrase is invalid.');
     }
 
+    this.password = password;
+
     this.clearKeyrings();
 
-    await this.persistAllKeyrings(password);
+    await this.persistAllKeyrings();
     const firstKeyring = await this.addNewKeyring(
       KEYRINGS_TYPE_MAP.HD_KEYRING,
       {
@@ -133,7 +137,7 @@ class KeyringController extends EventEmitter {
       throw new Error('KeyringController - First Account not found.');
     }
 
-    await this.persistAllKeyrings(password);
+    await this.persistAllKeyrings();
     this.setUnlocked();
     return this.fullUpdate();
   }
@@ -148,7 +152,6 @@ class KeyringController extends EventEmitter {
   async setLocked() {
     // set locked
     delete this.encryptionKey;
-    delete this.encryptionData;
     this.memStore.updateState({ isUnlocked: false });
     // remove keyrings
     this.keyrings = [];
@@ -173,10 +176,8 @@ class KeyringController extends EventEmitter {
   async submitPassword(password) {
     await this.verifyPassword(password);
     this.keyrings = await this.unlockKeyrings(password);
-    await this.persistAllKeyrings(password);
+    await this.persistAllKeyrings();
 
-    // Keeping this.password is required because it's called by `getKeyringForDevice`
-    // in the metamask extensions
     this.password = password;
 
     this.setUnlocked();
@@ -225,7 +226,7 @@ class KeyringController extends EventEmitter {
    * @param {Object} opts - The constructor options for the keyring.
    * @returns {Promise<Keyring>} The new keyring.
    */
-  async addNewKeyring(type, opts, password = this.password) {
+  async addNewKeyring(type, opts) {
     const Keyring = this.getKeyringClassForType(type);
     const keyring = new Keyring(opts);
     if ((!opts || !opts.mnemonic) && type === KEYRINGS_TYPE_MAP.HD_KEYRING) {
@@ -237,7 +238,7 @@ class KeyringController extends EventEmitter {
     await this.checkForDuplicate(type, accounts);
 
     this.keyrings.push(keyring);
-    await this.persistAllKeyrings(password);
+    await this.persistAllKeyrings();
 
     await this._updateMemStoreKeyrings();
     this.fullUpdate();
@@ -542,9 +543,11 @@ class KeyringController extends EventEmitter {
    * @param {string} password - The keyring controller password.
    * @returns {Promise<boolean>} Resolves to true once keyrings are persisted.
    */
-  async persistAllKeyrings(password) {
-    if (typeof password !== 'string') {
-      throw new Error('KeyringController - password is not a string');
+  async persistAllKeyrings() {
+    if (!this.password && !this.encryptionKey) {
+      throw new Error(
+        'Cannot persist vault without password and encryption key',
+      );
     }
 
     const serializedKeyrings = await Promise.all(
@@ -557,9 +560,25 @@ class KeyringController extends EventEmitter {
       }),
     );
 
-    const vault = await this.encryptor.encrypt(password, serializedKeyrings);
+    let vault;
+    if (this.password) {
+      vault = await this.encryptor.encrypt(this.password, serializedKeyrings);
 
-    console.log('persistAllKeyrings: ', password, vault);
+      console.log('vault created with password is: ', vault);
+    } else if (this.encryptionKey) {
+      const key = await this.encryptor.createKeyFromString(this.encryptionKey);
+      vault = JSON.stringify(
+        await this.encryptor.encryptWithKey(key, serializedKeyrings),
+      );
+
+      console.log('vault created with encryptWithKey is: ', vault);
+    }
+
+    if (!vault) {
+      throw new Error('Cannot persist vault without vault information');
+    }
+
+    console.log('persistAllKeyrings: ', vault);
     this.store.updateState({ vault });
 
     return true;
@@ -574,7 +593,7 @@ class KeyringController extends EventEmitter {
    * @param {string} password - The keyring controller password.
    * @returns {Promise<Array<Keyring>>} The keyrings.
    */
-  async unlockKeyrings(password, encryptionKey, loginData) {
+  async unlockKeyrings(password, encryptionKey, encryptionData) {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
       throw new Error('Cannot unlock without a previous vault.');
@@ -586,13 +605,17 @@ class KeyringController extends EventEmitter {
     if (password) {
       const result = await this.encryptor.decrypt(password, encryptedVault);
       vault = result.vault;
+
       this.encryptionKey = result.extractedKeyString;
       this.encryptionData = result.data;
     } else {
       vault = await this.encryptor.decryptWithEncryptedKeyString(
         encryptionKey,
-        loginData,
+        encryptionData,
       );
+
+      this.encryptionKey = encryptionKey;
+      this.encryptionData = encryptionData;
     }
 
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));
