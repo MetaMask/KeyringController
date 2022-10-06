@@ -15,7 +15,7 @@ module.exports = {
   },
 
   decrypt(_password, _text) {
-    return Promise.resolve(cacheVal || {});
+    return Promise.resolve(cacheVal ? { vault: cacheVal } : {});
   },
 
   encryptWithKey(key, dataObj) {
