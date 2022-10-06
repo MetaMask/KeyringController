@@ -10,6 +10,12 @@ const mockEncryptor = require('./lib/mock-encryptor');
 
 const PASSWORD = 'password123';
 
+const MOCK_ENCRYPTION_KEY =
+ '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
+ const MOCK_ENCRYPTION_DATA =
+ '{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZHyMqVY1cDBetw2gY5C+cIo1qkpyv3bPp+4buUjp38VBsjbijM0F/FLOqWbcuKM9h9X0uwxsgsZ96uwcIf5I46NiMgoFlhppTTMZT0Nkocz+SnvHM0IgLsFan7JqBU++vSJvx2M1PDljZSunOsqyyL+DKmbYmM4umbouKV42dipUwrCvrQJmpiUZrSkpMJrPJk9ufDQO4CyIVo0qry3aNRdYFJ6rgSyq/k6rXMwGExCMHn8UlhNnAMuMKWPWR/ymK1bzNcNs4VU14iVjEXOZGPvD9cvqVe/VtcnIba6axNEEB4HWDOCdrDh5YNWwMlQVL7vSB2yOhPZByGhnEOloYsj2E5KEb9jFGskt7EKDEYNofr6t83G0c+B72VGYZeCvgtzXzgPwzIbhTtKkP+gdBmt2JNSYrTjLypT0q+v4C9BN1xWTxPmX6TTt0NzkI9pJxgN1VQAfSU9CyWTVpd4CBkgom2cSBsxZ2MNbdKF+qSWz3fQcmJ55hxM0EGJSt9+8eQOTuoJlBapRk4wdZKHR2jdKzPjSF2MAmyVD2kU51IKa/cVsckRFEes+m7dKyHRvlNwgT78W9tBDdZb5PSlfbZXnv8z5q1KtAj2lM2ogJ7brHBdevl4FISdTkObpwcUMcvACOOO0dj6CSYjSKr0ZJ2RLChVruZyPDxEhKGb/8Kv8trLOR3mck/et6d050/NugezycNk4nnzu5iP90gPbSzaqdZI=","iv":"qTGO1afGv3waHN9KoW34Eg==","salt":"HQ5sfhsb8XAQRJtD+UqcImT7Ve4n3YMagrh05YTOsjk="}';
+
+
 const walletOneSeedWords =
   'puzzle seed penalty soldier say clay field arctic metal hen cage runway';
 const walletOneAddresses = ['0xef35ca8ebb9669a35c31b5f6f249a9941a812ac1'];
@@ -63,15 +69,15 @@ describe('KeyringController', function () {
   });
 
   describe('submitPassword', function () {
-    it('should not create new keyrings when called in series', async function () {
+    it('should not loads keyrings when incorrect password', async function () {
       await keyringController.createNewVaultAndKeychain(PASSWORD);
       await keyringController.persistAllKeyrings();
       expect(keyringController.keyrings).toHaveLength(1);
 
-      await keyringController.submitPassword(`${PASSWORD}a`);
-      expect(keyringController.keyrings).toHaveLength(0);
-
-      await keyringController.submitPassword('');
+      await expect(
+        keyringController.submitPassword(`${PASSWORD}a`),
+      ).rejects.toThrow('Incorrect password.');
+      expect(keyringController.password).toBeUndefined();
       expect(keyringController.keyrings).toHaveLength(0);
     });
 
@@ -454,20 +460,26 @@ describe('KeyringController', function () {
     });
   });
 
-  /*
+  
   describe('submitEncryptionKey', function () {
-    it('unlocks the keyrings with valid information', async function () {
-      const MOCK_ENCRYPTION_KEY =
-        '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
-      const MOCK_ENCRYPTION_DATA =
-        '{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZHyMqVY1cDBetw2gY5C+cIo1qkpyv3bPp+4buUjp38VBsjbijM0F/FLOqWbcuKM9h9X0uwxsgsZ96uwcIf5I46NiMgoFlhppTTMZT0Nkocz+SnvHM0IgLsFan7JqBU++vSJvx2M1PDljZSunOsqyyL+DKmbYmM4umbouKV42dipUwrCvrQJmpiUZrSkpMJrPJk9ufDQO4CyIVo0qry3aNRdYFJ6rgSyq/k6rXMwGExCMHn8UlhNnAMuMKWPWR/ymK1bzNcNs4VU14iVjEXOZGPvD9cvqVe/VtcnIba6axNEEB4HWDOCdrDh5YNWwMlQVL7vSB2yOhPZByGhnEOloYsj2E5KEb9jFGskt7EKDEYNofr6t83G0c+B72VGYZeCvgtzXzgPwzIbhTtKkP+gdBmt2JNSYrTjLypT0q+v4C9BN1xWTxPmX6TTt0NzkI9pJxgN1VQAfSU9CyWTVpd4CBkgom2cSBsxZ2MNbdKF+qSWz3fQcmJ55hxM0EGJSt9+8eQOTuoJlBapRk4wdZKHR2jdKzPjSF2MAmyVD2kU51IKa/cVsckRFEes+m7dKyHRvlNwgT78W9tBDdZb5PSlfbZXnv8z5q1KtAj2lM2ogJ7brHBdevl4FISdTkObpwcUMcvACOOO0dj6CSYjSKr0ZJ2RLChVruZyPDxEhKGb/8Kv8trLOR3mck/et6d050/NugezycNk4nnzu5iP90gPbSzaqdZI=","iv":"qTGO1afGv3waHN9KoW34Eg==","salt":"HQ5sfhsb8XAQRJtD+UqcImT7Ve4n3YMagrh05YTOsjk="}';
+    it('sets encryption key data upon submitPassword', async function() {
+      await keyringController.submitPassword(PASSWORD);
 
+      expect(keyringController.encryptionKey).toBe(MOCK_ENCRYPTION_KEY);
+      expect(keyringController.encryptionData).toBe(MOCK_ENCRYPTION_DATA);
+    })
+
+    xit('unlocks the keyrings with valid information', async function () {
+      const stub = sinon.stub(keyringController.encryptor, 'decryptWithEncryptedKeyString')
+      stub.returns(await keyringController.encryptor.decrypt());
+      
       await keyringController.submitEncryptionKey(
         MOCK_ENCRYPTION_KEY,
         MOCK_ENCRYPTION_DATA,
       );
-      expect(keyringController.keyrings).toHaveLength(1);
+
+      expect(keyringController.encryptor.decryptWithEncryptedKeyString.calledOnce).toBe(true);
     });
   });
-  */
+  
 });

@@ -150,14 +150,13 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async setLocked() {
-    
     delete this.encryptionKey;
     delete this.encryptionData;
     delete this.password;
 
     // set locked
     this.memStore.updateState({ isUnlocked: false });
-    
+
     // remove keyrings
     this.keyrings = [];
     await this._updateMemStoreKeyrings();
@@ -181,11 +180,11 @@ class KeyringController extends EventEmitter {
   async submitPassword(password) {
     // If a user is trying to submit a password, we should lock
     // in the event that the password is incorrect
-    this.setLocked()
+    this.setLocked();
 
     await this.verifyPassword(password);
     this.keyrings = await this.unlockKeyrings(password);
-    
+
     await this.persistAllKeyrings();
 
     this.setUnlocked();
@@ -570,7 +569,6 @@ class KeyringController extends EventEmitter {
     let vault;
     if (this.password) {
       vault = await this.encryptor.encrypt(this.password, serializedKeyrings);
-
     } else if (this.encryptionKey) {
       const key = await this.encryptor.createKeyFromString(this.encryptionKey);
       const vaultJSON = await this.encryptor.encryptWithKey(
@@ -579,7 +577,6 @@ class KeyringController extends EventEmitter {
       );
       vaultJSON.salt = JSON.parse(this.encryptionData).salt;
       vault = JSON.stringify(vaultJSON);
-
     }
 
     if (!vault) {
@@ -611,6 +608,7 @@ class KeyringController extends EventEmitter {
     let vault;
     if (password) {
       const result = await this.encryptor.decrypt(password, encryptedVault);
+
       vault = result.vault;
 
       this.password = password;
@@ -622,15 +620,9 @@ class KeyringController extends EventEmitter {
         encryptionData,
       );
 
-      if(!vault) {
-        console.log('[unlockKeyrings] no vault via encrypted key string: ', encryptionKey);
-      }
-
       this.encryptionKey = encryptionKey;
       this.encryptionData = encryptionData;
     }
-
-    // console.log('vault is: ', vault);
 
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));
     await this._updateMemStoreKeyrings();
