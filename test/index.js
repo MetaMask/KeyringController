@@ -485,5 +485,39 @@ describe('KeyringController', function () {
         keyringController.encryptor.decryptWithEncryptedKeyString.calledOnce,
       ).toBe(true);
     });
+
+    it('persists keyrings when actions are performed', async function () {
+      await keyringController.submitEncryptionKey(
+        MOCK_ENCRYPTION_KEY,
+        MOCK_ENCRYPTION_DATA,
+      );
+
+      const stub = sinon.stub(keyringController, 'persistAllKeyrings');
+      stub.resolves(Promise.resolve(true));
+
+      const [firstKeyring] = keyringController.keyrings;
+
+      await keyringController.addNewAccount(firstKeyring);
+      expect(stub.callCount).toBe(1);
+
+      await keyringController.addNewAccount(firstKeyring);
+      expect(stub.callCount).toBe(2);
+
+      const account = {
+        privateKey:
+          'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
+        publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
+      };
+
+      // Add a new keyring with one account
+      await keyringController.addNewKeyring('Simple Key Pair', [
+        account.privateKey,
+      ]);
+      expect(stub.callCount).toBe(3);
+
+      // remove that account that we just added
+      await keyringController.removeAccount(account.publicKey);
+      expect(stub.callCount).toBe(4);
+    });
   });
 });
