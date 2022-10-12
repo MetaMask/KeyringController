@@ -41,8 +41,9 @@ class KeyringController extends EventEmitter {
     this.store = new ObservableStore(initState);
     this.memStore = new ObservableStore({
       isUnlocked: false,
-      keyringTypes: this.keyringTypes.map((krt) => krt.type),
+      keyringTypes: this.keyringTypes.map((keyring) => keyring.type),
       keyrings: [],
+      encryptionKey: null,
     });
 
     this.encryptor = opts.encryptor || encryptor;
@@ -150,12 +151,11 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async setLocked() {
-    delete this.encryptionKey;
     delete this.encryptionData;
     delete this.password;
 
     // set locked
-    this.memStore.updateState({ isUnlocked: false });
+    this.memStore.updateState({ isUnlocked: false, encryptionKey: null });
 
     // remove keyrings
     this.keyrings = [];
@@ -550,7 +550,8 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<boolean>} Resolves to true once keyrings are persisted.
    */
   async persistAllKeyrings() {
-    if (!this.password && !this.encryptionKey) {
+    const { encryptionKey } = this.memStore.getState();
+    if (!this.password && !encryptionKey) {
       throw new Error(
         'Cannot persist vault without password and encryption key',
       );
@@ -568,9 +569,12 @@ class KeyringController extends EventEmitter {
 
     let vault;
     if (this.password) {
-      vault = await this.encryptor.encrypt(this.password, serializedKeyrings);
-    } else if (this.encryptionKey) {
-      const key = await this.encryptor.createKeyFromString(this.encryptionKey);
+      const { vault: newVault, extractedKeyString } =
+        await this.encryptor.encrypt(this.password, serializedKeyrings);
+      vault = newVault;
+      this.memStore.updateState({ encryptionKey: extractedKeyString });
+    } else if (encryptionKey) {
+      const key = await this.encryptor.createKeyFromString(encryptionKey);
       const vaultJSON = await this.encryptor.encryptWithKey(
         key,
         serializedKeyrings,
@@ -612,16 +616,16 @@ class KeyringController extends EventEmitter {
       vault = result.vault;
 
       this.password = password;
-      this.encryptionKey = result.extractedKeyString;
       this.encryptionData = result.data;
+      this.memStore.updateState({ encryptionKey: result.extractedKeyString });
     } else {
       vault = await this.encryptor.decryptWithEncryptedKeyString(
         encryptionKey,
         encryptionData,
       );
 
-      this.encryptionKey = encryptionKey;
       this.encryptionData = encryptionData;
+      this.memStore.updateState({ encryptionKey });
     }
 
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));
@@ -678,7 +682,7 @@ class KeyringController extends EventEmitter {
    * @returns {Keyring|undefined} The class, if it exists.
    */
   getKeyringClassForType(type) {
-    return this.keyringTypes.find((kr) => kr.type === type);
+    return this.keyringTypes.find((keyring) => keyring.type === type);
   }
 
   /**
