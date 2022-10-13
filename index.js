@@ -41,7 +41,7 @@ class KeyringController extends EventEmitter {
     this.store = new ObservableStore(initState);
     this.memStore = new ObservableStore({
       isUnlocked: false,
-      keyringTypes: this.keyringTypes.map((keyring) => keyring.type),
+      keyringTypes: this.keyringTypes.map((keyringType) => keyringType.type),
       keyrings: [],
       encryptionKey: null,
     });
@@ -191,6 +191,17 @@ class KeyringController extends EventEmitter {
     this.fullUpdate();
   }
 
+  /**
+   * Submit Encryption Key
+   *
+   * Attempts to decrypt the current vault and load its keyrings
+   * into memory based on the vault and CryptoKey information
+   *
+   * @emits KeyringController#unlock
+   * @param {string} encryptionKey - The encrypted key information used to decrypt the vault
+   * @param {string} loginData - The vault data to decrypt
+   * @returns {Promise<Object>} A Promise that resolves to the state.
+   */
   async submitEncryptionKey(encryptionKey, loginData) {
     this.keyrings = await this.unlockKeyrings(
       undefined,
@@ -551,6 +562,7 @@ class KeyringController extends EventEmitter {
    */
   async persistAllKeyrings() {
     const { encryptionKey } = this.memStore.getState();
+
     if (!this.password && !encryptionKey) {
       throw new Error(
         'Cannot persist vault without password and encryption key',
