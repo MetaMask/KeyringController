@@ -151,7 +151,7 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async setLocked() {
-    delete this.encryptionData;
+    delete this.encryptionSalt;
     delete this.password;
 
     // set locked
@@ -591,7 +591,7 @@ class KeyringController extends EventEmitter {
         key,
         serializedKeyrings,
       );
-      vaultJSON.salt = JSON.parse(this.encryptionData).salt;
+      vaultJSON.salt = this.encryptionSalt;
       vault = JSON.stringify(vaultJSON);
     }
 
@@ -628,7 +628,7 @@ class KeyringController extends EventEmitter {
       vault = result.vault;
 
       this.password = password;
-      this.encryptionData = result.data;
+      this.encryptionSalt = result.salt;
       this.memStore.updateState({ encryptionKey: result.extractedKeyString });
     } else {
       vault = await this.encryptor.decryptWithEncryptedKeyString(
@@ -636,7 +636,7 @@ class KeyringController extends EventEmitter {
         encryptionData,
       );
 
-      this.encryptionData = encryptionData;
+      this.encryptionSalt = JSON.parse(encryptionData).salt;
       this.memStore.updateState({ encryptionKey });
     }
 
