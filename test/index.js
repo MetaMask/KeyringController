@@ -464,7 +464,7 @@ describe('KeyringController', function () {
     it('sets encryption key data upon submitPassword', async function () {
       await keyringController.submitPassword(PASSWORD);
 
-      expect(keyringController.encryptionData).toBe(MOCK_ENCRYPTION_DATA);
+      expect(keyringController.salt).toBe(MOCK_ENCRYPTION_DATA.salt);
     });
 
     it('unlocks the keyrings with valid information', async function () {
