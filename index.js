@@ -257,7 +257,6 @@ class KeyringController extends EventEmitter {
     this.keyrings.push(keyring);
     await this.persistAllKeyrings();
 
-    await this._updateMemStoreKeyrings();
     this.fullUpdate();
 
     return keyring;
@@ -339,7 +338,6 @@ class KeyringController extends EventEmitter {
     });
 
     await this.persistAllKeyrings();
-    await this._updateMemStoreKeyrings();
     this.fullUpdate();
   }
 
@@ -389,7 +387,6 @@ class KeyringController extends EventEmitter {
     }
 
     await this.persistAllKeyrings();
-    await this._updateMemStoreKeyrings();
     this.fullUpdate();
   }
 
@@ -580,11 +577,14 @@ class KeyringController extends EventEmitter {
     );
 
     let vault;
+    let newExtractedKeyString;
+
     if (this.password) {
       const { vault: newVault, extractedKeyString } =
         await this.encryptor.encrypt(this.password, serializedKeyrings);
+
       vault = newVault;
-      this.memStore.updateState({ encryptionKey: extractedKeyString });
+      newExtractedKeyString = extractedKeyString;
     } else if (encryptionKey) {
       const key = await this.encryptor.createKeyFromString(encryptionKey);
       const vaultJSON = await this.encryptor.encryptWithKey(
@@ -600,6 +600,12 @@ class KeyringController extends EventEmitter {
     }
 
     this.store.updateState({ vault });
+
+    // The keyring updates need to be announced before updating the extractedKeyStrings
+    await this._updateMemStoreKeyrings();
+    if (newExtractedKeyString) {
+      this.memStore.updateState({ encryptionKey: newExtractedKeyString });
+    }
 
     return true;
   }
@@ -836,7 +842,6 @@ class KeyringController extends EventEmitter {
     if (keyring.forgetDevice) {
       keyring.forgetDevice();
       this.persistAllKeyrings.bind(this)();
-      this._updateMemStoreKeyrings.bind(this)();
     } else {
       throw new Error(
         `KeyringController - keyring does not have method "forgetDevice", keyring type: ${keyring.type}`,
