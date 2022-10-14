@@ -84,7 +84,7 @@ class KeyringController extends EventEmitter {
 
     await this.createFirstKeyTree(password);
     await this.persistAllKeyrings();
-    this.setUnlocked.bind();
+    this.setUnlocked();
     this.fullUpdate();
   }
 
