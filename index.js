@@ -82,7 +82,7 @@ class KeyringController extends EventEmitter {
   async createNewVaultAndKeychain(password) {
     this.password = password;
 
-    await this.createFirstKeyTree(password);
+    await this.createFirstKeyTree();
     await this.persistAllKeyrings();
     this.setUnlocked();
     this.fullUpdate();
@@ -131,7 +131,6 @@ class KeyringController extends EventEmitter {
         mnemonic: seedPhraseAsBuffer,
         numberOfAccounts: 1,
       },
-      password,
     );
     const [firstAccount] = await firstKeyring.getAccounts();
     if (!firstAccount) {
@@ -243,7 +242,7 @@ class KeyringController extends EventEmitter {
    * @param {Object} opts - The constructor options for the keyring.
    * @returns {Promise<Keyring>} The new keyring.
    */
-  async addNewKeyring(type, opts) {
+  async addNewKeyring(type, opts = {}) {
     const Keyring = this.getKeyringClassForType(type);
     const keyring = new Keyring(opts);
     if ((!opts || !opts.mnemonic) && type === KEYRINGS_TYPE_MAP.HD_KEYRING) {
@@ -528,14 +527,10 @@ class KeyringController extends EventEmitter {
    * @param {string} password - The keyring controller password.
    * @returns {Promise<void>} - A promise that resolves if the operation was successful.
    */
-  async createFirstKeyTree(password) {
+  async createFirstKeyTree() {
     this.clearKeyrings();
 
-    const keyring = await this.addNewKeyring(
-      KEYRINGS_TYPE_MAP.HD_KEYRING,
-      {},
-      password,
-    );
+    const keyring = await this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING);
     const [firstAccount] = await keyring.getAccounts();
     if (!firstAccount) {
       throw new Error('KeyringController - No account found on keychain.');
@@ -554,7 +549,6 @@ class KeyringController extends EventEmitter {
    * encrypts that array with the provided `password`,
    * and persists that encrypted string to storage.
    *
-   * @param {string} password - The keyring controller password.
    * @returns {Promise<boolean>} Resolves to true once keyrings are persisted.
    */
   async persistAllKeyrings() {
