@@ -464,7 +464,8 @@ describe('KeyringController', function () {
     it('sets encryption key data upon submitPassword', async function () {
       await keyringController.submitPassword(PASSWORD);
 
-      expect(keyringController.salt).toBe(MOCK_ENCRYPTION_DATA.salt);
+      expect(keyringController.password).toBe(PASSWORD);
+      expect(keyringController.encryptionSalt).toBe('SALT');
     });
 
     it('unlocks the keyrings with valid information', async function () {
@@ -518,6 +519,16 @@ describe('KeyringController', function () {
       // remove that account that we just added
       await keyringController.removeAccount(account.publicKey);
       expect(stub.callCount).toBe(4);
+    });
+
+    it('cleans up login artifacts upon lock', async function () {
+      await keyringController.submitPassword(PASSWORD);
+
+      await keyringController.setLocked();
+
+      expect(keyringController.encryptionSalt).toBeUndefined();
+      expect(keyringController.password).toBeUndefined();
+      expect(keyringController.memStore.getState().encryptionKey).toBeNull();
     });
   });
 });

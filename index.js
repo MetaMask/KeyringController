@@ -185,6 +185,8 @@ class KeyringController extends EventEmitter {
     await this.verifyPassword(password);
     this.keyrings = await this.unlockKeyrings(password);
 
+    this.password = password;
+
     await this.persistAllKeyrings();
 
     this.setUnlocked();
