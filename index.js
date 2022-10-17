@@ -187,8 +187,6 @@ class KeyringController extends EventEmitter {
 
     this.password = password;
 
-    await this.persistAllKeyrings();
-
     this.setUnlocked();
     this.fullUpdate();
   }
@@ -632,11 +630,10 @@ class KeyringController extends EventEmitter {
     let vault;
     if (password) {
       const result = await this.encryptor.decrypt(password, encryptedVault);
-
       vault = result.vault;
-
-      this.password = password;
       this.encryptionSalt = result.salt;
+      this.password = password;
+
       this.memStore.updateState({ encryptionKey: result.extractedKeyString });
     } else {
       vault = await this.encryptor.decryptWithEncryptedKeyString(
