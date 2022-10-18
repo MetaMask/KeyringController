@@ -209,8 +209,6 @@ class KeyringController extends EventEmitter {
     );
     this.setUnlocked();
     this.fullUpdate();
-
-    return true;
   }
 
   /**
