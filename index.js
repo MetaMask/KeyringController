@@ -573,7 +573,10 @@ class KeyringController extends EventEmitter {
 
     if (this.password) {
       const { vault: newVault, extractedKeyString } =
-        await this.encryptor.encrypt(this.password, serializedKeyrings);
+        await this.encryptor.encryptWithDetail(
+          this.password,
+          serializedKeyrings,
+        );
 
       vault = newVault;
       newExtractedKeyString = extractedKeyString;
@@ -621,7 +624,10 @@ class KeyringController extends EventEmitter {
 
     let vault;
     if (password) {
-      const result = await this.encryptor.decrypt(password, encryptedVault);
+      const result = await this.encryptor.decryptWithDetail(
+        password,
+        encryptedVault,
+      );
       vault = result.vault;
       this.encryptionSalt = result.salt;
       this.password = password;

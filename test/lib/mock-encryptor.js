@@ -12,15 +12,25 @@ module.exports = {
   encrypt: sinon.stub().callsFake(function (_password, dataObj) {
     cacheVal = dataObj;
 
+    return Promise.resolve(MOCK_HEX);
+  }),
+
+  encryptWithDetail: sinon.stub().callsFake(function (_password, dataObj) {
+    cacheVal = dataObj;
+
     return Promise.resolve({ vault: MOCK_HEX, extractedKeyString: '' });
   }),
 
+  async decrypt(_password, _text) {
+    return Promise.resolve(cacheVal || {});
+  },
+
   async decryptWithEncryptedKeyString(_keyStr) {
-    const { vault } = await this.decrypt();
+    const { vault } = await this.decryptWithDetail();
     return vault;
   },
 
-  decrypt(_password, _text) {
+  decryptWithDetail(_password, _text) {
     if (_password && _password !== PASSWORD) {
       throw new Error('Incorrect password.');
     }
