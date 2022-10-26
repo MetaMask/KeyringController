@@ -201,12 +201,8 @@ class KeyringController extends EventEmitter {
    * @param {string} loginData - The vault data to decrypt
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
-  async submitEncryptionKey(encryptionKey, loginData) {
-    this.keyrings = await this.unlockKeyrings(
-      undefined,
-      encryptionKey,
-      loginData,
-    );
+  async submitEncryptionKey(encryptionKey) {
+    this.keyrings = await this.unlockKeyrings(undefined, encryptionKey);
     this.setUnlocked();
     this.fullUpdate();
   }
@@ -614,7 +610,7 @@ class KeyringController extends EventEmitter {
    * @param {string} password - The keyring controller password.
    * @returns {Promise<Array<Keyring>>} The keyrings.
    */
-  async unlockKeyrings(password, encryptionKey, encryptionData) {
+  async unlockKeyrings(password, encryptionKey) {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
       throw new Error('Cannot unlock without a previous vault.');
@@ -636,10 +632,10 @@ class KeyringController extends EventEmitter {
     } else {
       vault = await this.encryptor.decryptWithEncryptedKeyString(
         encryptionKey,
-        encryptionData,
+        encryptedVault,
       );
 
-      this.encryptionSalt = JSON.parse(encryptionData).salt;
+      this.encryptionSalt = JSON.parse(encryptedVault).salt;
       this.memStore.updateState({ encryptionKey });
     }
 

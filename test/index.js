@@ -477,10 +477,8 @@ describe('KeyringController', function () {
       );
       stub.resolves(Promise.resolve(returnValue));
 
-      await keyringController.submitEncryptionKey(
-        MOCK_ENCRYPTION_KEY,
-        MOCK_ENCRYPTION_DATA,
-      );
+      keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
+      await keyringController.submitEncryptionKey(MOCK_ENCRYPTION_KEY);
 
       expect(
         keyringController.encryptor.decryptWithEncryptedKeyString.calledOnce,
@@ -488,10 +486,8 @@ describe('KeyringController', function () {
     });
 
     it('persists keyrings when actions are performed', async function () {
-      await keyringController.submitEncryptionKey(
-        MOCK_ENCRYPTION_KEY,
-        MOCK_ENCRYPTION_DATA,
-      );
+      keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
+      await keyringController.submitEncryptionKey(MOCK_ENCRYPTION_KEY);
 
       const stub = sinon.stub(keyringController, 'persistAllKeyrings');
       stub.resolves(Promise.resolve(true));
