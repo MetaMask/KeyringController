@@ -202,7 +202,10 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async submitEncryptionKey(encryptionKey) {
-    this.keyrings = await this.unlockKeyrings(undefined, encryptionKey);
+    this.keyrings = await this.unlockKeyrings(
+      undefined,
+      encryptionKey
+    );
     this.setUnlocked();
     this.fullUpdate();
   }
@@ -630,10 +633,8 @@ class KeyringController extends EventEmitter {
 
       this.memStore.updateState({ encryptionKey: result.extractedKeyString });
     } else {
-      vault = await this.encryptor.decryptWithEncryptedKeyString(
-        encryptionKey,
-        encryptedVault,
-      );
+      const key = await this.encryptor.createKeyFromString(encryptionKey);
+      vault = await this.encryptor.decryptWithKey(key, JSON.parse(encryptedVault));
 
       this.encryptionSalt = JSON.parse(encryptedVault).salt;
       this.memStore.updateState({ encryptionKey });
