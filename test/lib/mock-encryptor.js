@@ -18,7 +18,7 @@ module.exports = {
   encryptWithDetail: sinon.stub().callsFake(function (_password, dataObj) {
     cacheVal = dataObj;
 
-    return Promise.resolve({ vault: MOCK_HEX, extractedKeyString: '' });
+    return Promise.resolve({ vault: MOCK_HEX, exportedKeyString: '' });
   }),
 
   async decrypt(_password, _text) {
@@ -38,7 +38,7 @@ module.exports = {
     const result = cacheVal
       ? {
           vault: cacheVal,
-          extractedKeyString: MOCK_ENCRYPTION_KEY,
+          exportedKeyString: MOCK_ENCRYPTION_KEY,
           salt: 'SALT',
         }
       : {};
