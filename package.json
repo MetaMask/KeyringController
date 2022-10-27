@@ -33,7 +33,7 @@
   "dependencies": {
     "@metamask/bip39": "^4.0.0",
     "@metamask/eth-hd-keyring": "^4.0.2",
-    "browser-passworder": "MetaMask/browser-passworder#export-key",
+    "browser-passworder": "MetaMask/browser-passworder#92d97d82ead553f135232a0f81de81e1a4a69782",
     "eth-sig-util": "^3.0.1",
     "eth-simple-keyring": "^4.2.0",
     "obs-store": "^4.0.3"
