@@ -48,6 +48,10 @@ class KeyringController extends EventEmitter {
 
     this.encryptor = opts.encryptor || encryptor;
     this.keyrings = [];
+
+    // This option allows the controller to cache an exported key
+    // for use in decrypting and encrypting data without password
+    this.cacheEncryptionKey = Boolean(opts.cacheEncryptionKey);
   }
 
   /**
@@ -202,10 +206,7 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async submitEncryptionKey(encryptionKey) {
-    this.keyrings = await this.unlockKeyrings(
-      undefined,
-      encryptionKey
-    );
+    this.keyrings = await this.unlockKeyrings(undefined, encryptionKey);
     this.setUnlocked();
     this.fullUpdate();
   }
@@ -570,23 +571,27 @@ class KeyringController extends EventEmitter {
     let vault;
     let newExportedKeyString;
 
-    if (this.password) {
-      const { vault: newVault, exportedKeyString } =
-        await this.encryptor.encryptWithDetail(
-          this.password,
+    if (this.cacheEncryptionKey) {
+      if (this.password) {
+        const { vault: newVault, exportedKeyString } =
+          await this.encryptor.encryptWithDetail(
+            this.password,
+            serializedKeyrings,
+          );
+
+        vault = newVault;
+        newExportedKeyString = exportedKeyString;
+      } else if (encryptionKey) {
+        const key = await this.encryptor.createKeyFromString(encryptionKey);
+        const vaultJSON = await this.encryptor.encryptWithKey(
+          key,
           serializedKeyrings,
         );
-
-      vault = newVault;
-      newExportedKeyString = exportedKeyString;
-    } else if (encryptionKey) {
-      const key = await this.encryptor.createKeyFromString(encryptionKey);
-      const vaultJSON = await this.encryptor.encryptWithKey(
-        key,
-        serializedKeyrings,
-      );
-      vaultJSON.salt = this.encryptionSalt;
-      vault = JSON.stringify(vaultJSON);
+        vaultJSON.salt = this.encryptionSalt;
+        vault = JSON.stringify(vaultJSON);
+      }
+    } else {
+      vault = await this.encryptor.encrypt(this.password, serializedKeyrings);
     }
 
     if (!vault) {
@@ -622,22 +627,30 @@ class KeyringController extends EventEmitter {
     await this.clearKeyrings();
 
     let vault;
-    if (password) {
-      const result = await this.encryptor.decryptWithDetail(
-        password,
-        encryptedVault,
-      );
-      vault = result.vault;
-      this.encryptionSalt = result.salt;
-      this.password = password;
 
-      this.memStore.updateState({ encryptionKey: result.exportedKeyString });
+    if (this.cacheEncryptionKey) {
+      if (password) {
+        const result = await this.encryptor.decryptWithDetail(
+          password,
+          encryptedVault,
+        );
+        vault = result.vault;
+        this.encryptionSalt = result.salt;
+        this.password = password;
+
+        this.memStore.updateState({ encryptionKey: result.exportedKeyString });
+      } else {
+        const key = await this.encryptor.createKeyFromString(encryptionKey);
+        vault = await this.encryptor.decryptWithKey(
+          key,
+          JSON.parse(encryptedVault),
+        );
+
+        this.encryptionSalt = JSON.parse(encryptedVault).salt;
+        this.memStore.updateState({ encryptionKey });
+      }
     } else {
-      const key = await this.encryptor.createKeyFromString(encryptionKey);
-      vault = await this.encryptor.decryptWithKey(key, JSON.parse(encryptedVault));
-
-      this.encryptionSalt = JSON.parse(encryptedVault).salt;
-      this.memStore.updateState({ encryptionKey });
+      vault = await this.encryptor.decrypt(password, encryptedVault);
     }
 
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));

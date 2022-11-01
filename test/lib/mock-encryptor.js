@@ -45,6 +45,10 @@ module.exports = {
     return Promise.resolve(result);
   },
 
+  createKeyFromString() {
+    return null;
+  },
+
   encryptWithKey(key, dataObj) {
     return this.encrypt(key, dataObj);
   },

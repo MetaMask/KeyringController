@@ -462,6 +462,7 @@ describe('KeyringController', function () {
 
   describe('submitEncryptionKey', function () {
     it('sets encryption key data upon submitPassword', async function () {
+      keyringController.cacheEncryptionKey = true;
       await keyringController.submitPassword(PASSWORD);
 
       expect(keyringController.password).toBe(PASSWORD);
@@ -469,23 +470,19 @@ describe('KeyringController', function () {
     });
 
     it('unlocks the keyrings with valid information', async function () {
-      const returnValue =
-        await keyringController.encryptor.decryptWithEncryptedKeyString();
-      const stub = sinon.stub(
-        keyringController.encryptor,
-        'decryptWithEncryptedKeyString',
-      );
+      keyringController.cacheEncryptionKey = true;
+      const returnValue = await keyringController.encryptor.decryptWithKey();
+      const stub = sinon.stub(keyringController.encryptor, 'decryptWithKey');
       stub.resolves(Promise.resolve(returnValue));
 
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
       await keyringController.submitEncryptionKey(MOCK_ENCRYPTION_KEY);
 
-      expect(
-        keyringController.encryptor.decryptWithEncryptedKeyString.calledOnce,
-      ).toBe(true);
+      expect(keyringController.encryptor.decryptWithKey.calledOnce).toBe(true);
     });
 
     it('persists keyrings when actions are performed', async function () {
+      keyringController.cacheEncryptionKey = true;
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
       await keyringController.submitEncryptionKey(MOCK_ENCRYPTION_KEY);
 
