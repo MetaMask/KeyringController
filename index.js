@@ -188,8 +188,6 @@ class KeyringController extends EventEmitter {
     await this.verifyPassword(password);
     this.keyrings = await this.unlockKeyrings(password);
 
-    this.password = password;
-
     this.setUnlocked();
     this.fullUpdate();
   }
@@ -647,6 +645,8 @@ class KeyringController extends EventEmitter {
         );
 
         this.encryptionSalt = JSON.parse(encryptedVault).salt;
+        // This call is required on the first call because encryptionKey
+        // is not yet inside the memStore
         this.memStore.updateState({ encryptionKey });
       }
     } else {
