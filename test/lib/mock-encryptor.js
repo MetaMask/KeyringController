@@ -45,7 +45,7 @@ module.exports = {
     return Promise.resolve(result);
   },
 
-  createKeyFromString() {
+  importKey() {
     return null;
   },
 

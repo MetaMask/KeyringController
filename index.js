@@ -580,7 +580,7 @@ class KeyringController extends EventEmitter {
         vault = newVault;
         newExportedKeyString = exportedKeyString;
       } else if (encryptionKey) {
-        const key = await this.encryptor.createKeyFromString(encryptionKey);
+        const key = await this.encryptor.importKey(encryptionKey);
         const vaultJSON = await this.encryptor.encryptWithKey(
           key,
           serializedKeyrings,
@@ -638,7 +638,7 @@ class KeyringController extends EventEmitter {
 
         this.memStore.updateState({ encryptionKey: result.exportedKeyString });
       } else {
-        const key = await this.encryptor.createKeyFromString(encryptionKey);
+        const key = await this.encryptor.importKey(encryptionKey);
         vault = await this.encryptor.decryptWithKey(
           key,
           JSON.parse(encryptedVault),
