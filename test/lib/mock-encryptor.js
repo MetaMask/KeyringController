@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const PASSWORD = 'password123';
 const MOCK_ENCRYPTION_KEY =
   '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
+const INVALID_PASSWORD_ERROR = 'Incorrect password.';
 
 const MOCK_HEX = '0xabcdef0123456789';
 const MOCK_KEY = Buffer.alloc(32);
@@ -22,6 +23,10 @@ module.exports = {
   }),
 
   async decrypt(_password, _text) {
+    if (_password && _password !== PASSWORD) {
+      throw new Error(INVALID_PASSWORD_ERROR);
+    }
+
     return Promise.resolve(cacheVal || {});
   },
 
@@ -32,7 +37,7 @@ module.exports = {
 
   decryptWithDetail(_password, _text) {
     if (_password && _password !== PASSWORD) {
-      throw new Error('Incorrect password.');
+      throw new Error(INVALID_PASSWORD_ERROR);
     }
 
     const result = cacheVal
@@ -45,7 +50,12 @@ module.exports = {
     return Promise.resolve(result);
   },
 
-  importKey() {
+  importKey(keyString) {
+    if (keyString === '{}') {
+      throw new TypeError(
+        `Failed to execute 'importKey' on 'SubtleCrypto': The provided value is not of type '(ArrayBuffer or ArrayBufferView or JsonWebKey)'.`,
+      );
+    }
     return null;
   },
 

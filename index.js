@@ -204,6 +204,10 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async submitEncryptionKey(encryptionKey) {
+    // If a user is trying to submit an encrypted key, we should lock
+    // in the event that the encrypted key is invalid
+    this.setLocked();
+
     this.keyrings = await this.unlockKeyrings(undefined, encryptionKey);
     this.setUnlocked();
     this.fullUpdate();
@@ -651,6 +655,7 @@ class KeyringController extends EventEmitter {
       }
     } else {
       vault = await this.encryptor.decrypt(password, encryptedVault);
+      this.password = password;
     }
 
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));

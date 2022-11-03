@@ -69,7 +69,7 @@ describe('KeyringController', function () {
   });
 
   describe('submitPassword', function () {
-    it('should not loads keyrings when incorrect password', async function () {
+    it('should not load keyrings when incorrect password', async function () {
       await keyringController.createNewVaultAndKeychain(PASSWORD);
       await keyringController.persistAllKeyrings();
       expect(keyringController.keyrings).toHaveLength(1);
@@ -121,8 +121,8 @@ describe('KeyringController', function () {
     it('clears old keyrings and creates a one', async function () {
       const initialAccounts = await keyringController.getAccounts();
       expect(initialAccounts).toHaveLength(1);
-      await keyringController.addNewKeyring('HD Key Tree');
 
+      await keyringController.addNewKeyring('HD Key Tree');
       const allAccounts = await keyringController.getAccounts();
       expect(allAccounts).toHaveLength(2);
 
@@ -479,6 +479,18 @@ describe('KeyringController', function () {
       await keyringController.submitEncryptionKey(MOCK_ENCRYPTION_KEY);
 
       expect(keyringController.encryptor.decryptWithKey.calledOnce).toBe(true);
+      expect(keyringController.keyrings).toHaveLength(1);
+    });
+
+    it('should not load keyrings when incorrect encryptionKey', async function () {
+      keyringController.cacheEncryptionKey = true;
+      keyringController.setLocked(true);
+
+      await expect(keyringController.submitEncryptionKey(`{}`)).rejects.toThrow(
+        `Failed to execute 'importKey' on 'SubtleCrypto': The provided value is not of type '(ArrayBuffer or ArrayBufferView or JsonWebKey)'.`,
+      );
+      expect(keyringController.password).toBeUndefined();
+      expect(keyringController.keyrings).toHaveLength(0);
     });
 
     it('persists keyrings when actions are performed', async function () {
