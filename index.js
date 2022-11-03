@@ -271,7 +271,7 @@ class KeyringController extends EventEmitter {
 
         if (isIncluded) {
           throw new Error(
-            "The account you're are trying to import is a duplicate",
+            'The account you are trying to import is a duplicate',
           );
         }
         return newAccountArray;
