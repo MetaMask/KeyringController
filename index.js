@@ -128,7 +128,6 @@ class KeyringController extends EventEmitter {
 
     this.clearKeyrings();
 
-    await this.persistAllKeyrings();
     const firstKeyring = await this.addNewKeyring(
       KEYRINGS_TYPE_MAP.HD_KEYRING,
       {
