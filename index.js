@@ -176,7 +176,6 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async submitPassword(password) {
-    await this.verifyPassword(password);
     this.keyrings = await this.unlockKeyrings(password);
 
     this.setUnlocked();
