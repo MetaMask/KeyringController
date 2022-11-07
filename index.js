@@ -631,12 +631,13 @@ class KeyringController extends EventEmitter {
         this.memStore.updateState({ encryptionKey: result.exportedKeyString });
       } else {
         const key = await this.encryptor.importKey(encryptionKey);
+        const parsedEncryptedVault = JSON.parse(encryptedVault);
         vault = await this.encryptor.decryptWithKey(
           key,
-          JSON.parse(encryptedVault),
+          parsedEncryptedVault,
         );
 
-        this.encryptionSalt = JSON.parse(encryptedVault).salt;
+        this.encryptionSalt = parsedEncryptedVault.salt;
         // This call is required on the first call because encryptionKey
         // is not yet inside the memStore
         this.memStore.updateState({ encryptionKey });
