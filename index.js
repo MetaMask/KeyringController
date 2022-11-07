@@ -848,6 +848,7 @@ class KeyringController extends EventEmitter {
     if (keyring.forgetDevice) {
       keyring.forgetDevice();
       this.persistAllKeyrings.bind(this)();
+      this._updateMemStoreKeyrings.bind(this)();
     } else {
       throw new Error(
         `KeyringController - keyring does not have method "forgetDevice", keyring type: ${keyring.type}`,
