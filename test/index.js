@@ -95,7 +95,7 @@ describe('KeyringController', function () {
   });
 
   describe('createNewVaultAndKeychain', function () {
-    it('should set a vault on the configManager', async function () {
+    it('should create a new vault', async function () {
       keyringController.store.updateState({ vault: null });
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
@@ -103,6 +103,15 @@ describe('KeyringController', function () {
       const { vault } = keyringController.store.getState();
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(vault).toBeTruthy();
+    });
+
+    it('should unlock the vault', async function () {
+      keyringController.store.updateState({ vault: null });
+      assert(!keyringController.store.getState().vault, 'no previous vault');
+
+      await keyringController.createNewVaultAndKeychain(password);
+      const { isUnlocked } = keyringController.memStore.getState();
+      expect(isUnlocked).toBe(true);
     });
 
     it('should encrypt keyrings with the correct password each time they are persisted', async function () {

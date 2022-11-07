@@ -87,7 +87,6 @@ class KeyringController extends EventEmitter {
     this.password = password;
 
     await this.createFirstKeyTree();
-    await this.persistAllKeyrings();
     this.setUnlocked();
     this.fullUpdate();
   }
@@ -127,7 +126,6 @@ class KeyringController extends EventEmitter {
     this.password = password;
 
     this.clearKeyrings();
-
     const firstKeyring = await this.addNewKeyring(
       KEYRINGS_TYPE_MAP.HD_KEYRING,
       {
@@ -139,8 +137,6 @@ class KeyringController extends EventEmitter {
     if (!firstAccount) {
       throw new Error('KeyringController - First Account not found.');
     }
-
-    await this.persistAllKeyrings();
     this.setUnlocked();
     return this.fullUpdate();
   }
@@ -515,7 +511,6 @@ class KeyringController extends EventEmitter {
    * - Faucets that account on testnet
    * - Puts the current seed words into the state tree
    *
-   * @param {string} password - The keyring controller password.
    * @returns {Promise<void>} - A promise that resolves if the operation was successful.
    */
   async createFirstKeyTree() {
@@ -847,7 +842,7 @@ class KeyringController extends EventEmitter {
   forgetKeyring(keyring) {
     if (keyring.forgetDevice) {
       keyring.forgetDevice();
-      this.persistAllKeyrings.bind(this)();
+      this.persistAllKeyrings();
       this._updateMemStoreKeyrings.bind(this)();
     } else {
       throw new Error(
