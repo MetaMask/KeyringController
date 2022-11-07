@@ -74,6 +74,8 @@ describe('KeyringController', function () {
       await keyringController.persistAllKeyrings();
       expect(keyringController.keyrings).toHaveLength(1);
 
+      await keyringController.setLocked();
+
       await expect(
         keyringController.submitPassword(`${PASSWORD}a`),
       ).rejects.toThrow('Incorrect password.');
