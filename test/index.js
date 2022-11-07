@@ -8,21 +8,21 @@ const Wallet = require('ethereumjs-wallet').default;
 const KeyringController = require('..');
 const mockEncryptor = require('./lib/mock-encryptor');
 
-const PASSWORD = 'password123';
+const password = 'password123';
 
 const MOCK_ENCRYPTION_KEY =
   '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
 const MOCK_ENCRYPTION_DATA =
   '{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZHyMqVY1cDBetw2gY5C+cIo1qkpyv3bPp+4buUjp38VBsjbijM0F/FLOqWbcuKM9h9X0uwxsgsZ96uwcIf5I46NiMgoFlhppTTMZT0Nkocz+SnvHM0IgLsFan7JqBU++vSJvx2M1PDljZSunOsqyyL+DKmbYmM4umbouKV42dipUwrCvrQJmpiUZrSkpMJrPJk9ufDQO4CyIVo0qry3aNRdYFJ6rgSyq/k6rXMwGExCMHn8UlhNnAMuMKWPWR/ymK1bzNcNs4VU14iVjEXOZGPvD9cvqVe/VtcnIba6axNEEB4HWDOCdrDh5YNWwMlQVL7vSB2yOhPZByGhnEOloYsj2E5KEb9jFGskt7EKDEYNofr6t83G0c+B72VGYZeCvgtzXzgPwzIbhTtKkP+gdBmt2JNSYrTjLypT0q+v4C9BN1xWTxPmX6TTt0NzkI9pJxgN1VQAfSU9CyWTVpd4CBkgom2cSBsxZ2MNbdKF+qSWz3fQcmJ55hxM0EGJSt9+8eQOTuoJlBapRk4wdZKHR2jdKzPjSF2MAmyVD2kU51IKa/cVsckRFEes+m7dKyHRvlNwgT78W9tBDdZb5PSlfbZXnv8z5q1KtAj2lM2ogJ7brHBdevl4FISdTkObpwcUMcvACOOO0dj6CSYjSKr0ZJ2RLChVruZyPDxEhKGb/8Kv8trLOR3mck/et6d050/NugezycNk4nnzu5iP90gPbSzaqdZI=","iv":"qTGO1afGv3waHN9KoW34Eg==","salt":"HQ5sfhsb8XAQRJtD+UqcImT7Ve4n3YMagrh05YTOsjk="}';
 
-const WALLET_ONE_SEED_WORDS =
+const walletOneSeedWords =
   'puzzle seed penalty soldier say clay field arctic metal hen cage runway';
-const WALLET_ONE_ADDRESSES = ['0xef35ca8ebb9669a35c31b5f6f249a9941a812ac1'];
+const walletOneAddresses = ['0xef35ca8ebb9669a35c31b5f6f249a9941a812ac1'];
 
-const WALLET_TWO_SEED_WORDS =
+const walletTwoSeedWords =
   'urge letter protect palace city barely security section midnight wealth south deer';
 
-const WALLET_TWO_ADDRESSES = [
+const walletTwoAddresses = [
   '0xbbafcf3d00fb625b65bb1497c94bf42c1f4b3e78',
   '0x49dd2653f38f75d40fdbd51e83b9c9724c87f7eb',
 ];
@@ -35,8 +35,8 @@ describe('KeyringController', function () {
       encryptor: mockEncryptor,
     });
 
-    await keyringController.createNewVaultAndKeychain(PASSWORD);
-    await keyringController.submitPassword(PASSWORD);
+    await keyringController.createNewVaultAndKeychain(password);
+    await keyringController.submitPassword(password);
   });
 
   afterEach(function () {
@@ -70,14 +70,14 @@ describe('KeyringController', function () {
 
   describe('submitPassword', function () {
     it('should not load keyrings when incorrect password', async function () {
-      await keyringController.createNewVaultAndKeychain(PASSWORD);
+      await keyringController.createNewVaultAndKeychain(password);
       await keyringController.persistAllKeyrings();
       expect(keyringController.keyrings).toHaveLength(1);
 
       await keyringController.setLocked();
 
       await expect(
-        keyringController.submitPassword(`${PASSWORD}a`),
+        keyringController.submitPassword(`${password}a`),
       ).rejects.toThrow('Incorrect password.');
       expect(keyringController.password).toBeUndefined();
       expect(keyringController.keyrings).toHaveLength(0);
@@ -89,7 +89,7 @@ describe('KeyringController', function () {
       const spy = sinon.spy();
       keyringController.on('unlock', spy);
 
-      await keyringController.submitPassword(PASSWORD);
+      await keyringController.submitPassword(password);
       expect(spy.calledOnce).toBe(true);
     });
   });
@@ -99,7 +99,7 @@ describe('KeyringController', function () {
       keyringController.store.updateState({ vault: null });
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
-      await keyringController.createNewVaultAndKeychain(PASSWORD);
+      await keyringController.createNewVaultAndKeychain(password);
       const { vault } = keyringController.store.getState();
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(vault).toBeTruthy();
@@ -109,12 +109,12 @@ describe('KeyringController', function () {
       keyringController.store.updateState({ vault: null });
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
-      await keyringController.createNewVaultAndKeychain(PASSWORD);
+      await keyringController.createNewVaultAndKeychain(password);
       const { vault } = keyringController.store.getState();
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(vault).toBeTruthy();
       keyringController.encryptor.encrypt.args.forEach(([actualPassword]) => {
-        expect(actualPassword).toBe(PASSWORD);
+        expect(actualPassword).toBe(password);
       });
     });
   });
@@ -129,25 +129,25 @@ describe('KeyringController', function () {
       expect(allAccounts).toHaveLength(2);
 
       await keyringController.createNewVaultAndRestore(
-        PASSWORD,
-        WALLET_ONE_SEED_WORDS,
+        password,
+        walletOneSeedWords,
       );
 
       const allAccountsAfter = await keyringController.getAccounts();
       expect(allAccountsAfter).toHaveLength(1);
-      expect(allAccountsAfter[0]).toBe(WALLET_ONE_ADDRESSES[0]);
+      expect(allAccountsAfter[0]).toBe(walletOneAddresses[0]);
     });
 
     it('throws error if argument password is not a string', async function () {
       await expect(() =>
-        keyringController.createNewVaultAndRestore(12, WALLET_TWO_SEED_WORDS),
+        keyringController.createNewVaultAndRestore(12, walletTwoSeedWords),
       ).rejects.toThrow('Password must be text.');
     });
 
     it('throws error if mnemonic passed is invalid', async function () {
       await expect(() =>
         keyringController.createNewVaultAndRestore(
-          PASSWORD,
+          password,
           'test test test palace city barely security section midnight wealth south deer',
         ),
       ).rejects.toThrow('Seed phrase is invalid.');
@@ -155,19 +155,19 @@ describe('KeyringController', function () {
 
     it('accepts mnemonic passed as type array of numbers', async function () {
       const allAccountsBefore = await keyringController.getAccounts();
-      expect(allAccountsBefore[0]).not.toBe(WALLET_TWO_ADDRESSES[0]);
+      expect(allAccountsBefore[0]).not.toBe(walletTwoAddresses[0]);
       const mnemonicAsArrayOfNumbers = Array.from(
-        Buffer.from(WALLET_TWO_SEED_WORDS).values(),
+        Buffer.from(walletTwoSeedWords).values(),
       );
 
       await keyringController.createNewVaultAndRestore(
-        PASSWORD,
+        password,
         mnemonicAsArrayOfNumbers,
       );
 
       const allAccountsAfter = await keyringController.getAccounts();
       expect(allAccountsAfter).toHaveLength(1);
-      expect(allAccountsAfter[0]).toBe(WALLET_TWO_ADDRESSES[0]);
+      expect(allAccountsAfter[0]).toBe(walletTwoAddresses[0]);
     });
   });
 
@@ -207,12 +207,12 @@ describe('KeyringController', function () {
       expect(previousAllAccounts).toHaveLength(1);
       const keyring = await keyringController.addNewKeyring('HD Key Tree', {
         numberOfAccounts: 2,
-        mnemonic: WALLET_TWO_SEED_WORDS,
+        mnemonic: walletTwoSeedWords,
       });
       const keyringAccounts = await keyring.getAccounts();
       expect(keyringAccounts).toHaveLength(2);
-      expect(keyringAccounts[0]).toStrictEqual(WALLET_TWO_ADDRESSES[0]);
-      expect(keyringAccounts[1]).toStrictEqual(WALLET_TWO_ADDRESSES[1]);
+      expect(keyringAccounts[0]).toStrictEqual(walletTwoAddresses[0]);
+      expect(keyringAccounts[1]).toStrictEqual(walletTwoAddresses[1]);
       const allAccounts = await keyringController.getAccounts();
       expect(allAccounts).toHaveLength(3);
     });
@@ -223,7 +223,7 @@ describe('KeyringController', function () {
       const mockSerialized = {
         type: 'HD Key Tree',
         data: {
-          mnemonic: WALLET_ONE_SEED_WORDS,
+          mnemonic: walletOneSeedWords,
           numberOfAccounts: 1,
         },
       };
@@ -232,7 +232,7 @@ describe('KeyringController', function () {
       expect(keyring.wallets).toHaveLength(1);
 
       const accounts = await keyring.getAccounts();
-      expect(accounts[0]).toBe(WALLET_ONE_ADDRESSES[0]);
+      expect(accounts[0]).toBe(walletOneAddresses[0]);
     });
   });
 
@@ -313,7 +313,7 @@ describe('KeyringController', function () {
   describe('unlockKeyrings', function () {
     it('returns the list of keyrings', async function () {
       await keyringController.setLocked();
-      const keyrings = await keyringController.unlockKeyrings(PASSWORD);
+      const keyrings = await keyringController.unlockKeyrings(password);
       expect(keyrings).toHaveLength(1);
       keyrings.forEach((keyring) => {
         expect(keyring.wallets).toHaveLength(1);
@@ -465,9 +465,9 @@ describe('KeyringController', function () {
   describe('submitEncryptionKey', function () {
     it('sets encryption key data upon submitPassword', async function () {
       keyringController.cacheEncryptionKey = true;
-      await keyringController.submitPassword(PASSWORD);
+      await keyringController.submitPassword(password);
 
-      expect(keyringController.password).toBe(PASSWORD);
+      expect(keyringController.password).toBe(password);
       expect(keyringController.encryptionSalt).toBe('SALT');
     });
 
@@ -529,7 +529,7 @@ describe('KeyringController', function () {
     });
 
     it('cleans up login artifacts upon lock', async function () {
-      await keyringController.submitPassword(PASSWORD);
+      await keyringController.submitPassword(password);
 
       await keyringController.setLocked();
 
