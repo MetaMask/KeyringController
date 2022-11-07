@@ -2,7 +2,7 @@ const { EventEmitter } = require('events');
 const { Buffer } = require('buffer');
 const bip39 = require('@metamask/bip39');
 const ObservableStore = require('obs-store');
-const encryptor = require('browser-passworder');
+const encryptor = require('@metamask/browser-passworder');
 const { normalize: normalizeAddress } = require('eth-sig-util');
 
 const SimpleKeyring = require('eth-simple-keyring');
