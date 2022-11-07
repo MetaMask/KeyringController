@@ -78,8 +78,9 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async createNewVaultAndKeychain(password) {
-    await this.createFirstKeyTree(password);
-    await this.persistAllKeyrings(password);
+    this.password = password;
+
+    await this.createFirstKeyTree();
     this.setUnlocked();
     this.fullUpdate();
   }
@@ -116,9 +117,9 @@ class KeyringController extends EventEmitter {
       throw new Error('Seed phrase is invalid.');
     }
 
-    this.clearKeyrings();
+    this.password = password;
 
-    await this.persistAllKeyrings(password);
+    this.clearKeyrings();
     const firstKeyring = await this.addNewKeyring(
       KEYRINGS_TYPE_MAP.HD_KEYRING,
       {
@@ -130,8 +131,6 @@ class KeyringController extends EventEmitter {
     if (!firstAccount) {
       throw new Error('KeyringController - First Account not found.');
     }
-
-    await this.persistAllKeyrings(password);
     this.setUnlocked();
     return this.fullUpdate();
   }
@@ -487,11 +486,9 @@ class KeyringController extends EventEmitter {
    * - Faucets that account on testnet
    * - Puts the current seed words into the state tree
    *
-   * @param {string} password - The keyring controller password.
    * @returns {Promise<void>} - A promise that resolves if the operation was successful.
    */
-  async createFirstKeyTree(password) {
-    this.password = password;
+  async createFirstKeyTree() {
     this.clearKeyrings();
 
     const keyring = await this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING);
@@ -513,15 +510,9 @@ class KeyringController extends EventEmitter {
    * encrypts that array with the provided `password`,
    * and persists that encrypted string to storage.
    *
-   * @param {string} password - The keyring controller password.
    * @returns {Promise<boolean>} Resolves to true once keyrings are persisted.
    */
-  async persistAllKeyrings(password = this.password) {
-    if (typeof password !== 'string') {
-      throw new Error('KeyringController - password is not a string');
-    }
-
-    this.password = password;
+  async persistAllKeyrings() {
     const serializedKeyrings = await Promise.all(
       this.keyrings.map(async (keyring) => {
         const [type, data] = await Promise.all([
@@ -752,7 +743,7 @@ class KeyringController extends EventEmitter {
   forgetKeyring(keyring) {
     if (keyring.forgetDevice) {
       keyring.forgetDevice();
-      this.persistAllKeyrings.bind(this)();
+      this.persistAllKeyrings();
       this._updateMemStoreKeyrings.bind(this)();
     } else {
       throw new Error(
