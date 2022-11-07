@@ -80,7 +80,7 @@ class KeyringController extends EventEmitter {
   async createNewVaultAndKeychain(password) {
     await this.createFirstKeyTree(password);
     await this.persistAllKeyrings(password);
-    this.setUnlocked.bind();
+    this.setUnlocked();
     this.fullUpdate();
   }
 
