@@ -602,7 +602,10 @@ class KeyringController extends EventEmitter {
 
     this.store.updateState({ vault });
 
-    // The keyring updates need to be announced before updating the exportedKeyStrings
+    // The keyring updates need to be announced before updating the encryptionKey
+    // so that the updated keyring gets propagated to the extension first.
+    // Not calling _updateMemStoreKeyrings results in the wrong account being selected
+    // in the extension.
     await this._updateMemStoreKeyrings();
     if (newExportedKeyString) {
       this.memStore.updateState({ encryptionKey: newExportedKeyString });
