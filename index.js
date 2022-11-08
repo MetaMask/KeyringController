@@ -193,11 +193,15 @@ class KeyringController extends EventEmitter {
    *
    * @emits KeyringController#unlock
    * @param {string} encryptionKey - The encrypted key information used to decrypt the vault
-   * @param {string} loginData - The vault data to decrypt
+   * @param {string} encryptionSalt - The salt used to generate the last key
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
-  async submitEncryptionKey(encryptionKey) {
-    this.keyrings = await this.unlockKeyrings(undefined, encryptionKey);
+  async submitEncryptionKey(encryptionKey, encryptionSalt) {
+    this.keyrings = await this.unlockKeyrings(
+      undefined,
+      encryptionKey,
+      encryptionSalt,
+    );
     this.setUnlocked();
     this.fullUpdate();
   }
@@ -609,9 +613,11 @@ class KeyringController extends EventEmitter {
    * initializing the persisted keyrings to RAM.
    *
    * @param {string} password - The keyring controller password.
+   * @param {string} encryptionKey - An exported key string to unlock keyrings with
+   * @param {string} encryptionSalt - The salt used to encrypt the vault
    * @returns {Promise<Array<Keyring>>} The keyrings.
    */
-  async unlockKeyrings(password, encryptionKey) {
+  async unlockKeyrings(password, encryptionKey, encryptionSalt) {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
       throw new Error('Cannot unlock without a previous vault.');
@@ -635,15 +641,20 @@ class KeyringController extends EventEmitter {
           encryptionSalt: result.salt,
         });
       } else {
-        const key = await this.encryptor.importKey(encryptionKey);
         const parsedEncryptedVault = JSON.parse(encryptedVault);
+
+        if (encryptionSalt !== parsedEncryptedVault.salt) {
+          throw new Error('Encryption key and salt provided are expired');
+        }
+
+        const key = await this.encryptor.importKey(encryptionKey);
         vault = await this.encryptor.decryptWithKey(key, parsedEncryptedVault);
 
         // This call is required on the first call because encryptionKey
         // is not yet inside the memStore
         this.memStore.updateState({
           encryptionKey,
-          encryptionSalt: parsedEncryptedVault.salt,
+          encryptionSalt,
         });
       }
     } else {

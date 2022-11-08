@@ -12,8 +12,8 @@ const password = 'password123';
 
 const MOCK_ENCRYPTION_KEY =
   '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
-const MOCK_ENCRYPTION_DATA =
-  '{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZHyMqVY1cDBetw2gY5C+cIo1qkpyv3bPp+4buUjp38VBsjbijM0F/FLOqWbcuKM9h9X0uwxsgsZ96uwcIf5I46NiMgoFlhppTTMZT0Nkocz+SnvHM0IgLsFan7JqBU++vSJvx2M1PDljZSunOsqyyL+DKmbYmM4umbouKV42dipUwrCvrQJmpiUZrSkpMJrPJk9ufDQO4CyIVo0qry3aNRdYFJ6rgSyq/k6rXMwGExCMHn8UlhNnAMuMKWPWR/ymK1bzNcNs4VU14iVjEXOZGPvD9cvqVe/VtcnIba6axNEEB4HWDOCdrDh5YNWwMlQVL7vSB2yOhPZByGhnEOloYsj2E5KEb9jFGskt7EKDEYNofr6t83G0c+B72VGYZeCvgtzXzgPwzIbhTtKkP+gdBmt2JNSYrTjLypT0q+v4C9BN1xWTxPmX6TTt0NzkI9pJxgN1VQAfSU9CyWTVpd4CBkgom2cSBsxZ2MNbdKF+qSWz3fQcmJ55hxM0EGJSt9+8eQOTuoJlBapRk4wdZKHR2jdKzPjSF2MAmyVD2kU51IKa/cVsckRFEes+m7dKyHRvlNwgT78W9tBDdZb5PSlfbZXnv8z5q1KtAj2lM2ogJ7brHBdevl4FISdTkObpwcUMcvACOOO0dj6CSYjSKr0ZJ2RLChVruZyPDxEhKGb/8Kv8trLOR3mck/et6d050/NugezycNk4nnzu5iP90gPbSzaqdZI=","iv":"qTGO1afGv3waHN9KoW34Eg==","salt":"HQ5sfhsb8XAQRJtD+UqcImT7Ve4n3YMagrh05YTOsjk="}';
+const MOCK_ENCRYPTION_SALT = 'HQ5sfhsb8XAQRJtD+UqcImT7Ve4n3YMagrh05YTOsjk=';
+const MOCK_ENCRYPTION_DATA = `{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZHyMqVY1cDBetw2gY5C+cIo1qkpyv3bPp+4buUjp38VBsjbijM0F/FLOqWbcuKM9h9X0uwxsgsZ96uwcIf5I46NiMgoFlhppTTMZT0Nkocz+SnvHM0IgLsFan7JqBU++vSJvx2M1PDljZSunOsqyyL+DKmbYmM4umbouKV42dipUwrCvrQJmpiUZrSkpMJrPJk9ufDQO4CyIVo0qry3aNRdYFJ6rgSyq/k6rXMwGExCMHn8UlhNnAMuMKWPWR/ymK1bzNcNs4VU14iVjEXOZGPvD9cvqVe/VtcnIba6axNEEB4HWDOCdrDh5YNWwMlQVL7vSB2yOhPZByGhnEOloYsj2E5KEb9jFGskt7EKDEYNofr6t83G0c+B72VGYZeCvgtzXzgPwzIbhTtKkP+gdBmt2JNSYrTjLypT0q+v4C9BN1xWTxPmX6TTt0NzkI9pJxgN1VQAfSU9CyWTVpd4CBkgom2cSBsxZ2MNbdKF+qSWz3fQcmJ55hxM0EGJSt9+8eQOTuoJlBapRk4wdZKHR2jdKzPjSF2MAmyVD2kU51IKa/cVsckRFEes+m7dKyHRvlNwgT78W9tBDdZb5PSlfbZXnv8z5q1KtAj2lM2ogJ7brHBdevl4FISdTkObpwcUMcvACOOO0dj6CSYjSKr0ZJ2RLChVruZyPDxEhKGb/8Kv8trLOR3mck/et6d050/NugezycNk4nnzu5iP90gPbSzaqdZI=","iv":"qTGO1afGv3waHN9KoW34Eg==","salt":"${MOCK_ENCRYPTION_SALT}"}`;
 
 const walletOneSeedWords =
   'puzzle seed penalty soldier say clay field arctic metal hen cage runway';
@@ -492,19 +492,40 @@ describe('KeyringController', function () {
 
       await keyringController.setLocked();
 
-      await keyringController.submitEncryptionKey(MOCK_ENCRYPTION_KEY);
+      await keyringController.submitEncryptionKey(
+        MOCK_ENCRYPTION_KEY,
+        MOCK_ENCRYPTION_SALT,
+      );
 
       expect(keyringController.encryptor.decryptWithKey.calledOnce).toBe(true);
       expect(keyringController.keyrings).toHaveLength(1);
     });
 
-    it('should not load keyrings when incorrect encryptionKey', async function () {
+    it('should not load keyrings when invalid encryptionKey format', async function () {
       keyringController.cacheEncryptionKey = true;
       keyringController.setLocked(true);
+      keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
 
-      await expect(keyringController.submitEncryptionKey(`{}`)).rejects.toThrow(
+      await expect(
+        keyringController.submitEncryptionKey(`{}`, MOCK_ENCRYPTION_SALT),
+      ).rejects.toThrow(
         `Failed to execute 'importKey' on 'SubtleCrypto': The provided value is not of type '(ArrayBuffer or ArrayBufferView or JsonWebKey)'.`,
       );
+      expect(keyringController.password).toBeUndefined();
+      expect(keyringController.keyrings).toHaveLength(0);
+    });
+
+    it('should not load keyrings when encryptionKey is expired', async function () {
+      keyringController.cacheEncryptionKey = true;
+      keyringController.setLocked(true);
+      keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
+
+      await expect(
+        keyringController.submitEncryptionKey(
+          MOCK_ENCRYPTION_KEY,
+          'OUTDATED_SALT',
+        ),
+      ).rejects.toThrow('Encryption key and salt provided are expired');
       expect(keyringController.password).toBeUndefined();
       expect(keyringController.keyrings).toHaveLength(0);
     });
@@ -512,7 +533,10 @@ describe('KeyringController', function () {
     it('persists keyrings when actions are performed', async function () {
       keyringController.cacheEncryptionKey = true;
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
-      await keyringController.submitEncryptionKey(MOCK_ENCRYPTION_KEY);
+      await keyringController.submitEncryptionKey(
+        MOCK_ENCRYPTION_KEY,
+        MOCK_ENCRYPTION_SALT,
+      );
 
       const stub = sinon.stub(keyringController, 'persistAllKeyrings');
       stub.resolves(Promise.resolve(true));
