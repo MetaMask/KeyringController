@@ -489,6 +489,9 @@ describe('KeyringController', function () {
       stub.resolves(Promise.resolve(returnValue));
 
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
+
+      await keyringController.setLocked();
+
       await keyringController.submitEncryptionKey(MOCK_ENCRYPTION_KEY);
 
       expect(keyringController.encryptor.decryptWithKey.calledOnce).toBe(true);
