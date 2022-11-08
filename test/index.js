@@ -478,8 +478,9 @@ describe('KeyringController', function () {
 
       expect(keyringController.password).toBe(password);
       expect(keyringController.memStore.getState().encryptionSalt).toBe('SALT');
-      // eslint-disable-next-line jest/no-restricted-matchers
-      expect(keyringController.memStore.getState().encryptionKey).toBeTruthy();
+      expect(keyringController.memStore.getState().encryptionKey).toStrictEqual(
+        expect.stringMatching('.+'),
+      );
     });
 
     it('unlocks the keyrings with valid information', async function () {
