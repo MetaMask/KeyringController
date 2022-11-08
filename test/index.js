@@ -503,7 +503,7 @@ describe('KeyringController', function () {
 
     it('should not load keyrings when invalid encryptionKey format', async function () {
       keyringController.cacheEncryptionKey = true;
-      keyringController.setLocked(true);
+      keyringController.setLocked();
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
 
       await expect(
@@ -517,7 +517,7 @@ describe('KeyringController', function () {
 
     it('should not load keyrings when encryptionKey is expired', async function () {
       keyringController.cacheEncryptionKey = true;
-      keyringController.setLocked(true);
+      keyringController.setLocked();
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
 
       await expect(
@@ -531,6 +531,7 @@ describe('KeyringController', function () {
     });
 
     it('persists keyrings when actions are performed', async function () {
+      keyringController.setLocked();
       keyringController.cacheEncryptionKey = true;
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
       await keyringController.submitEncryptionKey(
@@ -538,16 +539,13 @@ describe('KeyringController', function () {
         MOCK_ENCRYPTION_SALT,
       );
 
-      const stub = sinon.stub(keyringController, 'persistAllKeyrings');
-      stub.resolves(Promise.resolve(true));
-
       const [firstKeyring] = keyringController.keyrings;
 
       await keyringController.addNewAccount(firstKeyring);
-      expect(stub.callCount).toBe(1);
+      expect(await keyringController.getAccounts()).toHaveLength(2);
 
       await keyringController.addNewAccount(firstKeyring);
-      expect(stub.callCount).toBe(2);
+      expect(await keyringController.getAccounts()).toHaveLength(3);
 
       const account = {
         privateKey:
@@ -559,11 +557,11 @@ describe('KeyringController', function () {
       await keyringController.addNewKeyring('Simple Key Pair', [
         account.privateKey,
       ]);
-      expect(stub.callCount).toBe(3);
+      expect(await keyringController.getAccounts()).toHaveLength(4);
 
       // remove that account that we just added
       await keyringController.removeAccount(account.publicKey);
-      expect(stub.callCount).toBe(4);
+      expect(await keyringController.getAccounts()).toHaveLength(3);
     });
 
     it('triggers an error when trying to persist without password or encryption key', async function () {
