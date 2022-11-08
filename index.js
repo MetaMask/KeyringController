@@ -632,10 +632,7 @@ class KeyringController extends EventEmitter {
       } else {
         const key = await this.encryptor.importKey(encryptionKey);
         const parsedEncryptedVault = JSON.parse(encryptedVault);
-        vault = await this.encryptor.decryptWithKey(
-          key,
-          parsedEncryptedVault,
-        );
+        vault = await this.encryptor.decryptWithKey(key, parsedEncryptedVault);
 
         this.encryptionSalt = parsedEncryptedVault.salt;
         // This call is required on the first call because encryptionKey

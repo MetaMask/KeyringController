@@ -539,8 +539,16 @@ describe('KeyringController', function () {
       expect(stub.callCount).toBe(4);
     });
 
+    it('triggers an error when trying to persist without password or encryption key', async function () {
+      keyringController.password = undefined;
+      await expect(keyringController.persistAllKeyrings()).rejects.toThrow(
+        'Cannot persist vault without password and encryption key',
+      );
+    });
+
     it('cleans up login artifacts upon lock', async function () {
       await keyringController.submitPassword(password);
+      expect(keyringController.password).toBe(password);
 
       await keyringController.setLocked();
 
