@@ -577,10 +577,12 @@ describe('KeyringController', function () {
       keyringController.cacheEncryptionKey = true;
       await keyringController.submitPassword(password);
       expect(keyringController.password).toBe(password);
-      // eslint-disable-next-line jest/no-restricted-matchers
-      expect(keyringController.memStore.getState().encryptionSalt).toBeTruthy();
-      // eslint-disable-next-line jest/no-restricted-matchers
-      expect(keyringController.memStore.getState().encryptionKey).toBeTruthy();
+      expect(
+        keyringController.memStore.getState().encryptionSalt,
+      ).toStrictEqual(expect.stringMatching('.+'));
+      expect(keyringController.memStore.getState().encryptionKey).toStrictEqual(
+        expect.stringMatching('.+'),
+      );
 
       await keyringController.setLocked();
 
