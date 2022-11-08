@@ -559,7 +559,7 @@ class KeyringController extends EventEmitter {
     );
 
     let vault;
-    let newExportedKeyString;
+    let newEncryptionKey;
 
     if (this.cacheEncryptionKey) {
       if (this.password) {
@@ -570,7 +570,7 @@ class KeyringController extends EventEmitter {
           );
 
         vault = newVault;
-        newExportedKeyString = exportedKeyString;
+        newEncryptionKey = exportedKeyString;
       } else if (encryptionKey) {
         const key = await this.encryptor.importKey(encryptionKey);
         const vaultJSON = await this.encryptor.encryptWithKey(
@@ -595,8 +595,8 @@ class KeyringController extends EventEmitter {
     // Not calling _updateMemStoreKeyrings results in the wrong account being selected
     // in the extension.
     await this._updateMemStoreKeyrings();
-    if (newExportedKeyString) {
-      this.memStore.updateState({ encryptionKey: newExportedKeyString });
+    if (newEncryptionKey) {
+      this.memStore.updateState({ encryptionKey: newEncryptionKey });
     }
 
     return true;
