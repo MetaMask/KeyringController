@@ -503,7 +503,7 @@ describe('KeyringController', function () {
 
     it('should not load keyrings when invalid encryptionKey format', async function () {
       keyringController.cacheEncryptionKey = true;
-      keyringController.setLocked();
+      await keyringController.setLocked();
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
 
       await expect(
@@ -517,7 +517,7 @@ describe('KeyringController', function () {
 
     it('should not load keyrings when encryptionKey is expired', async function () {
       keyringController.cacheEncryptionKey = true;
-      keyringController.setLocked();
+      await keyringController.setLocked();
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
 
       await expect(
@@ -531,7 +531,7 @@ describe('KeyringController', function () {
     });
 
     it('persists keyrings when actions are performed', async function () {
-      keyringController.setLocked();
+      await keyringController.setLocked();
       keyringController.cacheEncryptionKey = true;
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
       await keyringController.submitEncryptionKey(
