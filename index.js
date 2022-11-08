@@ -2,7 +2,7 @@ const { EventEmitter } = require('events');
 const { Buffer } = require('buffer');
 const bip39 = require('@metamask/bip39');
 const ObservableStore = require('obs-store');
-const encryptor = require('browser-passworder');
+const encryptor = require('@metamask/browser-passworder');
 const { normalize: normalizeAddress } = require('eth-sig-util');
 
 const SimpleKeyring = require('eth-simple-keyring');
@@ -14,6 +14,7 @@ const KEYRINGS_TYPE_MAP = {
   HD_KEYRING: 'HD Key Tree',
   SIMPLE_KEYRING: 'Simple Key Pair',
 };
+
 /**
  * Strip the hex prefix from an address, if present
  * @param {string} address - The address that might be hex prefixed.
@@ -40,12 +41,17 @@ class KeyringController extends EventEmitter {
     this.store = new ObservableStore(initState);
     this.memStore = new ObservableStore({
       isUnlocked: false,
-      keyringTypes: this.keyringTypes.map((krt) => krt.type),
+      keyringTypes: this.keyringTypes.map((keyringType) => keyringType.type),
       keyrings: [],
+      encryptionKey: null,
     });
 
     this.encryptor = opts.encryptor || encryptor;
     this.keyrings = [];
+
+    // This option allows the controller to cache an exported key
+    // for use in decrypting and encrypting data without password
+    this.cacheEncryptionKey = Boolean(opts.cacheEncryptionKey);
   }
 
   /**
@@ -143,9 +149,15 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async setLocked() {
+    delete this.password;
+
     // set locked
-    this.password = null;
-    this.memStore.updateState({ isUnlocked: false });
+    this.memStore.updateState({
+      isUnlocked: false,
+      encryptionKey: null,
+      encryptionSalt: null,
+    });
+
     // remove keyrings
     this.keyrings = [];
     await this._updateMemStoreKeyrings();
@@ -168,6 +180,28 @@ class KeyringController extends EventEmitter {
    */
   async submitPassword(password) {
     this.keyrings = await this.unlockKeyrings(password);
+
+    this.setUnlocked();
+    this.fullUpdate();
+  }
+
+  /**
+   * Submit Encryption Key
+   *
+   * Attempts to decrypt the current vault and load its keyrings
+   * into memory based on the vault and CryptoKey information
+   *
+   * @emits KeyringController#unlock
+   * @param {string} encryptionKey - The encrypted key information used to decrypt the vault
+   * @param {string} encryptionSalt - The salt used to generate the last key
+   * @returns {Promise<Object>} A Promise that resolves to the state.
+   */
+  async submitEncryptionKey(encryptionKey, encryptionSalt) {
+    this.keyrings = await this.unlockKeyrings(
+      undefined,
+      encryptionKey,
+      encryptionSalt,
+    );
     this.setUnlocked();
     this.fullUpdate();
   }
@@ -215,7 +249,6 @@ class KeyringController extends EventEmitter {
     this.keyrings.push(keyring);
     await this.persistAllKeyrings();
 
-    await this._updateMemStoreKeyrings();
     this.fullUpdate();
 
     return keyring;
@@ -297,7 +330,6 @@ class KeyringController extends EventEmitter {
     });
 
     await this.persistAllKeyrings();
-    await this._updateMemStoreKeyrings();
     this.fullUpdate();
   }
 
@@ -347,7 +379,6 @@ class KeyringController extends EventEmitter {
     }
 
     await this.persistAllKeyrings();
-    await this._updateMemStoreKeyrings();
     this.fullUpdate();
   }
 
@@ -513,6 +544,14 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<boolean>} Resolves to true once keyrings are persisted.
    */
   async persistAllKeyrings() {
+    const { encryptionKey, encryptionSalt } = this.memStore.getState();
+
+    if (!this.password && !encryptionKey) {
+      throw new Error(
+        'Cannot persist vault without password and encryption key',
+      );
+    }
+
     const serializedKeyrings = await Promise.all(
       this.keyrings.map(async (keyring) => {
         const [type, data] = await Promise.all([
@@ -522,11 +561,48 @@ class KeyringController extends EventEmitter {
         return { type, data };
       }),
     );
-    const encryptedString = await this.encryptor.encrypt(
-      this.password,
-      serializedKeyrings,
-    );
-    this.store.updateState({ vault: encryptedString });
+
+    let vault;
+    let newEncryptionKey;
+
+    if (this.cacheEncryptionKey) {
+      if (this.password) {
+        const { vault: newVault, exportedKeyString } =
+          await this.encryptor.encryptWithDetail(
+            this.password,
+            serializedKeyrings,
+          );
+
+        vault = newVault;
+        newEncryptionKey = exportedKeyString;
+      } else if (encryptionKey) {
+        const key = await this.encryptor.importKey(encryptionKey);
+        const vaultJSON = await this.encryptor.encryptWithKey(
+          key,
+          serializedKeyrings,
+        );
+        vaultJSON.salt = encryptionSalt;
+        vault = JSON.stringify(vaultJSON);
+      }
+    } else {
+      vault = await this.encryptor.encrypt(this.password, serializedKeyrings);
+    }
+
+    if (!vault) {
+      throw new Error('Cannot persist vault without vault information');
+    }
+
+    this.store.updateState({ vault });
+
+    // The keyring updates need to be announced before updating the encryptionKey
+    // so that the updated keyring gets propagated to the extension first.
+    // Not calling _updateMemStoreKeyrings results in the wrong account being selected
+    // in the extension.
+    await this._updateMemStoreKeyrings();
+    if (newEncryptionKey) {
+      this.memStore.updateState({ encryptionKey: newEncryptionKey });
+    }
+
     return true;
   }
 
@@ -537,17 +613,55 @@ class KeyringController extends EventEmitter {
    * initializing the persisted keyrings to RAM.
    *
    * @param {string} password - The keyring controller password.
+   * @param {string} encryptionKey - An exported key string to unlock keyrings with
+   * @param {string} encryptionSalt - The salt used to encrypt the vault
    * @returns {Promise<Array<Keyring>>} The keyrings.
    */
-  async unlockKeyrings(password) {
+  async unlockKeyrings(password, encryptionKey, encryptionSalt) {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
       throw new Error('Cannot unlock without a previous vault.');
     }
 
     await this.clearKeyrings();
-    const vault = await this.encryptor.decrypt(password, encryptedVault);
-    this.password = password;
+
+    let vault;
+
+    if (this.cacheEncryptionKey) {
+      if (password) {
+        const result = await this.encryptor.decryptWithDetail(
+          password,
+          encryptedVault,
+        );
+        vault = result.vault;
+        this.password = password;
+
+        this.memStore.updateState({
+          encryptionKey: result.exportedKeyString,
+          encryptionSalt: result.salt,
+        });
+      } else {
+        const parsedEncryptedVault = JSON.parse(encryptedVault);
+
+        if (encryptionSalt !== parsedEncryptedVault.salt) {
+          throw new Error('Encryption key and salt provided are expired');
+        }
+
+        const key = await this.encryptor.importKey(encryptionKey);
+        vault = await this.encryptor.decryptWithKey(key, parsedEncryptedVault);
+
+        // This call is required on the first call because encryptionKey
+        // is not yet inside the memStore
+        this.memStore.updateState({
+          encryptionKey,
+          encryptionSalt,
+        });
+      }
+    } else {
+      vault = await this.encryptor.decrypt(password, encryptedVault);
+      this.password = password;
+    }
+
     await Promise.all(vault.map(this._restoreKeyring.bind(this)));
     await this._updateMemStoreKeyrings();
     return this.keyrings;
@@ -602,7 +716,7 @@ class KeyringController extends EventEmitter {
    * @returns {Keyring|undefined} The class, if it exists.
    */
   getKeyringClassForType(type) {
-    return this.keyringTypes.find((kr) => kr.type === type);
+    return this.keyringTypes.find((keyring) => keyring.type === type);
   }
 
   /**
@@ -744,7 +858,6 @@ class KeyringController extends EventEmitter {
     if (keyring.forgetDevice) {
       keyring.forgetDevice();
       this.persistAllKeyrings();
-      this._updateMemStoreKeyrings.bind(this)();
     } else {
       throw new Error(
         `KeyringController - keyring does not have method "forgetDevice", keyring type: ${keyring.type}`,

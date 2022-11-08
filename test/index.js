@@ -9,6 +9,12 @@ const KeyringController = require('..');
 const mockEncryptor = require('./lib/mock-encryptor');
 
 const password = 'password123';
+
+const MOCK_ENCRYPTION_KEY =
+  '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
+const MOCK_ENCRYPTION_SALT = 'HQ5sfhsb8XAQRJtD+UqcImT7Ve4n3YMagrh05YTOsjk=';
+const MOCK_ENCRYPTION_DATA = `{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZHyMqVY1cDBetw2gY5C+cIo1qkpyv3bPp+4buUjp38VBsjbijM0F/FLOqWbcuKM9h9X0uwxsgsZ96uwcIf5I46NiMgoFlhppTTMZT0Nkocz+SnvHM0IgLsFan7JqBU++vSJvx2M1PDljZSunOsqyyL+DKmbYmM4umbouKV42dipUwrCvrQJmpiUZrSkpMJrPJk9ufDQO4CyIVo0qry3aNRdYFJ6rgSyq/k6rXMwGExCMHn8UlhNnAMuMKWPWR/ymK1bzNcNs4VU14iVjEXOZGPvD9cvqVe/VtcnIba6axNEEB4HWDOCdrDh5YNWwMlQVL7vSB2yOhPZByGhnEOloYsj2E5KEb9jFGskt7EKDEYNofr6t83G0c+B72VGYZeCvgtzXzgPwzIbhTtKkP+gdBmt2JNSYrTjLypT0q+v4C9BN1xWTxPmX6TTt0NzkI9pJxgN1VQAfSU9CyWTVpd4CBkgom2cSBsxZ2MNbdKF+qSWz3fQcmJ55hxM0EGJSt9+8eQOTuoJlBapRk4wdZKHR2jdKzPjSF2MAmyVD2kU51IKa/cVsckRFEes+m7dKyHRvlNwgT78W9tBDdZb5PSlfbZXnv8z5q1KtAj2lM2ogJ7brHBdevl4FISdTkObpwcUMcvACOOO0dj6CSYjSKr0ZJ2RLChVruZyPDxEhKGb/8Kv8trLOR3mck/et6d050/NugezycNk4nnzu5iP90gPbSzaqdZI=","iv":"qTGO1afGv3waHN9KoW34Eg==","salt":"${MOCK_ENCRYPTION_SALT}"}`;
+
 const walletOneSeedWords =
   'puzzle seed penalty soldier say clay field arctic metal hen cage runway';
 const walletOneAddresses = ['0xef35ca8ebb9669a35c31b5f6f249a9941a812ac1'];
@@ -20,6 +26,7 @@ const walletTwoAddresses = [
   '0xbbafcf3d00fb625b65bb1497c94bf42c1f4b3e78',
   '0x49dd2653f38f75d40fdbd51e83b9c9724c87f7eb',
 ];
+
 describe('KeyringController', function () {
   let keyringController;
 
@@ -29,6 +36,7 @@ describe('KeyringController', function () {
     });
 
     await keyringController.createNewVaultAndKeychain(password);
+    await keyringController.submitPassword(password);
   });
 
   afterEach(function () {
@@ -45,7 +53,7 @@ describe('KeyringController', function () {
 
       await keyringController.setLocked();
 
-      expect(keyringController.password).toBeNull();
+      expect(keyringController.password).toBeUndefined();
       expect(keyringController.memStore.getState().isUnlocked).toBe(false);
       expect(keyringController.keyrings).toHaveLength(0);
     });
@@ -61,16 +69,18 @@ describe('KeyringController', function () {
   });
 
   describe('submitPassword', function () {
-    it('should not create new keyrings when called in series', async function () {
+    it('should not load keyrings when incorrect password', async function () {
       await keyringController.createNewVaultAndKeychain(password);
       await keyringController.persistAllKeyrings();
       expect(keyringController.keyrings).toHaveLength(1);
 
-      await keyringController.submitPassword(`${password}a`);
-      expect(keyringController.keyrings).toHaveLength(1);
+      await keyringController.setLocked();
 
-      await keyringController.submitPassword('');
-      expect(keyringController.keyrings).toHaveLength(1);
+      await expect(
+        keyringController.submitPassword(`${password}a`),
+      ).rejects.toThrow('Incorrect password.');
+      expect(keyringController.password).toBeUndefined();
+      expect(keyringController.keyrings).toHaveLength(0);
     });
 
     it('emits "unlock" event', async function () {
@@ -122,8 +132,8 @@ describe('KeyringController', function () {
     it('clears old keyrings and creates a one', async function () {
       const initialAccounts = await keyringController.getAccounts();
       expect(initialAccounts).toHaveLength(1);
-      await keyringController.addNewKeyring('HD Key Tree');
 
+      await keyringController.addNewKeyring('HD Key Tree');
       const allAccounts = await keyringController.getAccounts();
       expect(allAccounts).toHaveLength(2);
 
@@ -458,6 +468,126 @@ describe('KeyringController', function () {
           'No keyring found for the requested account. Error info: There are keyrings, but none match the address',
         ),
       );
+    });
+  });
+
+  describe('cacheEncryptionKey', function () {
+    it('sets encryption key data upon submitPassword', async function () {
+      keyringController.cacheEncryptionKey = true;
+      await keyringController.submitPassword(password);
+
+      expect(keyringController.password).toBe(password);
+      expect(keyringController.memStore.getState().encryptionSalt).toBe('SALT');
+      expect(keyringController.memStore.getState().encryptionKey).toStrictEqual(
+        expect.stringMatching('.+'),
+      );
+    });
+
+    it('unlocks the keyrings with valid information', async function () {
+      keyringController.cacheEncryptionKey = true;
+      const returnValue = await keyringController.encryptor.decryptWithKey();
+      const stub = sinon.stub(keyringController.encryptor, 'decryptWithKey');
+      stub.resolves(Promise.resolve(returnValue));
+
+      keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
+
+      await keyringController.setLocked();
+
+      await keyringController.submitEncryptionKey(
+        MOCK_ENCRYPTION_KEY,
+        MOCK_ENCRYPTION_SALT,
+      );
+
+      expect(keyringController.encryptor.decryptWithKey.calledOnce).toBe(true);
+      expect(keyringController.keyrings).toHaveLength(1);
+    });
+
+    it('should not load keyrings when invalid encryptionKey format', async function () {
+      keyringController.cacheEncryptionKey = true;
+      await keyringController.setLocked();
+      keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
+
+      await expect(
+        keyringController.submitEncryptionKey(`{}`, MOCK_ENCRYPTION_SALT),
+      ).rejects.toThrow(
+        `Failed to execute 'importKey' on 'SubtleCrypto': The provided value is not of type '(ArrayBuffer or ArrayBufferView or JsonWebKey)'.`,
+      );
+      expect(keyringController.password).toBeUndefined();
+      expect(keyringController.keyrings).toHaveLength(0);
+    });
+
+    it('should not load keyrings when encryptionKey is expired', async function () {
+      keyringController.cacheEncryptionKey = true;
+      await keyringController.setLocked();
+      keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
+
+      await expect(
+        keyringController.submitEncryptionKey(
+          MOCK_ENCRYPTION_KEY,
+          'OUTDATED_SALT',
+        ),
+      ).rejects.toThrow('Encryption key and salt provided are expired');
+      expect(keyringController.password).toBeUndefined();
+      expect(keyringController.keyrings).toHaveLength(0);
+    });
+
+    it('persists keyrings when actions are performed', async function () {
+      keyringController.cacheEncryptionKey = true;
+      await keyringController.setLocked();
+      keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
+      await keyringController.submitEncryptionKey(
+        MOCK_ENCRYPTION_KEY,
+        MOCK_ENCRYPTION_SALT,
+      );
+
+      const [firstKeyring] = keyringController.keyrings;
+
+      await keyringController.addNewAccount(firstKeyring);
+      expect(await keyringController.getAccounts()).toHaveLength(2);
+
+      await keyringController.addNewAccount(firstKeyring);
+      expect(await keyringController.getAccounts()).toHaveLength(3);
+
+      const account = {
+        privateKey:
+          'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
+        publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
+      };
+
+      // Add a new keyring with one account
+      await keyringController.addNewKeyring('Simple Key Pair', [
+        account.privateKey,
+      ]);
+      expect(await keyringController.getAccounts()).toHaveLength(4);
+
+      // remove that account that we just added
+      await keyringController.removeAccount(account.publicKey);
+      expect(await keyringController.getAccounts()).toHaveLength(3);
+    });
+
+    it('triggers an error when trying to persist without password or encryption key', async function () {
+      keyringController.password = undefined;
+      await expect(keyringController.persistAllKeyrings()).rejects.toThrow(
+        'Cannot persist vault without password and encryption key',
+      );
+    });
+
+    it('cleans up login artifacts upon lock', async function () {
+      keyringController.cacheEncryptionKey = true;
+      await keyringController.submitPassword(password);
+      expect(keyringController.password).toBe(password);
+      expect(
+        keyringController.memStore.getState().encryptionSalt,
+      ).toStrictEqual(expect.stringMatching('.+'));
+      expect(keyringController.memStore.getState().encryptionKey).toStrictEqual(
+        expect.stringMatching('.+'),
+      );
+
+      await keyringController.setLocked();
+
+      expect(keyringController.memStore.getState().encryptionSalt).toBeNull();
+      expect(keyringController.password).toBeUndefined();
+      expect(keyringController.memStore.getState().encryptionKey).toBeNull();
     });
   });
 });

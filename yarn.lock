@@ -547,6 +547,11 @@
     pbkdf2 "^3.0.9"
     randombytes "^2.0.1"
 
+"@metamask/browser-passworder@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.0.1.tgz#bb2613bb1886774e18da4107ab94a21042e5e3da"
+  integrity sha512-mtekzCKph/S/15hRfWFDIUrpvz9mNoIU0CmH0SOlTHpLhalonEsZ+56MbQQUDshXbytzHp1eKr29OHrIx0u9iQ==
+
 "@metamask/eslint-config-jest@^7.0.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/eslint-config-jest/-/eslint-config-jest-7.0.0.tgz#81612aaf5307c3d65bb43366000233cd0b6e9db4"
@@ -1204,13 +1209,6 @@ brorand@^1.1.0:
   resolved "https://registry.yarnpkg.com/brorand/-/brorand-1.1.0.tgz#12c25efe40a45e3c323eb8675a0a0ce57b22371f"
   integrity sha1-EsJe/kCkXjwyPrhnWgoM5XsiNx8=
 
-browser-passworder@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/browser-passworder/-/browser-passworder-2.0.3.tgz#6fdd2082e516a176edbcb3dcee0b7f9fce4f7917"
-  integrity sha1-b90gguUWoXbtvLPc7gt/n85PeRc=
-  dependencies:
-    browserify-unibabel "^3.0.0"
-
 browser-process-hrtime@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/browser-process-hrtime/-/browser-process-hrtime-1.0.0.tgz#3c9b4b7d782c8121e56f10106d84c0d0ffc94626"
@@ -1227,11 +1225,6 @@ browserify-aes@^1.0.6, browserify-aes@^1.2.0:
     evp_bytestokey "^1.0.3"
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
-
-browserify-unibabel@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/browserify-unibabel/-/browserify-unibabel-3.0.0.tgz#5a6b8f0f704ce388d3927df47337e25830f71dda"
-  integrity sha1-WmuPD3BM44jTkn30czfiWDD3Hdo=
 
 browserslist@^4.16.6:
   version "4.16.6"
