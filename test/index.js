@@ -532,8 +532,8 @@ describe('KeyringController', function () {
     });
 
     it('persists keyrings when actions are performed', async function () {
-      await keyringController.setLocked();
       keyringController.cacheEncryptionKey = true;
+      await keyringController.setLocked();
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
       await keyringController.submitEncryptionKey(
         MOCK_ENCRYPTION_KEY,
