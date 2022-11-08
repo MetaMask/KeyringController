@@ -477,7 +477,7 @@ describe('KeyringController', function () {
       await keyringController.submitPassword(password);
 
       expect(keyringController.password).toBe(password);
-      expect(keyringController.encryptionSalt).toBe('SALT');
+      expect(keyringController.memStore.getState().encryptionSalt).toBe('SALT');
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(keyringController.memStore.getState().encryptionKey).toBeTruthy();
     });
@@ -554,13 +554,13 @@ describe('KeyringController', function () {
       await keyringController.submitPassword(password);
       expect(keyringController.password).toBe(password);
       // eslint-disable-next-line jest/no-restricted-matchers
-      expect(keyringController.encryptionSalt).toBeTruthy();
+      expect(keyringController.memStore.getState().encryptionSalt).toBeTruthy();
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(keyringController.memStore.getState().encryptionKey).toBeTruthy();
 
       await keyringController.setLocked();
 
-      expect(keyringController.encryptionSalt).toBeUndefined();
+      expect(keyringController.memStore.getState().encryptionSalt).toBeNull();
       expect(keyringController.password).toBeUndefined();
       expect(keyringController.memStore.getState().encryptionKey).toBeNull();
     });

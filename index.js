@@ -149,11 +149,14 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Object>} A Promise that resolves to the state.
    */
   async setLocked() {
-    delete this.encryptionSalt;
     delete this.password;
 
     // set locked
-    this.memStore.updateState({ isUnlocked: false, encryptionKey: null });
+    this.memStore.updateState({
+      isUnlocked: false,
+      encryptionKey: null,
+      encryptionSalt: null,
+    });
 
     // remove keyrings
     this.keyrings = [];
@@ -537,7 +540,7 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<boolean>} Resolves to true once keyrings are persisted.
    */
   async persistAllKeyrings() {
-    const { encryptionKey } = this.memStore.getState();
+    const { encryptionKey, encryptionSalt } = this.memStore.getState();
 
     if (!this.password && !encryptionKey) {
       throw new Error(
@@ -574,7 +577,7 @@ class KeyringController extends EventEmitter {
           key,
           serializedKeyrings,
         );
-        vaultJSON.salt = this.encryptionSalt;
+        vaultJSON.salt = encryptionSalt;
         vault = JSON.stringify(vaultJSON);
       }
     } else {
@@ -625,19 +628,23 @@ class KeyringController extends EventEmitter {
           encryptedVault,
         );
         vault = result.vault;
-        this.encryptionSalt = result.salt;
         this.password = password;
 
-        this.memStore.updateState({ encryptionKey: result.exportedKeyString });
+        this.memStore.updateState({
+          encryptionKey: result.exportedKeyString,
+          encryptionSalt: result.salt,
+        });
       } else {
         const key = await this.encryptor.importKey(encryptionKey);
         const parsedEncryptedVault = JSON.parse(encryptedVault);
         vault = await this.encryptor.decryptWithKey(key, parsedEncryptedVault);
 
-        this.encryptionSalt = parsedEncryptedVault.salt;
         // This call is required on the first call because encryptionKey
         // is not yet inside the memStore
-        this.memStore.updateState({ encryptionKey });
+        this.memStore.updateState({
+          encryptionKey,
+          encryptionSalt: parsedEncryptedVault.salt,
+        });
       }
     } else {
       vault = await this.encryptor.decrypt(password, encryptedVault);
