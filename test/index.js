@@ -471,13 +471,15 @@ describe('KeyringController', function () {
     });
   });
 
-  describe('submitEncryptionKey', function () {
+  describe('cacheEncryptionKey', function () {
     it('sets encryption key data upon submitPassword', async function () {
       keyringController.cacheEncryptionKey = true;
       await keyringController.submitPassword(password);
 
       expect(keyringController.password).toBe(password);
       expect(keyringController.encryptionSalt).toBe('SALT');
+      // eslint-disable-next-line jest/no-restricted-matchers
+      expect(keyringController.memStore.getState().encryptionKey).toBeTruthy();
     });
 
     it('unlocks the keyrings with valid information', async function () {
