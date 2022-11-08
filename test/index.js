@@ -547,8 +547,13 @@ describe('KeyringController', function () {
     });
 
     it('cleans up login artifacts upon lock', async function () {
+      keyringController.cacheEncryptionKey = true;
       await keyringController.submitPassword(password);
       expect(keyringController.password).toBe(password);
+      // eslint-disable-next-line jest/no-restricted-matchers
+      expect(keyringController.encryptionSalt).toBeTruthy();
+      // eslint-disable-next-line jest/no-restricted-matchers
+      expect(keyringController.memStore.getState().encryptionKey).toBeTruthy();
 
       await keyringController.setLocked();
 
