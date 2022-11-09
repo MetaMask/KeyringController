@@ -7,22 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [8.0.0]
-### Uncategorized
-- Update GitHub actions to match module template ([#158](https://github.com/MetaMask/KeyringController/pull/158))
-- Bump @metamask/eth-sig-util from 4.0.0 to 4.0.1 ([#159](https://github.com/MetaMask/KeyringController/pull/159))
-- Migrate to Yarn v3 ([#157](https://github.com/MetaMask/KeyringController/pull/157))
-- Keep User Logged In: Export key for encrypted key login ([#152](https://github.com/MetaMask/KeyringController/pull/152))
-- Bump @metamask/auto-changelog from 2.5.0 to 3.0.0 ([#156](https://github.com/MetaMask/KeyringController/pull/156))
-- Set password sooner to avoid redundant persistance ([#154](https://github.com/MetaMask/KeyringController/pull/154))
-- Ensure newly created vaults are unlocked ([#155](https://github.com/MetaMask/KeyringController/pull/155))
-- Fixed a typo in the duplicate account import error ([#153](https://github.com/MetaMask/KeyringController/pull/153))
-- README cleanup ([#151](https://github.com/MetaMask/KeyringController/pull/151))
-- Use async/await instead of then ([#148](https://github.com/MetaMask/KeyringController/pull/148))
-- Bump Node to v14 ([#146](https://github.com/MetaMask/KeyringController/pull/146))
-- Updated Readme ([#143](https://github.com/MetaMask/KeyringController/pull/143))
+### Added
+- Allow login with encryption key rather than password ([#152](https://github.com/MetaMask/KeyringController/pull/152))
+  - This is required to support MetaMask extension builds using manifest v3.
+  - This is enabled via the option `cacheEncryptionKey`.
+  - The encryption key and salt have been added to the `memStore` as `encryptionKey` and `encryptionSalt`. The salt is used to verify that the key matches the vault being decrypted.
+  - If the `cacheEncryptionKey` option is enabled, the encryption key and salt get cached in the `memStore` whenever the password is submitted.
+  - The encryption key can be submitted with the new method `submitEncryptionKey`.
+  - The `unlockKeyrings` method now accepts additional parameters for the encryption key and salt, though we don't recommend using this method directly.
 
 ### Changed
-- **BREAKING:** Removed support for Node v12 in favor of v14 ([#137](https://github.com/MetaMask/eth-json-rpc-middleware/pull/137))
+- **BREAKING:** Update minimum Node.js version to v14 ([#146](https://github.com/MetaMask/KeyringController/pull/146))
+- **BREAKING:**: Remove password parameter from `persistAllKeyrings` and `createFirstKeyTree` ([#154](https://github.com/MetaMask/KeyringController/pull/154))
+  - The password or encryption key must now be set already before these method are called. It is set by `createNewVaultAndKeychain`, `createNewVaultAndRestore`, and `submitPassword`/`submitEncryptionKey`.
+  - This change was made to reduce redundant state changes.
+
+### Fixed
+- Fix a typo in the duplicate account import error ([#153](https://github.com/MetaMask/KeyringController/pull/153))
 
 ## [7.0.2]
 ### Fixed
