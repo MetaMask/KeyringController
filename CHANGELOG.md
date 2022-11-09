@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [8.0.0]
+### Uncategorized
+- Update GitHub actions to match module template ([#158](https://github.com/MetaMask/KeyringController/pull/158))
+- Bump @metamask/eth-sig-util from 4.0.0 to 4.0.1 ([#159](https://github.com/MetaMask/KeyringController/pull/159))
+- Migrate to Yarn v3 ([#157](https://github.com/MetaMask/KeyringController/pull/157))
+- Keep User Logged In: Export key for encrypted key login ([#152](https://github.com/MetaMask/KeyringController/pull/152))
+- Bump @metamask/auto-changelog from 2.5.0 to 3.0.0 ([#156](https://github.com/MetaMask/KeyringController/pull/156))
+- Set password sooner to avoid redundant persistance ([#154](https://github.com/MetaMask/KeyringController/pull/154))
+- Ensure newly created vaults are unlocked ([#155](https://github.com/MetaMask/KeyringController/pull/155))
+- Fixed a typo in the duplicate account import error ([#153](https://github.com/MetaMask/KeyringController/pull/153))
+- README cleanup ([#151](https://github.com/MetaMask/KeyringController/pull/151))
+- Use async/await instead of then ([#148](https://github.com/MetaMask/KeyringController/pull/148))
+- Bump Node to v14 ([#146](https://github.com/MetaMask/KeyringController/pull/146))
+- Updated Readme ([#143](https://github.com/MetaMask/KeyringController/pull/143))
+
 ### Changed
 - **BREAKING:** Removed support for Node v12 in favor of v14 ([#137](https://github.com/MetaMask/eth-json-rpc-middleware/pull/137))
 
@@ -29,7 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v8.0.0...HEAD
+[8.0.0]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...v8.0.0
 [7.0.2]: https://github.com/MetaMask/KeyringController/compare/v7.0.1...v7.0.2
 [7.0.1]: https://github.com/MetaMask/KeyringController/compare/v7.0.0...v7.0.1
 [7.0.0]: https://github.com/MetaMask/KeyringController/releases/tag/v7.0.0
