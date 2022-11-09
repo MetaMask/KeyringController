@@ -5,8 +5,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [8.0.0]
+### Added
+- Allow login with encryption key rather than password ([#152](https://github.com/MetaMask/KeyringController/pull/152))
+  - This is required to support MetaMask extension builds using manifest v3.
+  - This is enabled via the option `cacheEncryptionKey`.
+  - The encryption key and salt have been added to the `memStore` as `encryptionKey` and `encryptionSalt`. The salt is used to verify that the key matches the vault being decrypted.
+  - If the `cacheEncryptionKey` option is enabled, the encryption key and salt get cached in the `memStore` whenever the password is submitted.
+  - The encryption key can be submitted with the new method `submitEncryptionKey`.
+  - The `unlockKeyrings` method now accepts additional parameters for the encryption key and salt, though we don't recommend using this method directly.
+
 ### Changed
-- **BREAKING:** Removed support for Node v12 in favor of v14 ([#137](https://github.com/MetaMask/eth-json-rpc-middleware/pull/137))
+- **BREAKING:** Update minimum Node.js version to v14 ([#146](https://github.com/MetaMask/KeyringController/pull/146))
+- **BREAKING:**: Remove password parameter from `persistAllKeyrings` and `createFirstKeyTree` ([#154](https://github.com/MetaMask/KeyringController/pull/154))
+  - The password or encryption key must now be set already before these method are called. It is set by `createNewVaultAndKeychain`, `createNewVaultAndRestore`, and `submitPassword`/`submitEncryptionKey`.
+  - This change was made to reduce redundant state changes.
+
+### Fixed
+- Fix a typo in the duplicate account import error ([#153](https://github.com/MetaMask/KeyringController/pull/153))
 
 ## [7.0.2]
 ### Fixed
@@ -29,7 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v8.0.0...HEAD
+[8.0.0]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...v8.0.0
 [7.0.2]: https://github.com/MetaMask/KeyringController/compare/v7.0.1...v7.0.2
 [7.0.1]: https://github.com/MetaMask/KeyringController/compare/v7.0.0...v7.0.1
 [7.0.0]: https://github.com/MetaMask/KeyringController/releases/tag/v7.0.0
