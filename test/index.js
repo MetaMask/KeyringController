@@ -99,10 +99,12 @@ describe('KeyringController', function () {
       keyringController.store.updateState({ vault: null });
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
-      await keyringController.createNewVaultAndKeychain(password);
+      const newVault = await keyringController.createNewVaultAndKeychain(
+        password,
+      );
       const { vault } = keyringController.store.getState();
-      // eslint-disable-next-line jest/no-restricted-matchers
-      expect(vault).toBeTruthy();
+      expect(vault).toStrictEqual(expect.stringMatching('.+'));
+      expect(typeof newVault).toBe('object');
     });
 
     it('should unlock the vault', async function () {
