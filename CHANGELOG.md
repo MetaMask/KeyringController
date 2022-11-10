@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [8.0.1]
-### Uncategorized
-- Return fullUpdate from methods it used to ([#161](https://github.com/MetaMask/KeyringController/pull/161))
+### Fixed
+- Restore full state return value ([#161](https://github.com/MetaMask/KeyringController/pull/161))
+  - Some methods were accidentally changed in v8.0.0 to return nothing, where previously they returned the full KeyringController state.
+  - The affected methods were:
+    - `createNewVaultAndKeychain`
+    - `submitPassword`
+    - `submitEncryptionKey`
+    - `addNewAccount`
+    - `removeAccount`
+  - They now all return the full state, just as they did in earlier versions.
 
-## [8.0.0]
+## [8.0.0] [DEPRECATED]
 ### Added
 - Allow login with encryption key rather than password ([#152](https://github.com/MetaMask/KeyringController/pull/152))
   - This is required to support MetaMask extension builds using manifest v3.
