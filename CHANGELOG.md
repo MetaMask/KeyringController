@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.0.1]
+### Uncategorized
+- Return fullUpdate from methods it used to ([#161](https://github.com/MetaMask/KeyringController/pull/161))
+
 ## [8.0.0]
 ### Added
 - Allow login with encryption key rather than password ([#152](https://github.com/MetaMask/KeyringController/pull/152))
@@ -46,7 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v8.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v8.0.1...HEAD
+[8.0.1]: https://github.com/MetaMask/KeyringController/compare/v8.0.0...v8.0.1
 [8.0.0]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...v8.0.0
 [7.0.2]: https://github.com/MetaMask/KeyringController/compare/v7.0.1...v7.0.2
 [7.0.1]: https://github.com/MetaMask/KeyringController/compare/v7.0.0...v7.0.1
