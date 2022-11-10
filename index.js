@@ -88,7 +88,7 @@ class KeyringController extends EventEmitter {
 
     await this.createFirstKeyTree();
     this.setUnlocked();
-    this.fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -182,7 +182,7 @@ class KeyringController extends EventEmitter {
     this.keyrings = await this.unlockKeyrings(password);
 
     this.setUnlocked();
-    this.fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -203,7 +203,7 @@ class KeyringController extends EventEmitter {
       encryptionSalt,
     );
     this.setUnlocked();
-    this.fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -330,7 +330,7 @@ class KeyringController extends EventEmitter {
     });
 
     await this.persistAllKeyrings();
-    this.fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -379,7 +379,7 @@ class KeyringController extends EventEmitter {
     }
 
     await this.persistAllKeyrings();
-    this.fullUpdate();
+    return this.fullUpdate();
   }
 
   //
