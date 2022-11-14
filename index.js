@@ -237,11 +237,11 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<Keyring>} The new keyring.
    */
   async addNewKeyring(type, opts) {
-    const Keyring = this.getKeyringClassForType(type);
-    const keyring = new Keyring(opts);
+    const keyring = await this._newKeyring(type, opts);
+
     if ((!opts || !opts.mnemonic) && type === KEYRINGS_TYPE_MAP.HD_KEYRING) {
       keyring.generateRandomMnemonic();
-      keyring.addAccounts();
+      await keyring.addAccounts();
     }
 
     const accounts = await keyring.getAccounts();
@@ -700,12 +700,12 @@ class KeyringController extends EventEmitter {
   async _restoreKeyring(serialized) {
     const { type, data } = serialized;
 
-    const Keyring = this.getKeyringClassForType(type);
-    if (!Keyring) {
+    const keyring = await this._newKeyring(type);
+    if (!keyring) {
       this._unsupportedKeyrings.push(serialized);
       return undefined;
     }
-    const keyring = new Keyring();
+
     await keyring.deserialize(data);
     // getAccounts also validates the accounts for some keyrings
     await keyring.getAccounts();
@@ -872,6 +872,22 @@ class KeyringController extends EventEmitter {
         `KeyringController - keyring does not have method "forgetDevice", keyring type: ${keyring.type}`,
       );
     }
+  }
+
+  async _newKeyring(type, data) {
+    const Keyring = this.getKeyringClassForType(type);
+
+    if (!Keyring) {
+      return undefined;
+    }
+
+    const keyring = new Keyring(data);
+
+    if (keyring.init) {
+      await keyring.init();
+    }
+
+    return keyring;
   }
 }
 

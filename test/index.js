@@ -6,6 +6,7 @@ const sinon = require('sinon');
 const Wallet = require('ethereumjs-wallet').default;
 
 const KeyringController = require('..');
+const { KeyringMockWithInit } = require('./lib/mock-keyring');
 const mockEncryptor = require('./lib/mock-encryptor');
 
 const password = 'password123';
@@ -33,6 +34,7 @@ describe('KeyringController', function () {
   beforeEach(async function () {
     keyringController = new KeyringController({
       encryptor: mockEncryptor,
+      keyringTypes: [KeyringMockWithInit],
     });
 
     await keyringController.createNewVaultAndKeychain(password);
@@ -239,6 +241,23 @@ describe('KeyringController', function () {
       expect(keyringAccounts[1]).toStrictEqual(walletTwoAddresses[1]);
       const allAccounts = await keyringController.getAccounts();
       expect(allAccounts).toHaveLength(3);
+    });
+
+    it('should call init method if available', async function () {
+      const Keyring = keyringController.getKeyringClassForType(
+        'Keyring Mock With Init',
+      );
+
+      const initSpy = sinon.spy(Keyring.prototype, 'init');
+
+      const keyring = await keyringController.addNewKeyring(
+        'Keyring Mock With Init',
+      );
+
+      const keyringAccounts = await keyring.getAccounts();
+      expect(keyringAccounts).toHaveLength(0);
+
+      expect(initSpy.calledOnce).toBe(true);
     });
   });
 
