@@ -679,7 +679,9 @@ class KeyringController extends EventEmitter {
    */
   async restoreKeyring(serialized) {
     const keyring = await this._restoreKeyring(serialized);
-    await this._updateMemStoreKeyrings();
+    if (keyring) {
+      await this._updateMemStoreKeyrings();
+    }
     return keyring;
   }
 
@@ -696,6 +698,9 @@ class KeyringController extends EventEmitter {
     const { type, data } = serialized;
 
     const Keyring = this.getKeyringClassForType(type);
+    if (!Keyring) {
+      return
+    }
     const keyring = new Keyring();
     await keyring.deserialize(data);
     // getAccounts also validates the accounts for some keyrings
