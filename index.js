@@ -43,6 +43,7 @@ class KeyringController extends EventEmitter {
       isUnlocked: false,
       keyringTypes: this.keyringTypes.map((keyringType) => keyringType.type),
       keyrings: [],
+      unsupported_keyrings: [],
       encryptionKey: null,
     });
 
@@ -562,6 +563,8 @@ class KeyringController extends EventEmitter {
       }),
     );
 
+    this.unsupported_keyrings.forEach(keyring => serializedKeyrings.push(keyring));
+
     let vault;
     let newEncryptionKey;
 
@@ -699,7 +702,8 @@ class KeyringController extends EventEmitter {
 
     const Keyring = this.getKeyringClassForType(type);
     if (!Keyring) {
-      return
+      unsupported_keyrings.push(serialized);
+      return;
     }
     const keyring = new Keyring();
     await keyring.deserialize(data);
