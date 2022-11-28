@@ -101,7 +101,7 @@ describe('KeyringController', function () {
       await keyringController.persistAllKeyrings();
       const { vault } = keyringController.store.getState();
       const keyrings = await mockEncryptor.decrypt(password, vault);
-      expect(keyrings.indexOf(unsupportedKeyring) > -1).toBeTruthy();
+      expect(keyrings.indexOf(unsupportedKeyring) > -1).toBe(true);
       expect(keyrings).toHaveLength(2);
     });
 
