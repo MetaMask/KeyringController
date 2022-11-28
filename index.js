@@ -563,7 +563,9 @@ class KeyringController extends EventEmitter {
       }),
     );
 
-    this.unsupported_keyrings.forEach(keyring => serializedKeyrings.push(keyring));
+    this.unsupported_keyrings.forEach((keyring) =>
+      serializedKeyrings.push(keyring),
+    );
 
     let vault;
     let newEncryptionKey;
@@ -702,8 +704,8 @@ class KeyringController extends EventEmitter {
 
     const Keyring = this.getKeyringClassForType(type);
     if (!Keyring) {
-      unsupported_keyrings.push(serialized);
-      return;
+      this.unsupported_keyrings.push(serialized);
+      return undefined;
     }
     const keyring = new Keyring();
     await keyring.deserialize(data);
