@@ -94,6 +94,28 @@ describe('KeyringController', function () {
     });
   });
 
+  describe('persistAllKeyrings', function () {
+    it('should persist keyrings in unsupported_keyrings array', async function () {
+      const unsupportedKeyring = 'DUMMY_KEYRING';
+      keyringController.unsupported_keyrings = [unsupportedKeyring];
+      await keyringController.persistAllKeyrings();
+      const { vault } = keyringController.store.getState();
+      const keyrings = await mockEncryptor.decrypt(password, vault);
+      expect(keyrings.indexOf(unsupportedKeyring) > -1).toBeTruthy();
+      expect(keyrings).toHaveLength(2);
+    });
+
+    it('emits "unlock" event', async function () {
+      await keyringController.setLocked();
+
+      const spy = sinon.spy();
+      keyringController.on('unlock', spy);
+
+      await keyringController.submitPassword(password);
+      expect(spy.calledOnce).toBe(true);
+    });
+  });
+
   describe('createNewVaultAndKeychain', function () {
     it('should create a new vault', async function () {
       keyringController.store.updateState({ vault: null });
@@ -329,6 +351,15 @@ describe('KeyringController', function () {
       keyrings.forEach((keyring) => {
         expect(keyring.wallets).toHaveLength(1);
       });
+    });
+    it('add serialized keyring to unsupported_keyrings array if keyring type is not known', async function () {
+      mockEncryptor.encrypt(password, [
+        { type: 'Ledger Keyring', data: 'DUMMY' },
+      ]);
+      await keyringController.setLocked();
+      const keyrings = await keyringController.unlockKeyrings(password);
+      expect(keyrings).toHaveLength(0);
+      expect(keyringController.unsupported_keyrings).toHaveLength(1);
     });
   });
 

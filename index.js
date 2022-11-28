@@ -43,12 +43,12 @@ class KeyringController extends EventEmitter {
       isUnlocked: false,
       keyringTypes: this.keyringTypes.map((keyringType) => keyringType.type),
       keyrings: [],
-      unsupported_keyrings: [],
       encryptionKey: null,
     });
 
     this.encryptor = opts.encryptor || encryptor;
     this.keyrings = [];
+    this.unsupported_keyrings = [];
 
     // This option allows the controller to cache an exported key
     // for use in decrypting and encrypting data without password
