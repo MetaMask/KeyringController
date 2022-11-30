@@ -563,9 +563,7 @@ class KeyringController extends EventEmitter {
       }),
     );
 
-    this.unsupported_keyrings.forEach((keyring) =>
-      serializedKeyrings.push(keyring),
-    );
+    serializedKeyrings.push(...this.unsupported_keyrings);
 
     let vault;
     let newEncryptionKey;
