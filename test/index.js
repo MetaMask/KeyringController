@@ -353,13 +353,14 @@ describe('KeyringController', function () {
       });
     });
     it('add serialized keyring to unsupportedKeyrings array if keyring type is not known', async function () {
-      mockEncryptor.encrypt(password, [
-        { type: 'Ledger Keyring', data: 'DUMMY' },
-      ]);
+      const unsupportedKeyrings = [{ type: 'Ledger Keyring', data: 'DUMMY' }];
+      mockEncryptor.encrypt(password, unsupportedKeyrings);
       await keyringController.setLocked();
       const keyrings = await keyringController.unlockKeyrings(password);
       expect(keyrings).toHaveLength(0);
-      expect(keyringController.unsupportedKeyrings).toHaveLength(1);
+      expect(keyringController.unsupportedKeyrings).toStrictEqual(
+        unsupportedKeyrings,
+      );
     });
   });
 
