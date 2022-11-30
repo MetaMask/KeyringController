@@ -48,7 +48,7 @@ class KeyringController extends EventEmitter {
 
     this.encryptor = opts.encryptor || encryptor;
     this.keyrings = [];
-    this.unsupportedKeyrings = [];
+    this._unsupportedKeyrings = [];
 
     // This option allows the controller to cache an exported key
     // for use in decrypting and encrypting data without password
@@ -563,7 +563,7 @@ class KeyringController extends EventEmitter {
       }),
     );
 
-    serializedKeyrings.push(...this.unsupportedKeyrings);
+    serializedKeyrings.push(...this._unsupportedKeyrings);
 
     let vault;
     let newEncryptionKey;
@@ -702,7 +702,7 @@ class KeyringController extends EventEmitter {
 
     const Keyring = this.getKeyringClassForType(type);
     if (!Keyring) {
-      this.unsupportedKeyrings.push(serialized);
+      this._unsupportedKeyrings.push(serialized);
       return undefined;
     }
     const keyring = new Keyring();
