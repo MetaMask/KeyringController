@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.1.0]
+### Uncategorized
+- Fix: saving serialized keyring for which corresponding keyring class is not present ([#169](https://github.com/MetaMask/KeyringController/pull/169))
+- Bump @metamask/auto-changelog from 3.0.0 to 3.1.0 ([#165](https://github.com/MetaMask/KeyringController/pull/165))
+- Bump @metamask/browser-passworder from 4.0.1 to 4.0.2 ([#164](https://github.com/MetaMask/KeyringController/pull/164))
+
 ## [8.0.1]
 ### Fixed
 - Restore full state return value ([#161](https://github.com/MetaMask/KeyringController/pull/161))
@@ -58,7 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v8.0.1...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v8.1.0...HEAD
+[8.1.0]: https://github.com/MetaMask/KeyringController/compare/v8.0.1...v8.1.0
 [8.0.1]: https://github.com/MetaMask/KeyringController/compare/v8.0.0...v8.0.1
 [8.0.0]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...v8.0.0
 [7.0.2]: https://github.com/MetaMask/KeyringController/compare/v7.0.1...v7.0.2
