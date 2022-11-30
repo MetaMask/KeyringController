@@ -7,10 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [8.1.0]
-### Uncategorized
+### Added
 - Fix: saving serialized keyring for which corresponding keyring class is not present ([#169](https://github.com/MetaMask/KeyringController/pull/169))
-- Bump @metamask/auto-changelog from 3.0.0 to 3.1.0 ([#165](https://github.com/MetaMask/KeyringController/pull/165))
-- Bump @metamask/browser-passworder from 4.0.1 to 4.0.2 ([#164](https://github.com/MetaMask/KeyringController/pull/164))
 
 ## [8.0.1]
 ### Fixed
