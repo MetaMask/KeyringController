@@ -94,6 +94,19 @@ describe('KeyringController', function () {
     });
   });
 
+  describe('persistAllKeyrings', function () {
+    it('should persist keyrings in _unsupportedKeyrings array', async function () {
+      const unsupportedKeyring = 'DUMMY_KEYRING';
+      keyringController._unsupportedKeyrings = [unsupportedKeyring];
+      await keyringController.persistAllKeyrings();
+
+      const { vault } = keyringController.store.getState();
+      const keyrings = await mockEncryptor.decrypt(password, vault);
+      expect(keyrings.indexOf(unsupportedKeyring) > -1).toBe(true);
+      expect(keyrings).toHaveLength(2);
+    });
+  });
+
   describe('createNewVaultAndKeychain', function () {
     it('should create a new vault', async function () {
       keyringController.store.updateState({ vault: null });
@@ -245,6 +258,13 @@ describe('KeyringController', function () {
       const accounts = await keyring.getAccounts();
       expect(accounts[0]).toBe(walletOneAddresses[0]);
     });
+    it('should return undefined if keyring type is not supported.', async function () {
+      const unsupportedKeyring = { type: 'Ledger Keyring', data: 'DUMMY' };
+      const keyring = await keyringController.restoreKeyring(
+        unsupportedKeyring,
+      );
+      expect(keyring).toBeUndefined();
+    });
   });
 
   describe('getAccounts', function () {
@@ -329,6 +349,16 @@ describe('KeyringController', function () {
       keyrings.forEach((keyring) => {
         expect(keyring.wallets).toHaveLength(1);
       });
+    });
+    it('add serialized keyring to _unsupportedKeyrings array if keyring type is not known', async function () {
+      const _unsupportedKeyrings = [{ type: 'Ledger Keyring', data: 'DUMMY' }];
+      mockEncryptor.encrypt(password, _unsupportedKeyrings);
+      await keyringController.setLocked();
+      const keyrings = await keyringController.unlockKeyrings(password);
+      expect(keyrings).toHaveLength(0);
+      expect(keyringController._unsupportedKeyrings).toStrictEqual(
+        _unsupportedKeyrings,
+      );
     });
   });
 

@@ -48,6 +48,7 @@ class KeyringController extends EventEmitter {
 
     this.encryptor = opts.encryptor || encryptor;
     this.keyrings = [];
+    this._unsupportedKeyrings = [];
 
     // This option allows the controller to cache an exported key
     // for use in decrypting and encrypting data without password
@@ -562,6 +563,8 @@ class KeyringController extends EventEmitter {
       }),
     );
 
+    serializedKeyrings.push(...this._unsupportedKeyrings);
+
     let vault;
     let newEncryptionKey;
 
@@ -679,7 +682,9 @@ class KeyringController extends EventEmitter {
    */
   async restoreKeyring(serialized) {
     const keyring = await this._restoreKeyring(serialized);
-    await this._updateMemStoreKeyrings();
+    if (keyring) {
+      await this._updateMemStoreKeyrings();
+    }
     return keyring;
   }
 
@@ -690,12 +695,16 @@ class KeyringController extends EventEmitter {
    * On success, returns the resulting keyring instance.
    *
    * @param {Object} serialized - The serialized keyring.
-   * @returns {Promise<Keyring>} The deserialized keyring.
+   * @returns {Promise<Keyring|undefined>} The deserialized keyring or undefined if the keyring type is unsupported.
    */
   async _restoreKeyring(serialized) {
     const { type, data } = serialized;
 
     const Keyring = this.getKeyringClassForType(type);
+    if (!Keyring) {
+      this._unsupportedKeyrings.push(serialized);
+      return undefined;
+    }
     const keyring = new Keyring();
     await keyring.deserialize(data);
     // getAccounts also validates the accounts for some keyrings
