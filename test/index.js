@@ -106,16 +106,6 @@ describe('KeyringController', function () {
       expect(keyrings.indexOf(unsupportedKeyring) > -1).toBe(true);
       expect(keyrings).toHaveLength(2);
     });
-
-    it('emits "unlock" event', async function () {
-      await keyringController.setLocked();
-
-      const spy = sinon.spy();
-      keyringController.on('unlock', spy);
-
-      await keyringController.submitPassword(password);
-      expect(spy.calledOnce).toBe(true);
-    });
   });
 
   describe('createNewVaultAndKeychain', function () {
