@@ -359,7 +359,7 @@ describe('KeyringController', function () {
       await keyringController.setLocked();
       const keyrings = await keyringController.unlockKeyrings(password);
       expect(keyrings).toHaveLength(0);
-      expect(keyringController.unsupportedKeyrings).toStrictEqual(keyrings);
+      expect(keyringController.unsupportedKeyrings).toHaveLength(1);
     });
   });
 
