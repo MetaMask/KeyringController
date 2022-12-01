@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.1.0]
+### Changed
+- Allow deserializing vaults with unrecognized keyrings ([#169](https://github.com/MetaMask/KeyringController/pull/169))
+  - When deserializing a vault with an unrecognized keyring, the controller will no longer crash. The unrecognized keyring vault data will be preserved in the vault for future use, but will otherwise be ignored.
+
 ## [8.0.1]
 ### Fixed
 - Restore full state return value ([#161](https://github.com/MetaMask/KeyringController/pull/161))
@@ -58,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v8.0.1...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v8.1.0...HEAD
+[8.1.0]: https://github.com/MetaMask/KeyringController/compare/v8.0.1...v8.1.0
 [8.0.1]: https://github.com/MetaMask/KeyringController/compare/v8.0.0...v8.0.1
 [8.0.0]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...v8.0.0
 [7.0.2]: https://github.com/MetaMask/KeyringController/compare/v7.0.1...v7.0.2
