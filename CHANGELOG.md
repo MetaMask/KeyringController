@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.1.0]
 ### Added
-- Fix: saving serialized keyring for which corresponding keyring class is not present ([#169](https://github.com/MetaMask/KeyringController/pull/169))
+- Allow deserializing vaults with unrecognized keyrings ([#169](https://github.com/MetaMask/KeyringController/pull/169))
+  - When deserializing a vault with an unrecognized keyring, the controller will no longer crash. The unrecogized keyring vault data will be preserved in the vault for future use, but will otherwise be ignored.
 
 ## [8.0.1]
 ### Fixed
