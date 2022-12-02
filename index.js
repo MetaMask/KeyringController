@@ -8,7 +8,10 @@ const { normalize: normalizeAddress } = require('eth-sig-util');
 const SimpleKeyring = require('@metamask/eth-simple-keyring');
 const HdKeyring = require('@metamask/eth-hd-keyring');
 
-const keyringTypes = [SimpleKeyring, HdKeyring];
+const keyringTypes = [
+  keyringBuilderFactory(SimpleKeyring),
+  keyringBuilderFactory(HdKeyring),
+];
 
 const KEYRINGS_TYPE_MAP = {
   HD_KEYRING: 'HD Key Tree',
@@ -700,13 +703,12 @@ class KeyringController extends EventEmitter {
   async _restoreKeyring(serialized) {
     const { type, data } = serialized;
 
-    const keyring = await this._newKeyring(type);
+    const keyring = await this._newKeyring(type, data);
     if (!keyring) {
       this._unsupportedKeyrings.push(serialized);
       return undefined;
     }
 
-    await keyring.deserialize(data);
     // getAccounts also validates the accounts for some keyrings
     await keyring.getAccounts();
     this.keyrings.push(keyring);
@@ -875,13 +877,15 @@ class KeyringController extends EventEmitter {
   }
 
   async _newKeyring(type, data) {
-    const Keyring = this.getKeyringClassForType(type);
+    const keyringBuilder = this.getKeyringClassForType(type);
 
-    if (!Keyring) {
+    if (!keyringBuilder) {
       return undefined;
     }
 
-    const keyring = new Keyring(data);
+    const keyring = keyringBuilder();
+
+    await keyring.deserialize(data);
 
     if (keyring.init) {
       await keyring.init();
@@ -891,4 +895,16 @@ class KeyringController extends EventEmitter {
   }
 }
 
+function keyringBuilderFactory(KeyringClass, BridgeClass) {
+  const builder = () => {
+    const constructorDependencies = BridgeClass ? new BridgeClass() : undefined;
+    return new KeyringClass(constructorDependencies);
+  };
+
+  builder.type = KeyringClass.type;
+
+  return builder;
+}
+
 module.exports = KeyringController;
+module.exports.keyringBuilderFactory = keyringBuilderFactory;
