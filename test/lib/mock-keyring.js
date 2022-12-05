@@ -10,6 +10,10 @@ class KeyringMockWithInit {
   serialize() {
     return Promise.resolve({});
   }
+
+  deserialize(_) {
+    return Promise.resolve();
+  }
 }
 
 KeyringMockWithInit.type = 'Keyring Mock With Init';
