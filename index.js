@@ -5,7 +5,7 @@ const ObservableStore = require('obs-store');
 const encryptor = require('@metamask/browser-passworder');
 const { normalize: normalizeAddress } = require('eth-sig-util');
 
-const SimpleKeyring = require('eth-simple-keyring');
+const SimpleKeyring = require('@metamask/eth-simple-keyring');
 const HdKeyring = require('@metamask/eth-hd-keyring');
 
 const keyringTypes = [SimpleKeyring, HdKeyring];
