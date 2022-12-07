@@ -910,5 +910,7 @@ function keyringBuilderFactory(KeyringClass, BridgeClass) {
   return builder;
 }
 
-module.exports = KeyringController;
-module.exports.keyringBuilderFactory = keyringBuilderFactory;
+module.exports = {
+  KeyringController,
+  keyringBuilderFactory,
+};

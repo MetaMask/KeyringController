@@ -5,8 +5,7 @@ const normalizeAddress = sigUtil.normalize;
 const sinon = require('sinon');
 const Wallet = require('ethereumjs-wallet').default;
 
-const KeyringController = require('..');
-const { keyringBuilderFactory } = require('..');
+const { KeyringController, keyringBuilderFactory } = require('..');
 const { KeyringMockWithInit } = require('./lib/mock-keyring');
 const mockEncryptor = require('./lib/mock-encryptor');
 
