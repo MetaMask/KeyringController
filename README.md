@@ -18,7 +18,7 @@ The KeyringController has three main responsibilities:
 
 ```javascript
 const KeyringController = require('eth-keyring-controller');
-const SimpleKeyring = require('eth-simple-keyring');
+const SimpleKeyring = require('@metamask/eth-simple-keyring');
 
 const keyringController = new KeyringController({
   keyringTypes: [SimpleKeyring], // optional array of types to support.
