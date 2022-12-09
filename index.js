@@ -880,6 +880,15 @@ class KeyringController extends EventEmitter {
     }
   }
 
+  /**
+   * Instantiate, initialize and return a new keyring
+   *
+   * The keyring instantiated is of the given `type`.
+   *
+   * @param {string} type - The type of keyring to add.
+   * @param {Object} data - The data to restore a previously serialized keyring.
+   * @returns {Promise<Keyring>} The new keyring.
+   */
   async _newKeyring(type, data) {
     const keyringBuilder = this.getKeyringBuilderForType(type);
 
@@ -899,13 +908,18 @@ class KeyringController extends EventEmitter {
   }
 }
 
-function keyringBuilderFactory(KeyringClass, BridgeClass) {
-  const builder = () => {
-    const constructorDependencies = BridgeClass ? new BridgeClass() : undefined;
-    return new KeyringClass(constructorDependencies);
-  };
+/**
+ * Get builder function for `Keyring`
+ *
+ * Returns a builder function for `Keyring` with a `type` property.
+ *
+ * @param {typeof Keyring} Keyring - The Keyring class for the builder.
+ * @returns {function: Keyring} A builder function for the given Keyring.
+ */
+function keyringBuilderFactory(Keyring) {
+  const builder = () => new Keyring();
 
-  builder.type = KeyringClass.type;
+  builder.type = Keyring.type;
 
   return builder;
 }
