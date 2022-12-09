@@ -246,7 +246,7 @@ class KeyringController extends EventEmitter {
 
     if ((!opts || !opts.mnemonic) && type === KEYRINGS_TYPE_MAP.HD_KEYRING) {
       keyring.generateRandomMnemonic();
-      await keyring.addAccounts();
+      keyring.addAccounts();
     }
 
     const accounts = await keyring.getAccounts();
