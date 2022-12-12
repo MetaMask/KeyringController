@@ -383,7 +383,7 @@ describe('KeyringController', function () {
     });
 
     it('does not remove the keyring if there are accounts remaining after removing one from the keyring', async function () {
-      // Add a new keyring with two account
+      // Add a new keyring with two accounts
       await keyringController.addNewKeyring('HD Key Tree', {
         mnemonic: walletTwoSeedWords,
         numberOfAccounts: 2,
