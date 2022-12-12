@@ -19,7 +19,7 @@ const MOCK_ENCRYPTION_DATA = `{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZ
 const walletOneSeedWords =
   'puzzle seed penalty soldier say clay field arctic metal hen cage runway';
 const walletOneAddresses = ['0xef35ca8ebb9669a35c31b5f6f249a9941a812ac1'];
-const walletOnePrivateAddress = [
+const walletOnePrivateKey = [
   'ace918800411c0b96b915f76efbbd4d50e6c997180fee58e01f60d3a412d2f7e',
 ];
 
@@ -383,7 +383,7 @@ describe('KeyringController', function () {
     });
 
     it('does not remove the keyring if there are accounts remaining after removing one from the keyring', async function () {
-      // Add a new keyring with one account
+      // Add a new keyring with two account
       await keyringController.addNewKeyring('HD Key Tree', {
         mnemonic: walletTwoSeedWords,
         numberOfAccounts: 2,
@@ -704,7 +704,7 @@ describe('KeyringController', function () {
       const privateKey = await keyringController.exportAccount(
         walletOneAddresses[0],
       );
-      expect(privateKey).toStrictEqual(walletOnePrivateAddress[0]);
+      expect(privateKey).toStrictEqual(walletOnePrivateKey[0]);
     });
   });
 
@@ -717,15 +717,15 @@ describe('KeyringController', function () {
     });
 
     it('signMessage', async () => {
+      const expectedResult =
+        '0x93e0035090e8144debae03f45c5339a78d24c41e38e810a82dd3387e48353db645bd77716f3b7c4fb1f07f3b97bdbd33b0d7c55f7e7eedf3a678a2081948b67f1c';
       const inputParams = {
         from: walletOneAddresses[0],
         data: '0x879a053d4800c6354e76c7985a865d2922c82fb5b3f4577b2fe08b998954f2e0',
         origin: 'https://metamask.github.io',
       };
       const result = await keyringController.signMessage(inputParams);
-      expect(result).toBe(
-        '0x93e0035090e8144debae03f45c5339a78d24c41e38e810a82dd3387e48353db645bd77716f3b7c4fb1f07f3b97bdbd33b0d7c55f7e7eedf3a678a2081948b67f1c',
-      );
+      expect(result).toBe(expectedResult);
     });
 
     it('signPersonalMessage', async () => {
