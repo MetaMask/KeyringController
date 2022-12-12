@@ -4,7 +4,7 @@ const sigUtil = require('eth-sig-util');
 const normalizeAddress = sigUtil.normalize;
 const sinon = require('sinon');
 const Wallet = require('ethereumjs-wallet').default;
-
+const HdKeyring = require('@metamask/eth-hd-keyring');
 const { KeyringController, keyringBuilderFactory } = require('..');
 const { KeyringMockWithInit } = require('./lib/mock-keyring');
 const mockEncryptor = require('./lib/mock-encryptor');
@@ -19,6 +19,9 @@ const MOCK_ENCRYPTION_DATA = `{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZ
 const walletOneSeedWords =
   'puzzle seed penalty soldier say clay field arctic metal hen cage runway';
 const walletOneAddresses = ['0xef35ca8ebb9669a35c31b5f6f249a9941a812ac1'];
+const walletOnePrivateKey = [
+  'ace918800411c0b96b915f76efbbd4d50e6c997180fee58e01f60d3a412d2f7e',
+];
 
 const walletTwoSeedWords =
   'urge letter protect palace city barely security section midnight wealth south deer';
@@ -143,6 +146,16 @@ describe('KeyringController', function () {
         expect(actualPassword).toBe(password);
       });
     });
+
+    it('should throw error if accounts are not generated correctly', async () => {
+      jest
+        .spyOn(HdKeyring.prototype, 'getAccounts')
+        .mockImplementation(() => Promise.resolve([]));
+
+      await expect(() =>
+        keyringController.createNewVaultAndKeychain(password),
+      ).rejects.toThrow('KeyringController - No account found on keychain.');
+    });
   });
 
   describe('createNewVaultAndRestore', function () {
@@ -194,6 +207,19 @@ describe('KeyringController', function () {
       const allAccountsAfter = await keyringController.getAccounts();
       expect(allAccountsAfter).toHaveLength(1);
       expect(allAccountsAfter[0]).toBe(walletTwoAddresses[0]);
+    });
+
+    it('throws error if accounts are not created properly', async () => {
+      jest
+        .spyOn(HdKeyring.prototype, 'getAccounts')
+        .mockImplementation(() => Promise.resolve([]));
+
+      await expect(() =>
+        keyringController.createNewVaultAndRestore(
+          password,
+          walletTwoSeedWords,
+        ),
+      ).rejects.toThrow('KeyringController - First Account not found.');
     });
   });
 
@@ -322,10 +348,12 @@ describe('KeyringController', function () {
       await keyringController.addNewKeyring('Simple Key Pair', [
         account.privateKey,
       ]);
+      expect(keyringController.keyrings).toHaveLength(2);
 
       // remove that account that we just added
       await keyringController.removeAccount(account.publicKey);
 
+      expect(keyringController.keyrings).toHaveLength(1);
       // fetch accounts after removal
       const result = await keyringController.getAccounts();
       expect(result).toStrictEqual(accountsBeforeAdding);
@@ -353,6 +381,24 @@ describe('KeyringController', function () {
       // was also removed after removing the account
       expect(keyringController.keyrings).toHaveLength(1);
     });
+
+    it('does not remove the keyring if there are accounts remaining after removing one from the keyring', async function () {
+      // Add a new keyring with two accounts
+      await keyringController.addNewKeyring('HD Key Tree', {
+        mnemonic: walletTwoSeedWords,
+        numberOfAccounts: 2,
+      });
+
+      // We should have 2 keyrings
+      expect(keyringController.keyrings).toHaveLength(2);
+
+      // remove one account from the keyring we just added
+      await keyringController.removeAccount(walletTwoAddresses[0]);
+
+      // Check that the newly added keyring was not removed after
+      // removing the account since it still has an account left
+      expect(keyringController.keyrings).toHaveLength(2);
+    });
   });
 
   describe('unlockKeyrings', function () {
@@ -377,13 +423,25 @@ describe('KeyringController', function () {
   });
 
   describe('verifyPassword', function () {
-    it('throws an error if no encrypted vault is in controller state', async function () {
+    beforeEach(() => {
       keyringController = new KeyringController({
         encryptor: mockEncryptor,
       });
+    });
+    it('throws an error if no encrypted vault is in controller state', async function () {
       await expect(() =>
         keyringController.verifyPassword('test'),
       ).rejects.toThrow('Cannot unlock without a previous vault.');
+    });
+
+    it('does not throw if a vault exists in state', async () => {
+      await keyringController.createNewVaultAndRestore(
+        password,
+        walletOneSeedWords,
+      );
+      await expect(() =>
+        keyringController.verifyPassword(password),
+      ).not.toThrow();
     });
   });
 
@@ -634,6 +692,82 @@ describe('KeyringController', function () {
       expect(keyringController.memStore.getState().encryptionSalt).toBeNull();
       expect(keyringController.password).toBeUndefined();
       expect(keyringController.memStore.getState().encryptionKey).toBeNull();
+    });
+  });
+
+  describe('exportAccount', function () {
+    it('returns the private key for the public key it is passed', async () => {
+      await keyringController.createNewVaultAndRestore(
+        password,
+        walletOneSeedWords,
+      );
+      const privateKey = await keyringController.exportAccount(
+        walletOneAddresses[0],
+      );
+      expect(privateKey).toStrictEqual(walletOnePrivateKey[0]);
+    });
+  });
+
+  describe('signing methods', function () {
+    beforeEach(async () => {
+      await keyringController.createNewVaultAndRestore(
+        password,
+        walletOneSeedWords,
+      );
+    });
+
+    it('signMessage', async () => {
+      const inputParams = {
+        from: walletOneAddresses[0],
+        data: '0x879a053d4800c6354e76c7985a865d2922c82fb5b3f4577b2fe08b998954f2e0',
+        origin: 'https://metamask.github.io',
+      };
+      const result = await keyringController.signMessage(inputParams);
+      expect(result).toMatchInlineSnapshot(
+        `"0x93e0035090e8144debae03f45c5339a78d24c41e38e810a82dd3387e48353db645bd77716f3b7c4fb1f07f3b97bdbd33b0d7c55f7e7eedf3a678a2081948b67f1c"`,
+      );
+    });
+
+    it('signPersonalMessage', async () => {
+      const inputParams = {
+        from: walletOneAddresses[0],
+        data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
+        origin: 'https://metamask.github.io',
+      };
+      const result = await keyringController.signPersonalMessage(inputParams);
+      expect(result).toBe(
+        '0xfa2e5989b483e1f40a41b306f275b0009bcc07bfe5322c87682145e7d4889a3247182b4bd8138a965a7e37dea9d9b492b6f9f6d01185412f2d80466237b2805e1b',
+      );
+    });
+
+    it('getEncryptionPublicKey', async () => {
+      const result = await keyringController.getEncryptionPublicKey(
+        walletOneAddresses[0],
+      );
+      expect(result).toBe('SR6bQ1m3OTHvI1FLwcGzm+Uk6hffoFPxsQ0DTOeKMEc=');
+    });
+
+    it('signTypedMessage', async () => {
+      const inputParams = {
+        from: walletOneAddresses[0],
+        data: [
+          {
+            type: 'string',
+            name: 'Message',
+            value: 'Hi, Alice!',
+          },
+          {
+            type: 'uint32',
+            name: 'A number',
+            value: '1337',
+          },
+        ],
+        origin: 'https://metamask.github.io',
+      };
+      const result = await keyringController.signTypedMessage(inputParams);
+      expect(result).toBe(
+        '0x089bb031f5bf2b2cbdf49eb2bb37d6071ab71f950b9dc49e398ca2ba984aca3c189b3b8de6c14c56461460dd9f59443340f1b144aeeff73275ace41ac184e54f1c',
+      );
     });
   });
 });
