@@ -8,7 +8,10 @@ const { normalize: normalizeAddress } = require('eth-sig-util');
 const SimpleKeyring = require('@metamask/eth-simple-keyring');
 const HdKeyring = require('@metamask/eth-hd-keyring');
 
-const keyringTypes = [SimpleKeyring, HdKeyring];
+const defaultKeyringBuilders = [
+  keyringBuilderFactory(SimpleKeyring),
+  keyringBuilderFactory(HdKeyring),
+];
 
 const KEYRINGS_TYPE_MAP = {
   HD_KEYRING: 'HD Key Tree',
@@ -35,13 +38,15 @@ class KeyringController extends EventEmitter {
   constructor(opts) {
     super();
     const initState = opts.initState || {};
-    this.keyringTypes = opts.keyringTypes
-      ? keyringTypes.concat(opts.keyringTypes)
-      : keyringTypes;
+    this.keyringBuilders = opts.keyringBuilders
+      ? defaultKeyringBuilders.concat(opts.keyringBuilders)
+      : defaultKeyringBuilders;
     this.store = new ObservableStore(initState);
     this.memStore = new ObservableStore({
       isUnlocked: false,
-      keyringTypes: this.keyringTypes.map((keyringType) => keyringType.type),
+      keyringTypes: this.keyringBuilders.map(
+        (keyringBuilder) => keyringBuilder.type,
+      ),
       keyrings: [],
       encryptionKey: null,
     });
@@ -230,15 +235,15 @@ class KeyringController extends EventEmitter {
    * and the current decrypted Keyrings array.
    *
    * All Keyring classes implement a unique `type` string,
-   * and this is used to retrieve them from the keyringTypes array.
+   * and this is used to retrieve them from the keyringBuilders array.
    *
    * @param {string} type - The type of keyring to add.
    * @param {Object} opts - The constructor options for the keyring.
    * @returns {Promise<Keyring>} The new keyring.
    */
   async addNewKeyring(type, opts) {
-    const Keyring = this.getKeyringClassForType(type);
-    const keyring = new Keyring(opts);
+    const keyring = await this._newKeyring(type, opts);
+
     if ((!opts || !opts.mnemonic) && type === KEYRINGS_TYPE_MAP.HD_KEYRING) {
       keyring.generateRandomMnemonic();
       keyring.addAccounts();
@@ -700,13 +705,12 @@ class KeyringController extends EventEmitter {
   async _restoreKeyring(serialized) {
     const { type, data } = serialized;
 
-    const Keyring = this.getKeyringClassForType(type);
-    if (!Keyring) {
+    const keyring = await this._newKeyring(type, data);
+    if (!keyring) {
       this._unsupportedKeyrings.push(serialized);
       return undefined;
     }
-    const keyring = new Keyring();
-    await keyring.deserialize(data);
+
     // getAccounts also validates the accounts for some keyrings
     await keyring.getAccounts();
     this.keyrings.push(keyring);
@@ -716,16 +720,18 @@ class KeyringController extends EventEmitter {
   /**
    * Get Keyring Class For Type
    *
-   * Searches the current `keyringTypes` array
-   * for a Keyring class whose unique `type` property
+   * Searches the current `keyringBuilders` array
+   * for a Keyring builder whose unique `type` property
    * matches the provided `type`,
    * returning it if it exists.
    *
    * @param {string} type - The type whose class to get.
    * @returns {Keyring|undefined} The class, if it exists.
    */
-  getKeyringClassForType(type) {
-    return this.keyringTypes.find((keyring) => keyring.type === type);
+  getKeyringBuilderForType(type) {
+    return this.keyringBuilders.find(
+      (keyringBuilder) => keyringBuilder.type === type,
+    );
   }
 
   /**
@@ -873,6 +879,52 @@ class KeyringController extends EventEmitter {
       );
     }
   }
+
+  /**
+   * Instantiate, initialize and return a new keyring
+   *
+   * The keyring instantiated is of the given `type`.
+   *
+   * @param {string} type - The type of keyring to add.
+   * @param {Object} data - The data to restore a previously serialized keyring.
+   * @returns {Promise<Keyring>} The new keyring.
+   */
+  async _newKeyring(type, data) {
+    const keyringBuilder = this.getKeyringBuilderForType(type);
+
+    if (!keyringBuilder) {
+      return undefined;
+    }
+
+    const keyring = keyringBuilder();
+
+    await keyring.deserialize(data);
+
+    if (keyring.init) {
+      await keyring.init();
+    }
+
+    return keyring;
+  }
 }
 
-module.exports = KeyringController;
+/**
+ * Get builder function for `Keyring`
+ *
+ * Returns a builder function for `Keyring` with a `type` property.
+ *
+ * @param {typeof Keyring} Keyring - The Keyring class for the builder.
+ * @returns {function: Keyring} A builder function for the given Keyring.
+ */
+function keyringBuilderFactory(Keyring) {
+  const builder = () => new Keyring();
+
+  builder.type = Keyring.type;
+
+  return builder;
+}
+
+module.exports = {
+  KeyringController,
+  keyringBuilderFactory,
+};
