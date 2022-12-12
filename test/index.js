@@ -717,15 +717,15 @@ describe('KeyringController', function () {
     });
 
     it('signMessage', async () => {
-      const expectedResult =
-        '0x93e0035090e8144debae03f45c5339a78d24c41e38e810a82dd3387e48353db645bd77716f3b7c4fb1f07f3b97bdbd33b0d7c55f7e7eedf3a678a2081948b67f1c';
       const inputParams = {
         from: walletOneAddresses[0],
         data: '0x879a053d4800c6354e76c7985a865d2922c82fb5b3f4577b2fe08b998954f2e0',
         origin: 'https://metamask.github.io',
       };
       const result = await keyringController.signMessage(inputParams);
-      expect(result).toBe(expectedResult);
+      expect(result).toMatchInlineSnapshot(
+        `"0x93e0035090e8144debae03f45c5339a78d24c41e38e810a82dd3387e48353db645bd77716f3b7c4fb1f07f3b97bdbd33b0d7c55f7e7eedf3a678a2081948b67f1c"`,
+      );
     });
 
     it('signPersonalMessage', async () => {
