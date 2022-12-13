@@ -282,54 +282,34 @@ describe('KeyringController', function () {
     });
 
     it('should finish adding HD Keyring accounts before continuing execution', async function () {
-      let timeoutSet = false;
       let addAccountsResolved = false;
 
       const originalAccAccounts = HdKeyring.prototype.addAccounts;
       sinon.stub(HdKeyring.prototype, 'addAccounts').callsFake(function () {
         return new Promise((resolve) => {
+          // By using setImmediate, this won't be resolved before getAccounts unless it is awaited
           originalAccAccounts
             .bind(this)()
             .then((accounts) => {
-              setTimeout(() => {
+              setImmediate(() => {
                 addAccountsResolved = true;
                 resolve(accounts);
-              }, 100);
-
-              timeoutSet = true;
+              });
             });
         });
       });
 
       const originalGetAccounts = HdKeyring.prototype.getAccounts;
       sinon.stub(HdKeyring.prototype, 'getAccounts').callsFake(function () {
-        return new Promise((resolve, rejects) => {
-          if (!addAccountsResolved) {
-            rejects(
-              new Error('Should not be called before accounts are added'),
-            );
-          }
+        // Adds a check to getAccounts to determine if addAccounts is being awaited
+        if (!addAccountsResolved) {
+          throw new Error('Should not be called before accounts are added');
+        }
 
-          originalGetAccounts
-            .bind(this)()
-            .then((accounts) => {
-              resolve(accounts);
-            });
-        });
+        return originalGetAccounts.bind(this)();
       });
 
-      const keyringPromise = keyringController.addNewKeyring('HD Key Tree');
-
-      await new Promise((resolve) => {
-        const timer = setInterval(() => {
-          if (timeoutSet) {
-            clearInterval(timer);
-            resolve();
-          }
-        }, 50);
-      });
-
-      const keyring = await keyringPromise;
+      const keyring = await keyringController.addNewKeyring('HD Key Tree');
 
       expect(keyring).toBeInstanceOf(HdKeyring);
     });
