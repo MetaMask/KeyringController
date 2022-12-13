@@ -456,7 +456,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethereumjs/util@npm:^8.0.0":
+"@ethereumjs/util@npm:^8.0.0, @ethereumjs/util@npm:^8.0.2":
   version: 8.0.2
   resolution: "@ethereumjs/util@npm:8.0.2"
   dependencies:
@@ -813,20 +813,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-hd-keyring@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "@metamask/eth-hd-keyring@npm:4.0.2"
+"@metamask/eth-hd-keyring@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "@metamask/eth-hd-keyring@npm:5.0.1"
   dependencies:
-    "@metamask/bip39": ^4.0.0
-    "@metamask/eth-sig-util": ^4.0.0
-    eth-simple-keyring: ^4.2.0
-    ethereumjs-util: ^7.0.9
-    ethereumjs-wallet: ^1.0.1
-  checksum: a390fe8baa71fa1e8416e20038c6d3e2b435ae0e7089d48f9ac5067e257971282d3cf2b8e7fcc0985c6cf0aa2839ea678ec92bc32aba02b764b18081f1f28d5e
+    "@ethereumjs/util": ^8.0.2
+    "@metamask/eth-sig-util": ^5.0.2
+    "@metamask/scure-bip39": ^2.0.3
+    ethereum-cryptography: ^1.1.2
+  checksum: 4a406a8b2f613d33e1c8c0bd3eb4ff6ccf9a4d4556501639636e660fa0fa86a290401fc2e5a1a410672bb0b32a0755a60ed8d596eb56a0088fd45d7031d4ceeb
   languageName: node
   linkType: hard
 
-"@metamask/eth-sig-util@npm:5.0.2, @metamask/eth-sig-util@npm:^5.0.1":
+"@metamask/eth-sig-util@npm:5.0.2, @metamask/eth-sig-util@npm:^5.0.1, @metamask/eth-sig-util@npm:^5.0.2":
   version: 5.0.2
   resolution: "@metamask/eth-sig-util@npm:5.0.2"
   dependencies:
@@ -840,19 +839,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-sig-util@npm:^4.0.0":
-  version: 4.0.1
-  resolution: "@metamask/eth-sig-util@npm:4.0.1"
-  dependencies:
-    ethereumjs-abi: ^0.6.8
-    ethereumjs-util: ^6.2.1
-    ethjs-util: ^0.1.6
-    tweetnacl: ^1.0.3
-    tweetnacl-util: ^0.15.1
-  checksum: 740df4c92a1282e6be4c00c86c1a8ccfb93e767596e43f6da895aa5bab4a28fc3c2209f0327db34924a4a1e9db72bc4d3dddfcfc45cca0b218c9ccbf7d1b1445
-  languageName: node
-  linkType: hard
-
 "@metamask/eth-simple-keyring@npm:^5.0.0":
   version: 5.0.0
   resolution: "@metamask/eth-simple-keyring@npm:5.0.0"
@@ -862,6 +848,16 @@ __metadata:
     ethereum-cryptography: ^1.1.2
     randombytes: ^2.1.0
   checksum: 6fd05173531b84f6fb816b90ab8cfb176ac3300f07daa51c4adac673fa17dbcc6ce1ebdf064b9f66549f37476bbc54eb2dd9d28935d57654ef62b935a1e31e1d
+  languageName: node
+  linkType: hard
+
+"@metamask/scure-bip39@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "@metamask/scure-bip39@npm:2.0.3"
+  dependencies:
+    "@noble/hashes": ~1.1.1
+    "@scure/base": ~1.1.0
+  checksum: a1655adbab6165c833db7e1a2f46a9617503b79016b06e025e15babd5ba8bce682598fe939851ce88fff451c9833e0362003c9ba7c68b3bf1e7cc09bdfe9fa4c
   languageName: node
   linkType: hard
 
@@ -1078,15 +1074,6 @@ __metadata:
   dependencies:
     "@babel/types": ^7.3.0
   checksum: 2f91480eec314175b34dc778161d9b7d1a1cb9ce440e2001c3775a2028c9073e389b23978e3fa74b5a5c68afa8ac6ea2b5f9285ee16793f8e0a002adec10eb2a
-  languageName: node
-  linkType: hard
-
-"@types/bn.js@npm:^4.11.3":
-  version: 4.11.6
-  resolution: "@types/bn.js@npm:4.11.6"
-  dependencies:
-    "@types/node": "*"
-  checksum: 7f66f2c7b7b9303b3205a57184261974b114495736b77853af5b18d857c0b33e82ce7146911e86e87a87837de8acae28986716fd381ac7c301fd6e8d8b6c811f
   languageName: node
   linkType: hard
 
@@ -1689,24 +1676,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bindings@npm:^1.2.1, bindings@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "bindings@npm:1.5.0"
-  dependencies:
-    file-uri-to-path: 1.0.0
-  checksum: 65b6b48095717c2e6105a021a7da4ea435aa8d3d3cd085cb9e85bcb6e5773cf318c4745c3f7c504412855940b585bdf9b918236612a1c7a7942491de176f1ae7
-  languageName: node
-  linkType: hard
-
-"bip66@npm:^1.1.5":
-  version: 1.1.5
-  resolution: "bip66@npm:1.1.5"
-  dependencies:
-    safe-buffer: ^5.0.1
-  checksum: 956cff6e51d7206571ef8ce875bc5fa61b5c181589790b9155799b7edcae4b20dbb3eed43b188ff3eec27cdbe98e0b7e0ec9f1cb2e4f5370c119028b248ad859
-  languageName: node
-  linkType: hard
-
 "blakejs@npm:^1.1.0":
   version: 1.1.0
   resolution: "blakejs@npm:1.1.0"
@@ -1714,7 +1683,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bn.js@npm:^4.11.0, bn.js@npm:^4.11.1, bn.js@npm:^4.11.8, bn.js@npm:^4.11.9":
+"bn.js@npm:^4.11.1, bn.js@npm:^4.11.8, bn.js@npm:^4.11.9":
   version: 4.12.0
   resolution: "bn.js@npm:4.12.0"
   checksum: 39afb4f15f4ea537b55eaf1446c896af28ac948fdcf47171961475724d1bb65118cca49fa6e3d67706e4790955ec0e74de584e45c8f1ef89f46c812bee5b5a12
@@ -1770,7 +1739,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"browserify-aes@npm:^1.0.6, browserify-aes@npm:^1.2.0":
+"browserify-aes@npm:^1.2.0":
   version: 1.2.0
   resolution: "browserify-aes@npm:1.2.0"
   dependencies:
@@ -2339,17 +2308,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"drbg.js@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "drbg.js@npm:1.0.1"
-  dependencies:
-    browserify-aes: ^1.0.6
-    create-hash: ^1.1.2
-    create-hmac: ^1.1.4
-  checksum: f8df5cdd4fb792e548d6187cbc446fbd0afd8f1ef7fa486e1c286c2adee55a687183ce48ab178e9f24965c2deabb6e2ba7a7ee2d675264b951356480eb042476
-  languageName: node
-  linkType: hard
-
 "ecc-jsbn@npm:~0.1.1":
   version: 0.1.2
   resolution: "ecc-jsbn@npm:0.1.2"
@@ -2833,7 +2791,7 @@ __metadata:
     "@metamask/eslint-config": ^10.0.0
     "@metamask/eslint-config-jest": ^10.0.0
     "@metamask/eslint-config-nodejs": ^10.0.0
-    "@metamask/eth-hd-keyring": ^4.0.2
+    "@metamask/eth-hd-keyring": ^5.0.1
     "@metamask/eth-sig-util": 5.0.2
     "@metamask/eth-simple-keyring": ^5.0.0
     eslint: ^8.21.0
@@ -2851,30 +2809,6 @@ __metadata:
     sinon: ^11.1.1
   languageName: unknown
   linkType: soft
-
-"eth-sig-util@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "eth-sig-util@npm:3.0.1"
-  dependencies:
-    ethereumjs-abi: ^0.6.8
-    ethereumjs-util: ^5.1.1
-    tweetnacl: ^1.0.3
-    tweetnacl-util: ^0.15.0
-  checksum: 614bf7011b30f78c3532f53e3f80919fe5502b0fa7a3656e6e7dae56d26bc9f559c5b6480c2bcc66d63cd9f72b489732df3b7f1daa0ac9a1fe3b6878347ab4c6
-  languageName: node
-  linkType: hard
-
-"eth-simple-keyring@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "eth-simple-keyring@npm:4.2.0"
-  dependencies:
-    eth-sig-util: ^3.0.1
-    ethereumjs-util: ^7.0.9
-    ethereumjs-wallet: ^1.0.1
-    events: ^1.1.1
-  checksum: 5c6e03b2641905c3d58c0343e0d28d1192cdfd7da43ff8924c02ed50ff88cf1c66bb5e7057dec2fba9fe84ec467291e86c9ec0a8c72457214f7fe6a85984a259
-  languageName: node
-  linkType: hard
 
 "ethereum-cryptography@npm:^0.1.3":
   version: 0.1.3
@@ -2911,47 +2845,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethereumjs-abi@npm:^0.6.8":
-  version: 0.6.8
-  resolution: "ethereumjs-abi@npm:0.6.8"
-  dependencies:
-    bn.js: ^4.11.8
-    ethereumjs-util: ^6.0.0
-  checksum: cede2a8ae7c7e04eeaec079c2f925601a25b2ef75cf9230e7c5da63b4ea27883b35447365a47e35c1e831af520973a2252af89022c292c18a09a4607821a366b
-  languageName: node
-  linkType: hard
-
-"ethereumjs-util@npm:^5.1.1":
-  version: 5.2.0
-  resolution: "ethereumjs-util@npm:5.2.0"
-  dependencies:
-    bn.js: ^4.11.0
-    create-hash: ^1.1.2
-    ethjs-util: ^0.1.3
-    keccak: ^1.0.2
-    rlp: ^2.0.0
-    safe-buffer: ^5.1.1
-    secp256k1: ^3.0.1
-  checksum: 930d1521b2b1266c445e1b95ab0e06c9c0afd0ba9c399faa2b7a306ff37017f3198ab00317e56a0766994b7f8e4634682ffa5a848891a86369bc0355f529feff
-  languageName: node
-  linkType: hard
-
-"ethereumjs-util@npm:^6.0.0, ethereumjs-util@npm:^6.2.1":
-  version: 6.2.1
-  resolution: "ethereumjs-util@npm:6.2.1"
-  dependencies:
-    "@types/bn.js": ^4.11.3
-    bn.js: ^4.11.0
-    create-hash: ^1.1.2
-    elliptic: ^6.5.2
-    ethereum-cryptography: ^0.1.3
-    ethjs-util: 0.1.6
-    rlp: ^2.2.3
-  checksum: e3cb4a2c034a2529281fdfc21a2126fe032fdc3038863f5720352daa65ddcc50fc8c67dbedf381a882dc3802e05d979287126d7ecf781504bde1fd8218693bde
-  languageName: node
-  linkType: hard
-
-"ethereumjs-util@npm:^7.0.2, ethereumjs-util@npm:^7.0.9":
+"ethereumjs-util@npm:^7.0.2":
   version: 7.0.10
   resolution: "ethereumjs-util@npm:7.0.10"
   dependencies:
@@ -2981,20 +2875,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethjs-util@npm:0.1.6, ethjs-util@npm:^0.1.3, ethjs-util@npm:^0.1.6":
+"ethjs-util@npm:0.1.6, ethjs-util@npm:^0.1.6":
   version: 0.1.6
   resolution: "ethjs-util@npm:0.1.6"
   dependencies:
     is-hex-prefixed: 1.0.0
     strip-hex-prefix: 1.0.0
   checksum: 1f42959e78ec6f49889c49c8a98639e06f52a15966387dd39faf2930db48663d026efb7db2702dcffe7f2a99c4a0144b7ce784efdbf733f4077aae95de76d65f
-  languageName: node
-  linkType: hard
-
-"events@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "events@npm:1.1.1"
-  checksum: 40431eb005cc4c57861b93d44c2981a49e7feb99df84cf551baed299ceea4444edf7744733f6a6667e942af687359b1f4a87ec1ec4f21d5127dac48a782039b9
   languageName: node
   linkType: hard
 
@@ -3140,13 +3027,6 @@ __metadata:
   dependencies:
     flat-cache: ^3.0.4
   checksum: f49701feaa6314c8127c3c2f6173cfefff17612f5ed2daaafc6da13b5c91fd43e3b2a58fd0d63f9f94478a501b167615931e7200e31485e320f74a33885a9c74
-  languageName: node
-  linkType: hard
-
-"file-uri-to-path@npm:1.0.0":
-  version: 1.0.0
-  resolution: "file-uri-to-path@npm:1.0.0"
-  checksum: b648580bdd893a008c92c7ecc96c3ee57a5e7b6c4c18a9a09b44fb5d36d79146f8e442578bc0e173dc027adf3987e254ba1dfd6e3ec998b7c282873010502144
   languageName: node
   linkType: hard
 
@@ -4745,19 +4625,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"keccak@npm:^1.0.2":
-  version: 1.4.0
-  resolution: "keccak@npm:1.4.0"
-  dependencies:
-    bindings: ^1.2.1
-    inherits: ^2.0.3
-    nan: ^2.2.1
-    node-gyp: latest
-    safe-buffer: ^5.1.0
-  checksum: 236ba4183d64e1118566c4f123d812cc8fa5fb0fa477b6743bc398aced42595816f46a322bf0240a6a7589eff932aa1540066a30db2367e4049436d9fa30f537
-  languageName: node
-  linkType: hard
-
 "keccak@npm:^3.0.0":
   version: 3.0.1
   resolution: "keccak@npm:3.0.1"
@@ -5094,15 +4961,6 @@ __metadata:
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
   checksum: aa92de608021b242401676e35cfa5aa42dd70cbdc082b916da7fb925c542173e36bce97ea3e804923fe92c0ad991434e4a38327e15a1b5b5f945d66df615ae6d
-  languageName: node
-  linkType: hard
-
-"nan@npm:^2.14.0, nan@npm:^2.2.1":
-  version: 2.14.0
-  resolution: "nan@npm:2.14.0"
-  dependencies:
-    node-gyp: latest
-  checksum: 6dfd00d9bf71769898dfab21ef9d2ef278b392c586147616a718b995d6a582f5caa7f2ca0f83ce956fb0def698aca813b2b6fd4598125cd16bdc85924c34a37d
   languageName: node
   linkType: hard
 
@@ -5876,7 +5734,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rlp@npm:^2.0.0, rlp@npm:^2.2.3, rlp@npm:^2.2.4":
+"rlp@npm:^2.2.4":
   version: 2.2.6
   resolution: "rlp@npm:2.2.6"
   dependencies:
@@ -5950,23 +5808,6 @@ __metadata:
   version: 3.0.1
   resolution: "scrypt-js@npm:3.0.1"
   checksum: b7c7d1a68d6ca946f2fbb0778e0c4ec63c65501b54023b2af7d7e9f48fdb6c6580d6f7675cd53bda5944c5ebc057560d5a6365079752546865defb3b79dea454
-  languageName: node
-  linkType: hard
-
-"secp256k1@npm:^3.0.1":
-  version: 3.8.0
-  resolution: "secp256k1@npm:3.8.0"
-  dependencies:
-    bindings: ^1.5.0
-    bip66: ^1.1.5
-    bn.js: ^4.11.8
-    create-hash: ^1.2.0
-    drbg.js: ^1.0.1
-    elliptic: ^6.5.2
-    nan: ^2.14.0
-    node-gyp: latest
-    safe-buffer: ^5.1.2
-  checksum: 37aaae687a8de9b7bc733ab26bc89c4302b9c681d69d71d531842d99d3af9301a4e30dbe40122793ec64b7a08b8fee8d2330397b7b2dd3a7e404ed259a458089
   languageName: node
   linkType: hard
 
@@ -6571,7 +6412,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tweetnacl-util@npm:^0.15.0, tweetnacl-util@npm:^0.15.1":
+"tweetnacl-util@npm:^0.15.1":
   version: 0.15.1
   resolution: "tweetnacl-util@npm:0.15.1"
   checksum: ae6aa8a52cdd21a95103a4cc10657d6a2040b36c7a6da7b9d3ab811c6750a2d5db77e8c36969e75fdee11f511aa2b91c552496c6e8e989b6e490e54aca2864fc
