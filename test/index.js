@@ -298,6 +298,7 @@ describe('KeyringController', function () {
       const accounts = await keyring.getAccounts();
       expect(accounts[0]).toBe(walletOneAddresses[0]);
     });
+
     it('should return undefined if keyring type is not supported.', async function () {
       const unsupportedKeyring = { type: 'Ledger Keyring', data: 'DUMMY' };
       const keyring = await keyringController.restoreKeyring(
@@ -410,6 +411,7 @@ describe('KeyringController', function () {
         expect(keyring.wallets).toHaveLength(1);
       });
     });
+
     it('add serialized keyring to _unsupportedKeyrings array if keyring type is not known', async function () {
       const _unsupportedKeyrings = [{ type: 'Ledger Keyring', data: 'DUMMY' }];
       mockEncryptor.encrypt(password, _unsupportedKeyrings);
@@ -428,6 +430,7 @@ describe('KeyringController', function () {
         encryptor: mockEncryptor,
       });
     });
+
     it('throws an error if no encrypted vault is in controller state', async function () {
       await expect(() =>
         keyringController.verifyPassword('test'),
@@ -439,6 +442,7 @@ describe('KeyringController', function () {
         password,
         walletOneSeedWords,
       );
+
       await expect(() =>
         keyringController.verifyPassword(password),
       ).not.toThrow();
@@ -565,6 +569,7 @@ describe('KeyringController', function () {
           },
         },
       ];
+
       await expect(
         keyringController.getKeyringForAccount('0x04'),
       ).rejects.toThrow(
@@ -683,6 +688,7 @@ describe('KeyringController', function () {
       expect(
         keyringController.memStore.getState().encryptionSalt,
       ).toStrictEqual(expect.stringMatching('.+'));
+
       expect(keyringController.memStore.getState().encryptionKey).toStrictEqual(
         expect.stringMatching('.+'),
       );
