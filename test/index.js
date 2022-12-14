@@ -189,11 +189,15 @@ describe('KeyringController', function () {
           password,
           'test test test palace city barely security section midnight wealth south deer',
         ),
-      ).rejects.toThrow('KeyringController - Seed phrase is invalid.');
+      ).rejects.toThrow(
+        'Eth-Hd-Keyring: Invalid secret recovery phrase provided',
+      );
 
       await expect(() =>
         keyringController.createNewVaultAndRestore(password, 1234),
-      ).rejects.toThrow('KeyringController - Seed phrase is invalid.');
+      ).rejects.toThrow(
+        'Eth-Hd-Keyring: Invalid secret recovery phrase provided',
+      );
     });
 
     it('accepts mnemonic passed as type array of numbers', async function () {

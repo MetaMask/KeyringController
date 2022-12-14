@@ -2774,7 +2774,6 @@ __metadata:
     "@metamask/eth-hd-keyring": ^5.0.1
     "@metamask/eth-sig-util": 5.0.2
     "@metamask/eth-simple-keyring": ^5.0.0
-    "@metamask/scure-bip39": ^2.0.3
     eslint: ^8.21.0
     eslint-config-prettier: ^8.3.0
     eslint-plugin-import: ^2.26.0

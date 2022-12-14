@@ -34,7 +34,6 @@
     "@metamask/eth-hd-keyring": "^5.0.1",
     "@metamask/eth-sig-util": "5.0.2",
     "@metamask/eth-simple-keyring": "^5.0.0",
-    "@metamask/scure-bip39": "^2.0.3",
     "obs-store": "^4.0.3"
   },
   "devDependencies": {

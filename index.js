@@ -1,7 +1,4 @@
 const { EventEmitter } = require('events');
-const { Buffer } = require('buffer');
-const bip39 = require('@metamask/scure-bip39');
-const { wordlist } = require('@metamask/scure-bip39/dist/wordlists/english');
 const ObservableStore = require('obs-store');
 const encryptor = require('@metamask/browser-passworder');
 const { normalize: normalizeAddress } = require('@metamask/eth-sig-util');
@@ -113,21 +110,14 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<object>} A Promise that resolves to the state.
    */
   async createNewVaultAndRestore(password, seedPhrase) {
-    const seedPhraseUint8Array = this._mnemonicToUint8Array(seedPhrase);
-
     if (typeof password !== 'string') {
       throw new Error('Password must be text.');
     }
-
-    if (!bip39.validateMnemonic(seedPhraseUint8Array, wordlist)) {
-      throw new Error('KeyringController - Seed phrase is invalid.');
-    }
-
     this.password = password;
 
     await this.clearKeyrings();
     const keyring = await this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {
-      mnemonic: seedPhraseUint8Array,
+      mnemonic: seedPhrase,
       numberOfAccounts: 1,
     });
     const [firstAccount] = await keyring.getAccounts();
@@ -904,46 +894,6 @@ class KeyringController extends EventEmitter {
     }
 
     return keyring;
-  }
-
-  /*
-  Utility Methods
-  */
-
-  _stringToUint8Array(mnemonic) {
-    const indices = mnemonic.split(' ').map((word) => wordlist.indexOf(word));
-    return new Uint8Array(new Uint16Array(indices).buffer);
-  }
-
-  _mnemonicToUint8Array(mnemonic) {
-    let mnemonicData = mnemonic;
-    // when encrypted/decrypted, buffers get cast into js object with a property type set to buffer
-    if (mnemonic && mnemonic.type && mnemonic.type === 'Buffer') {
-      mnemonicData = mnemonic.data;
-    }
-
-    if (
-      // this block is for backwards compatibility with vaults that were previously stored as buffers, number arrays or plain text strings
-      typeof mnemonicData === 'string' ||
-      Buffer.isBuffer(mnemonicData) ||
-      Array.isArray(mnemonicData)
-    ) {
-      let mnemonicAsString = mnemonicData;
-      if (Array.isArray(mnemonicData)) {
-        mnemonicAsString = Buffer.from(mnemonicData).toString();
-      } else if (Buffer.isBuffer(mnemonicData)) {
-        mnemonicAsString = mnemonicData.toString();
-      }
-      return this._stringToUint8Array(mnemonicAsString);
-    } else if (
-      mnemonicData instanceof Object &&
-      !(mnemonicData instanceof Uint8Array)
-    ) {
-      // when encrypted/decrypted the Uint8Array becomes a js object we need to cast back to a Uint8Array
-      return Uint8Array.from(Object.values(mnemonicData));
-    }
-
-    return mnemonicData;
   }
 }
 
