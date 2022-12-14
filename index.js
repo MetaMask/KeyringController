@@ -112,7 +112,7 @@ class KeyringController extends EventEmitter {
    * either as a string or Uint8Array.
    * @returns {Promise<object>} A Promise that resolves to the state.
    */
-  createNewVaultAndRestore(password, seedPhrase) {
+  async createNewVaultAndRestore(password, seedPhrase) {
     const encodedSeedPhrase = this._mnemonicToUint8Array(seedPhrase);
 
     if (typeof password !== 'string') {
@@ -120,33 +120,23 @@ class KeyringController extends EventEmitter {
     }
 
     if (!bip39.validateMnemonic(encodedSeedPhrase, wordlist)) {
-      return Promise.reject(
-        new Error('KeyringController - Seed phrase is invalid.'),
-      );
+      throw new Error('KeyringController - Seed phrase is invalid.');
     }
 
     this.password = password;
 
-    this.clearKeyrings();
-    return this.persistAllKeyrings(password)
-      .then(() => {
-        return this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {
-          mnemonic: encodedSeedPhrase,
-          numberOfAccounts: 1,
-        });
-      })
-      .then((firstKeyring) => {
-        return firstKeyring.getAccounts();
-      })
-      .then(([firstAccount]) => {
-        if (!firstAccount) {
-          throw new Error('KeyringController - First Account not found.');
-        }
-        return null;
-      })
-      .then(this.persistAllKeyrings.bind(this, password))
-      .then(this.setUnlocked.bind(this))
-      .then(this.fullUpdate.bind(this));
+    await this.clearKeyrings();
+    const keyring = await this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {
+      mnemonic: encodedSeedPhrase,
+      numberOfAccounts: 1,
+    });
+    const [firstAccount] = await keyring.getAccounts();
+
+    if (!firstAccount) {
+      throw new Error('KeyringController - First Account not found.');
+    }
+    this.setUnlocked();
+    return this.fullUpdate();
   }
 
   /**
