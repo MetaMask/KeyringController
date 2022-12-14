@@ -309,7 +309,8 @@ describe('KeyringController', function () {
       };
 
       const keyring = await keyringController.restoreKeyring(mockSerialized);
-      expect(keyring.wallets).toHaveLength(1);
+      const wallet = await keyring.serialize();
+      expect(wallet.numberOfAccounts).toBe(1);
 
       const accounts = await keyring.getAccounts();
       expect(accounts[0]).toBe(walletOneAddresses[0]);
@@ -423,9 +424,12 @@ describe('KeyringController', function () {
       await keyringController.setLocked();
       const keyrings = await keyringController.unlockKeyrings(password);
       expect(keyrings).toHaveLength(1);
-      keyrings.forEach((keyring) => {
-        expect(keyring.wallets).toHaveLength(1);
-      });
+      await Promise.all(
+        keyrings.map(async (keyring) => {
+          const wallet = await keyring.serialize();
+          expect(wallet.numberOfAccounts).toBe(1);
+        }),
+      );
     });
 
     it('add serialized keyring to _unsupportedKeyrings array if keyring type is not known', async function () {
