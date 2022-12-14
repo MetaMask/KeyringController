@@ -920,13 +920,6 @@ class KeyringController extends EventEmitter {
   Utility Methods
   */
 
-  _uint8ArrayToString(mnemonic) {
-    const recoveredIndices = Array.from(
-      new Uint16Array(new Uint8Array(mnemonic).buffer),
-    );
-    return recoveredIndices.map((i) => wordlist[i]).join(' ');
-  }
-
   _stringToUint8Array(mnemonic) {
     const indices = mnemonic.split(' ').map((word) => wordlist.indexOf(word));
     return new Uint8Array(new Uint16Array(indices).buffer);

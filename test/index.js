@@ -189,7 +189,7 @@ describe('KeyringController', function () {
           password,
           'test test test palace city barely security section midnight wealth south deer',
         ),
-      ).rejects.toThrow('Seed phrase is invalid.');
+      ).rejects.toThrow('KeyringController - Seed phrase is invalid.');
     });
 
     it('accepts mnemonic passed as type array of numbers', async function () {
