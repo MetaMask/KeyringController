@@ -190,6 +190,10 @@ describe('KeyringController', function () {
           'test test test palace city barely security section midnight wealth south deer',
         ),
       ).rejects.toThrow('KeyringController - Seed phrase is invalid.');
+
+      await expect(() =>
+        keyringController.createNewVaultAndRestore(password, 1234),
+      ).rejects.toThrow('KeyringController - Seed phrase is invalid.');
     });
 
     it('accepts mnemonic passed as type array of numbers', async function () {

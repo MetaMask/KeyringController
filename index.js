@@ -113,13 +113,13 @@ class KeyringController extends EventEmitter {
    * @returns {Promise<object>} A Promise that resolves to the state.
    */
   async createNewVaultAndRestore(password, seedPhrase) {
-    const encodedSeedPhrase = this._mnemonicToUint8Array(seedPhrase);
+    const seedPhraseUint8Array = this._mnemonicToUint8Array(seedPhrase);
 
     if (typeof password !== 'string') {
       throw new Error('Password must be text.');
     }
 
-    if (!bip39.validateMnemonic(encodedSeedPhrase, wordlist)) {
+    if (!bip39.validateMnemonic(seedPhraseUint8Array, wordlist)) {
       throw new Error('KeyringController - Seed phrase is invalid.');
     }
 
@@ -127,7 +127,7 @@ class KeyringController extends EventEmitter {
 
     await this.clearKeyrings();
     const keyring = await this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {
-      mnemonic: encodedSeedPhrase,
+      mnemonic: seedPhraseUint8Array,
       numberOfAccounts: 1,
     });
     const [firstAccount] = await keyring.getAccounts();
@@ -942,6 +942,7 @@ class KeyringController extends EventEmitter {
       // when encrypted/decrypted the Uint8Array becomes a js object we need to cast back to a Uint8Array
       return Uint8Array.from(Object.values(mnemonicData));
     }
+    
     return mnemonicData;
   }
 }
