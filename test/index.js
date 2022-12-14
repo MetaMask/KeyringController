@@ -280,6 +280,22 @@ describe('KeyringController', function () {
 
       sinon.assert.calledOnce(initSpy);
     });
+
+    it('should add HD Key Tree when addAccounts is asynchronous', async function () {
+      const originalAccAccounts = HdKeyring.prototype.addAccounts;
+      sinon.stub(HdKeyring.prototype, 'addAccounts').callsFake(function () {
+        return new Promise((resolve) => {
+          setImmediate(() => {
+            resolve(originalAccAccounts.bind(this)());
+          });
+        });
+      });
+
+      const keyring = await keyringController.addNewKeyring('HD Key Tree');
+
+      const keyringAccounts = await keyring.getAccounts();
+      expect(keyringAccounts).toHaveLength(1);
+    });
   });
 
   describe('restoreKeyring', function () {
