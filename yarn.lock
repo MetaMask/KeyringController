@@ -758,18 +758,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bip39@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@metamask/bip39@npm:4.0.0"
-  dependencies:
-    "@types/node": 11.11.6
-    create-hash: ^1.1.0
-    pbkdf2: ^3.0.9
-    randombytes: ^2.0.1
-  checksum: 0d629de806dd0a6c6ea2ff4ab4752931b15eda5abcf2975f3beed8b4161bcc4765ec97bd8ba0146059b10178f6cf1753f74223655908bc585a76b565f26d4f16
-  languageName: node
-  linkType: hard
-
 "@metamask/browser-passworder@npm:^4.0.1":
   version: 4.0.2
   resolution: "@metamask/browser-passworder@npm:4.0.2"
@@ -1155,13 +1143,6 @@ __metadata:
   version: 13.9.1
   resolution: "@types/node@npm:13.9.1"
   checksum: 5ac8fc3735a23a82226d24d06f6783bf626fcaedf31e6ceb76b08ac15a4ca15b7ea7f8043a5130282789d88cf71b709e9927cecb053a93ec5bd35b40e516572d
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:11.11.6":
-  version: 11.11.6
-  resolution: "@types/node@npm:11.11.6"
-  checksum: 075f1c011cf568e49701419acbcb55c24906b3bb5a34d9412a3b88f228a7a78401a5ad4d3e1cd6855c99aaea5ef96e37fc86ca097e50f06da92cf822befc1fff
   languageName: node
   linkType: hard
 
@@ -2786,7 +2767,6 @@ __metadata:
   dependencies:
     "@lavamoat/allow-scripts": ^2.1.0
     "@metamask/auto-changelog": ^3.0.0
-    "@metamask/bip39": ^4.0.0
     "@metamask/browser-passworder": ^4.0.1
     "@metamask/eslint-config": ^10.0.0
     "@metamask/eslint-config-jest": ^10.0.0
@@ -5383,7 +5363,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pbkdf2@npm:^3.0.17, pbkdf2@npm:^3.0.9":
+"pbkdf2@npm:^3.0.17":
   version: 3.1.1
   resolution: "pbkdf2@npm:3.1.1"
   dependencies:
@@ -5545,7 +5525,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"randombytes@npm:^2.0.1, randombytes@npm:^2.0.6, randombytes@npm:^2.1.0":
+"randombytes@npm:^2.0.6, randombytes@npm:^2.1.0":
   version: 2.1.0
   resolution: "randombytes@npm:2.1.0"
   dependencies:

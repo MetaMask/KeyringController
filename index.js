@@ -1,6 +1,4 @@
 const { EventEmitter } = require('events');
-const { Buffer } = require('buffer');
-const bip39 = require('@metamask/bip39');
 const ObservableStore = require('obs-store');
 const encryptor = require('@metamask/browser-passworder');
 const { normalize: normalizeAddress } = require('@metamask/eth-sig-util');
@@ -107,40 +105,23 @@ class KeyringController extends EventEmitter {
    *
    * @fires KeyringController#unlock
    * @param {string} password - The password to encrypt the vault with.
-   * @param {string|Array<number>} seedPhrase - The BIP39-compliant seed phrase,
-   * either as a string or an array of UTF-8 bytes that represent the string.
+   * @param {Uint8Array | string} seedPhrase - The BIP39-compliant seed phrase,
+   * either as a string or Uint8Array.
    * @returns {Promise<object>} A Promise that resolves to the state.
    */
   async createNewVaultAndRestore(password, seedPhrase) {
-    const seedPhraseAsBuffer =
-      typeof seedPhrase === 'string'
-        ? Buffer.from(seedPhrase, 'utf8')
-        : Buffer.from(seedPhrase);
-
     if (typeof password !== 'string') {
       throw new Error('Password must be text.');
     }
-
-    const wordlists = Object.values(bip39.wordlists);
-    if (
-      wordlists.every(
-        (wordlist) => !bip39.validateMnemonic(seedPhraseAsBuffer, wordlist),
-      )
-    ) {
-      throw new Error('Seed phrase is invalid.');
-    }
-
     this.password = password;
 
-    this.clearKeyrings();
-    const firstKeyring = await this.addNewKeyring(
-      KEYRINGS_TYPE_MAP.HD_KEYRING,
-      {
-        mnemonic: seedPhraseAsBuffer,
-        numberOfAccounts: 1,
-      },
-    );
-    const [firstAccount] = await firstKeyring.getAccounts();
+    await this.clearKeyrings();
+    const keyring = await this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {
+      mnemonic: seedPhrase,
+      numberOfAccounts: 1,
+    });
+    const [firstAccount] = await keyring.getAccounts();
+
     if (!firstAccount) {
       throw new Error('KeyringController - First Account not found.');
     }
