@@ -180,7 +180,7 @@ describe('KeyringController', function () {
     it('throws error if argument password is not a string', async function () {
       await expect(() =>
         keyringController.createNewVaultAndRestore(12, walletTwoSeedWords),
-      ).rejects.toThrow('Password must be text.');
+      ).toThrow('Password must be text.');
     });
 
     it('throws error if mnemonic passed is invalid', async function () {

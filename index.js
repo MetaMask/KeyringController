@@ -106,37 +106,28 @@ class KeyringController extends EventEmitter {
    * creates a new encrypted store with the given password,
    * creates a new HD wallet from the given seed with 1 account.
    *
-   * @emits KeyringController#unlock
-   * @param {string} password - The password to encrypt the vault with
+   * @fires KeyringController#unlock
+   * @param {string} password - The password to encrypt the vault with.
    * @param {Uint8Array | string} seedPhrase - The BIP39-compliant seed phrase,
    * either as a string or Uint8Array.
-   * @returns {Promise<Object>} A Promise that resolves to the state.
+   * @returns {Promise<object>} A Promise that resolves to the state.
    */
   createNewVaultAndRestore(password, seedPhrase) {
-    let encodedSeedPhrase = seedPhrase;
-    if (typeof encodedSeedPhrase === 'string') {
-      const indices = seedPhrase
-        .split(' ')
-        .map((word) => wordlist.indexOf(word));
-      encodedSeedPhrase = new Uint8Array(new Uint16Array(indices).buffer);
-    } else if (
-      seedPhrase instanceof Object &&
-      !(seedPhrase instanceof Uint8Array)
-    ) {
-      // when passed from the frontend to the background process a Uint8Array becomes a javascript object
-      encodedSeedPhrase = Uint8Array.from(Object.values(seedPhrase));
-    }
+    const encodedSeedPhrase = this._mnemonicToUint8Array(seedPhrase);
 
     if (typeof password !== 'string') {
       throw new Error('Password must be text.');
     }
 
     if (!bip39.validateMnemonic(encodedSeedPhrase, wordlist)) {
-      return Promise.reject(new Error('Seed phrase is invalid.'));
+      return Promise.reject(
+        new Error('KeyringController - Seed phrase is invalid.'),
+      );
     }
 
     this.password = password;
 
+    this.clearKeyrings();
     return this.persistAllKeyrings(password)
       .then(() => {
         return this.addNewKeyring(KEYRINGS_TYPE_MAP.HD_KEYRING, {
@@ -923,6 +914,52 @@ class KeyringController extends EventEmitter {
     }
 
     return keyring;
+  }
+
+  /*
+  Utility Methods
+  */
+
+  _uint8ArrayToString(mnemonic) {
+    const recoveredIndices = Array.from(
+      new Uint16Array(new Uint8Array(mnemonic).buffer),
+    );
+    return recoveredIndices.map((i) => wordlist[i]).join(' ');
+  }
+
+  _stringToUint8Array(mnemonic) {
+    const indices = mnemonic.split(' ').map((word) => wordlist.indexOf(word));
+    return new Uint8Array(new Uint16Array(indices).buffer);
+  }
+
+  _mnemonicToUint8Array(mnemonic) {
+    let mnemonicData = mnemonic;
+    // when encrypted/decrypted, buffers get cast into js object with a property type set to buffer
+    if (mnemonic && mnemonic.type && mnemonic.type === 'Buffer') {
+      mnemonicData = mnemonic.data;
+    }
+
+    if (
+      // this block is for backwards compatibility with vaults that were previously stored as buffers, number arrays or plain text strings
+      typeof mnemonicData === 'string' ||
+      Buffer.isBuffer(mnemonicData) ||
+      Array.isArray(mnemonicData)
+    ) {
+      let mnemonicAsString = mnemonicData;
+      if (Array.isArray(mnemonicData)) {
+        mnemonicAsString = Buffer.from(mnemonicData).toString();
+      } else if (Buffer.isBuffer(mnemonicData)) {
+        mnemonicAsString = mnemonicData.toString();
+      }
+      return this._stringToUint8Array(mnemonicAsString);
+    } else if (
+      mnemonicData instanceof Object &&
+      !(mnemonicData instanceof Uint8Array)
+    ) {
+      // when encrypted/decrypted the Uint8Array becomes a js object we need to cast back to a Uint8Array
+      return Uint8Array.from(Object.values(mnemonicData));
+    }
+    return mnemonicData;
   }
 }
 
