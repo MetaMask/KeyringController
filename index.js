@@ -942,7 +942,7 @@ class KeyringController extends EventEmitter {
       // when encrypted/decrypted the Uint8Array becomes a js object we need to cast back to a Uint8Array
       return Uint8Array.from(Object.values(mnemonicData));
     }
-    
+
     return mnemonicData;
   }
 }
