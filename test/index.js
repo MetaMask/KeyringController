@@ -281,37 +281,20 @@ describe('KeyringController', function () {
       sinon.assert.calledOnce(initSpy);
     });
 
-    it('should finish adding HD Keyring accounts before continuing execution', async function () {
-      let addAccountsResolved = false;
-
+    it('should add HD Key Tree when addAccounts is asynchronous', async function () {
       const originalAccAccounts = HdKeyring.prototype.addAccounts;
       sinon.stub(HdKeyring.prototype, 'addAccounts').callsFake(function () {
         return new Promise((resolve) => {
-          // By using setImmediate, this won't be resolved before getAccounts unless it is awaited
-          originalAccAccounts
-            .bind(this)()
-            .then((accounts) => {
-              setImmediate(() => {
-                addAccountsResolved = true;
-                resolve(accounts);
-              });
-            });
+          setImmediate(() => {
+            resolve(originalAccAccounts.bind(this)());
+          });
         });
-      });
-
-      const originalGetAccounts = HdKeyring.prototype.getAccounts;
-      sinon.stub(HdKeyring.prototype, 'getAccounts').callsFake(function () {
-        // Adds a check to getAccounts to determine if addAccounts is being awaited
-        if (!addAccountsResolved) {
-          throw new Error('Should not be called before accounts are added');
-        }
-
-        return originalGetAccounts.bind(this)();
       });
 
       const keyring = await keyringController.addNewKeyring('HD Key Tree');
 
-      expect(keyring).toBeInstanceOf(HdKeyring);
+      const keyringAccounts = await keyring.getAccounts();
+      expect(keyringAccounts).toHaveLength(1);
     });
   });
 
