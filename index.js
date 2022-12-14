@@ -3,7 +3,7 @@ const { Buffer } = require('buffer');
 const bip39 = require('@metamask/bip39');
 const ObservableStore = require('obs-store');
 const encryptor = require('@metamask/browser-passworder');
-const { normalize: normalizeAddress } = require('eth-sig-util');
+const { normalize: normalizeAddress } = require('@metamask/eth-sig-util');
 
 const SimpleKeyring = require('@metamask/eth-simple-keyring');
 const HdKeyring = require('@metamask/eth-hd-keyring');

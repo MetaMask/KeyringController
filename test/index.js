@@ -1,5 +1,5 @@
 const { strict: assert } = require('assert');
-const sigUtil = require('eth-sig-util');
+const sigUtil = require('@metamask/eth-sig-util');
 
 const normalizeAddress = sigUtil.normalize;
 const sinon = require('sinon');
