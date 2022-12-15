@@ -1,9 +1,6 @@
 module.exports = {
   root: true,
-  extends: ['@metamask/eslint-config'],
-  env: {
-    commonjs: true,
-  },
+  extends: ['@metamask/eslint-config', '@metamask/eslint-config-commonjs'],
   overrides: [
     {
       files: ['test/**/*.js'],

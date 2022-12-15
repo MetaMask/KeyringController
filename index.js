@@ -1,10 +1,11 @@
+const encryptor = require('@metamask/browser-passworder');
+const HdKeyring = require('@metamask/eth-hd-keyring');
+const { normalize: normalizeAddress } = require('@metamask/eth-sig-util');
+const SimpleKeyring = require('@metamask/eth-simple-keyring');
+// TODO: Stop using `events`, and remove the notice about this from the README
+// eslint-disable-next-line import/no-nodejs-modules
 const { EventEmitter } = require('events');
 const ObservableStore = require('obs-store');
-const encryptor = require('@metamask/browser-passworder');
-const { normalize: normalizeAddress } = require('@metamask/eth-sig-util');
-
-const SimpleKeyring = require('@metamask/eth-simple-keyring');
-const HdKeyring = require('@metamask/eth-hd-keyring');
 
 const defaultKeyringBuilders = [
   keyringBuilderFactory(SimpleKeyring),
@@ -488,6 +489,10 @@ class KeyringController extends EventEmitter {
   async exportAppKeyForAddress(_address, origin) {
     const address = normalizeAddress(_address);
     const keyring = await this.getKeyringForAccount(address);
+    // The "in" operator is typically restricted because it also checks inherited properties,
+    // which can be unexpected for plain objects. We're allowing it here because `keyring` is not
+    // a plain object, and we explicitly want to include inherited methods in this check.
+    // eslint-disable-next-line no-restricted-syntax
     if (!('exportAccount' in keyring)) {
       throw new Error(
         `The keyring for address ${_address} does not support exporting.`,

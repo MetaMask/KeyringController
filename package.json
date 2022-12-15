@@ -23,11 +23,11 @@
     "index.js"
   ],
   "scripts": {
-    "test": "jest",
-    "lint:eslint": "eslint . --cache --ext js,ts",
-    "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' '**/*.yml' '!.yarnrc.yml' --ignore-path .gitignore",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
-    "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write"
+    "lint:eslint": "eslint . --cache --ext js,ts",
+    "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
+    "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' '**/*.yml' '!.yarnrc.yml' --ignore-path .gitignore --no-error-on-unmatched-pattern",
+    "test": "jest"
   },
   "dependencies": {
     "@metamask/browser-passworder": "^4.0.2",
@@ -39,22 +39,24 @@
   "devDependencies": {
     "@lavamoat/allow-scripts": "^2.1.0",
     "@metamask/auto-changelog": "^3.0.0",
-    "@metamask/eslint-config": "^10.0.0",
-    "@metamask/eslint-config-jest": "^10.0.0",
-    "@metamask/eslint-config-nodejs": "^10.0.0",
-    "eslint": "^8.21.0",
-    "eslint-config-prettier": "^8.3.0",
+    "@metamask/eslint-config": "^11.1.0",
+    "@metamask/eslint-config-commonjs": "^11.1.0",
+    "@metamask/eslint-config-jest": "^11.1.0",
+    "@metamask/eslint-config-nodejs": "^11.1.0",
+    "eslint": "^8.29.0",
+    "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-jest": "^26.8.2",
-    "eslint-plugin-jsdoc": "^39.2.9",
+    "eslint-plugin-jest": "^27.1.6",
+    "eslint-plugin-jsdoc": "^39.6.4",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
     "ethereumjs-wallet": "^1.0.1",
     "jest": "^27.0.6",
-    "prettier": "^2.3.2",
-    "prettier-plugin-packagejson": "^2.2.11",
+    "prettier": "^2.8.1",
+    "prettier-plugin-packagejson": "^2.3.0",
     "sinon": "^11.1.1"
   },
+  "packageManager": "yarn@3.2.4",
   "engines": {
     "node": ">=14.0.0"
   },
@@ -68,6 +70,5 @@
       "@metamask/eth-hd-keyring>eth-simple-keyring>eth-sig-util>ethereumjs-util>keccak": false,
       "@metamask/eth-hd-keyring>eth-simple-keyring>eth-sig-util>ethereumjs-util>secp256k1": false
     }
-  },
-  "packageManager": "yarn@3.2.4"
+  }
 }
