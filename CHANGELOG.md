@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [9.0.0]
+### Uncategorized
+- Update ESLint config to v11 ([#181](https://github.com/MetaMask/KeyringController/pull/181))
+- Update `@metamask/browser-passworder` ([#182](https://github.com/MetaMask/KeyringController/pull/182))
+- Remove bip39 dependency ([#179](https://github.com/MetaMask/KeyringController/pull/179))
+- bump @metamask/eth-hd-keyring to v5 ([#177](https://github.com/MetaMask/KeyringController/pull/177))
+- bump @metamask/eth-sig-util to latest ([#180](https://github.com/MetaMask/KeyringController/pull/180))
+- await for addAccounts for HD Keyring ([#176](https://github.com/MetaMask/KeyringController/pull/176))
+- Update ESLint config from v7 to v10 ([#174](https://github.com/MetaMask/KeyringController/pull/174))
+- improve test coverage ([#140](https://github.com/MetaMask/KeyringController/pull/140))
+- Refactor to handle new keyrings with bridge dependencies ([#163](https://github.com/MetaMask/KeyringController/pull/163))
+- Bump minimatch from 3.0.4 to 3.1.2 ([#172](https://github.com/MetaMask/KeyringController/pull/172))
+- Bump qs from 6.5.2 to 6.5.3 ([#173](https://github.com/MetaMask/KeyringController/pull/173))
+- chore: update eth-simple-keyring ([#171](https://github.com/MetaMask/KeyringController/pull/171))
+
 ## [8.1.0]
 ### Changed
 - Allow deserializing vaults with unrecognized keyrings ([#169](https://github.com/MetaMask/KeyringController/pull/169))
@@ -63,7 +78,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v8.1.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v9.0.0...HEAD
+[9.0.0]: https://github.com/MetaMask/KeyringController/compare/v8.1.0...v9.0.0
 [8.1.0]: https://github.com/MetaMask/KeyringController/compare/v8.0.1...v8.1.0
 [8.0.1]: https://github.com/MetaMask/KeyringController/compare/v8.0.0...v8.0.1
 [8.0.0]: https://github.com/MetaMask/KeyringController/compare/v7.0.2...v8.0.0
