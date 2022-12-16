@@ -7,19 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [9.0.0]
-### Uncategorized
-- Update ESLint config to v11 ([#181](https://github.com/MetaMask/KeyringController/pull/181))
-- Update `@metamask/browser-passworder` ([#182](https://github.com/MetaMask/KeyringController/pull/182))
-- Remove bip39 dependency ([#179](https://github.com/MetaMask/KeyringController/pull/179))
-- bump @metamask/eth-hd-keyring to v5 ([#177](https://github.com/MetaMask/KeyringController/pull/177))
-- bump @metamask/eth-sig-util to latest ([#180](https://github.com/MetaMask/KeyringController/pull/180))
-- await for addAccounts for HD Keyring ([#176](https://github.com/MetaMask/KeyringController/pull/176))
-- Update ESLint config from v7 to v10 ([#174](https://github.com/MetaMask/KeyringController/pull/174))
-- improve test coverage ([#140](https://github.com/MetaMask/KeyringController/pull/140))
-- Refactor to handle new keyrings with bridge dependencies ([#163](https://github.com/MetaMask/KeyringController/pull/163))
-- Bump minimatch from 3.0.4 to 3.1.2 ([#172](https://github.com/MetaMask/KeyringController/pull/172))
-- Bump qs from 6.5.2 to 6.5.3 ([#173](https://github.com/MetaMask/KeyringController/pull/173))
-- chore: update eth-simple-keyring ([#171](https://github.com/MetaMask/KeyringController/pull/171))
+### Added
+- Add support for keyring `init` method ([#163](https://github.com/MetaMask/KeyringController/pull/163)).
+  - If a keyring has an `init` method, it will be called automatically upon construction. It is called with `await`, so it can be asynchronous.
+
+### Changed
+- **BREAKING:** Replace constructor option and public property `keyringTypes` with `keyringBuilders` ([#163](https://github.com/MetaMask/KeyringController/pull/163)).
+  - The constructor now takes keyring builder functions rather than classes. Each builder function should return a keyring instance when called, and it must have a `type` string property set to the keyring type name. See the newly exported `keyringBuilderFactory` function for an example. The builder functions must be synchronous; use an `init` method for asynchronous initialization steps.
+- **BREAKING:** `KeyringController` is now a named export instead of a default export ([#163](https://github.com/MetaMask/KeyringController/pull/163)).
+- **BREAKING:** Update `@metamask/eth-simple-keyring` from v4 to v5 ([#171](https://github.com/MetaMask/KeyringController/pull/171)).
+  - This keyring type is included as a default. If you are using this keyring API directly, see [the `@metamask/eth-simple-keyring` release notes](https://github.com/MetaMask/eth-simple-keyring/releases/tag/v5.0.0) for details on required changes.
+- **BREAKING:** Replace `getKeyringClassForType` method with `getKeyringBuilderForType` ([#163](https://github.com/MetaMask/KeyringController/pull/163)).
+- **BREAKING:** Update `@metamask/eth-hd-keyring` to v5 ([#177](https://github.com/MetaMask/KeyringController/pull/177))
+  - This keyring type is included as a default. If you are using this keyring API directly, see [the `@metamask/eth-hd-keyring` release notes](https://github.com/MetaMask/eth-hd-keyring/releases/tag/v5.0.0) for details on required changes.
+- **BRAEKING:** Require support for ES2020 ([#177](https://github.com/MetaMask/KeyringController/pull/177), [#180](https://github.com/MetaMask/KeyringController/pull/180))
+  - As a result of some dependency updates made in this release, this package now requires ES2020 support. If using this package in an environment that does not support ES2020 completely, consider investigating these two dependency changes and transpiling any packages using ES2020 syntax.
+- Update `@metamask/eth-sig-util` to v5 ([#180](https://github.com/MetaMask/KeyringController/pull/180))
+- Update minimum supported version of `@metamask/browser-passworder` from v4.0.1 to v4.0.2 ([#182](https://github.com/MetaMask/KeyringController/pull/182))
+- Remove `bip39` dependency ([#179](https://github.com/MetaMask/KeyringController/pull/179))
+
+### Fixed
+- Fix support for asynchronous `addAccounts` HD Keyring method ([#176](https://github.com/MetaMask/KeyringController/pull/176))
+  - This method was asynchronous, but was called synchronously. Currently the method does not do anything asychronous so this should have no functional impact, but this ensures any future errors or asynchronous steps added to that method work correctly in the future.
 
 ## [8.1.0]
 ### Changed
