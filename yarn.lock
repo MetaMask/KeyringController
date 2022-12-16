@@ -787,17 +787,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eslint-config@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "@metamask/eslint-config@npm:10.0.0"
+"@metamask/eslint-config@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "@metamask/eslint-config@npm:11.1.0"
   peerDependencies:
-    eslint: ^8.21.0
-    eslint-config-prettier: ^8.1.0
+    eslint: ^8.27.0
+    eslint-config-prettier: ^8.5.0
     eslint-plugin-import: ^2.26.0
-    eslint-plugin-jsdoc: ^39.2.9
+    eslint-plugin-jsdoc: ^39.6.2
     eslint-plugin-prettier: ^4.2.1
-    prettier: ^2.2.1
-  checksum: e6d7de595cb5ea536ce4cc5585c2970d6ae863cf2348d82fbfb5cafb8ca720d4612b1183a4ac6f9df8c7d641175de228ee705568735d56297f96ac4736b21da5
+    prettier: ^2.7.1
+  checksum: 2345eb03821d80d605d60c393a3249b322ae32cee87497b338d81cc723d28d87d44adec92ba657fdc83e7df8599ec9eed06f1ad78f0febd13c318fb5a5ba2a7a
   languageName: node
   linkType: hard
 
@@ -2768,7 +2768,7 @@ __metadata:
     "@lavamoat/allow-scripts": ^2.1.0
     "@metamask/auto-changelog": ^3.0.0
     "@metamask/browser-passworder": ^4.0.2
-    "@metamask/eslint-config": ^10.0.0
+    "@metamask/eslint-config": ^11.1.0
     "@metamask/eslint-config-jest": ^10.0.0
     "@metamask/eslint-config-nodejs": ^10.0.0
     "@metamask/eth-hd-keyring": ^5.0.1
