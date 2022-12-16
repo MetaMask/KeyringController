@@ -14,6 +14,8 @@ The KeyringController has three main responsibilities:
 
 `yarn add eth-keyring-controller`
 
+This library uses the Node.js `events` API. If you are using this library outside of a Node.js context, ensure that you have a polyfill for the `events` API (this is built-in to `browserify`).
+
 ## Usage
 
 ```javascript

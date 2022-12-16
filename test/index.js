@@ -1,13 +1,12 @@
-const { strict: assert } = require('assert');
-const sigUtil = require('@metamask/eth-sig-util');
-
-const normalizeAddress = sigUtil.normalize;
-const sinon = require('sinon');
-const Wallet = require('ethereumjs-wallet').default;
 const HdKeyring = require('@metamask/eth-hd-keyring');
+const { normalize: normalizeAddress } = require('@metamask/eth-sig-util');
+const { strict: assert } = require('assert');
+const Wallet = require('ethereumjs-wallet').default;
+const sinon = require('sinon');
+
 const { KeyringController, keyringBuilderFactory } = require('..');
-const { KeyringMockWithInit } = require('./lib/mock-keyring');
 const mockEncryptor = require('./lib/mock-encryptor');
+const { KeyringMockWithInit } = require('./lib/mock-keyring');
 
 const password = 'password123';
 
