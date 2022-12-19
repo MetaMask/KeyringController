@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING:** Replace `getKeyringClassForType` method with `getKeyringBuilderForType` ([#163](https://github.com/MetaMask/KeyringController/pull/163)).
 - **BREAKING:** Update `@metamask/eth-hd-keyring` to v5 ([#177](https://github.com/MetaMask/KeyringController/pull/177))
   - This keyring type is included as a default. If you are using this keyring API directly, see [the `@metamask/eth-hd-keyring` release notes](https://github.com/MetaMask/eth-hd-keyring/releases/tag/v5.0.0) for details on required changes.
-- **BRAEKING:** Require support for ES2020 ([#177](https://github.com/MetaMask/KeyringController/pull/177), [#180](https://github.com/MetaMask/KeyringController/pull/180))
+- **BREAKING:** Require support for ES2020 ([#177](https://github.com/MetaMask/KeyringController/pull/177), [#180](https://github.com/MetaMask/KeyringController/pull/180))
   - As a result of some dependency updates made in this release, this package now requires ES2020 support. If using this package in an environment that does not support ES2020 completely, consider investigating these two dependency changes and transpiling any packages using ES2020 syntax.
 - Update `@metamask/eth-sig-util` to v5 ([#180](https://github.com/MetaMask/KeyringController/pull/180))
 - Update minimum supported version of `@metamask/browser-passworder` from v4.0.1 to v4.0.2 ([#182](https://github.com/MetaMask/KeyringController/pull/182))
