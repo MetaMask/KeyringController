@@ -12,14 +12,14 @@ The KeyringController has three main responsibilities:
 
 ## Installation
 
-`yarn add eth-keyring-controller`
+`yarn add @metamask/eth-keyring-controller`
 
 This library uses the Node.js `events` API. If you are using this library outside of a Node.js context, ensure that you have a polyfill for the `events` API (this is built-in to `browserify`).
 
 ## Usage
 
 ```javascript
-const KeyringController = require('eth-keyring-controller');
+const KeyringController = require('@metamask/eth-keyring-controller');
 const SimpleKeyring = require('@metamask/eth-simple-keyring');
 
 const keyringController = new KeyringController({
