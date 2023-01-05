@@ -884,12 +884,12 @@ __metadata:
   linkType: hard
 
 "@metamask/scure-bip39@npm:^2.0.3":
-  version: 2.0.3
-  resolution: "@metamask/scure-bip39@npm:2.0.3"
+  version: 2.0.4
+  resolution: "@metamask/scure-bip39@npm:2.0.4"
   dependencies:
     "@noble/hashes": ~1.1.1
     "@scure/base": ~1.1.0
-  checksum: a1655adbab6165c833db7e1a2f46a9617503b79016b06e025e15babd5ba8bce682598fe939851ce88fff451c9833e0362003c9ba7c68b3bf1e7cc09bdfe9fa4c
+  checksum: 9ab83ddad70a39dc46a869801d33e639006f7f8dc0b050f1e4711af3fae9bfe5f82ab90d890753935413491adb7064860aa40b3dc7ad1d31a8d70b5c1548d359
   languageName: node
   linkType: hard
 
