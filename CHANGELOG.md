@@ -6,7 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [9.0.0]
+## [10.0.0]
+### Changed
+- **BREAKING:** Update module name to use `@metamask` scope ([#187](https://github.com/MetaMask/KeyringController/pull/187))
+  - Consumers will now need to import this package as `@metamask/eth-keyring-controller` 
+- **BREAKING:**  @metamask/eth-hd-keyring to v6.0.0 ([#193](https://github.com/MetaMask/KeyringController/pull/193))
+  - Reverts the serialization format of mnemonics on HDKeyrings from `Uint8Arrays` back to an untyped array of UTF8 encoded bytes, which was the format prior to v9.0.0 of this package.
+
+## [9.0.0] [DEPRECATED]
 ### Added
 - Add support for keyring `init` method ([#163](https://github.com/MetaMask/KeyringController/pull/163)).
   - If a keyring has an `init` method, it will be called automatically upon construction. It is called with `await`, so it can be asynchronous.
@@ -87,7 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v9.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v10.0.0...HEAD
+[10.0.0]: https://github.com/MetaMask/KeyringController/compare/v9.0.0...v10.0.0
 [9.0.0]: https://github.com/MetaMask/KeyringController/compare/v8.1.0...v9.0.0
 [8.1.0]: https://github.com/MetaMask/KeyringController/compare/v8.0.1...v8.1.0
 [8.0.1]: https://github.com/MetaMask/KeyringController/compare/v8.0.0...v8.0.1
