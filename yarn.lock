@@ -815,15 +815,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-hd-keyring@npm:^5.0.1":
-  version: 5.0.1
-  resolution: "@metamask/eth-hd-keyring@npm:5.0.1"
+"@metamask/eth-hd-keyring@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "@metamask/eth-hd-keyring@npm:6.0.0"
   dependencies:
     "@ethereumjs/util": ^8.0.2
     "@metamask/eth-sig-util": ^5.0.2
     "@metamask/scure-bip39": ^2.0.3
     ethereum-cryptography: ^1.1.2
-  checksum: 4a406a8b2f613d33e1c8c0bd3eb4ff6ccf9a4d4556501639636e660fa0fa86a290401fc2e5a1a410672bb0b32a0755a60ed8d596eb56a0088fd45d7031d4ceeb
+  checksum: 2f1b05c1bdb001f1529bedcd05ef4bcca43af5c8d64742ec1b2feed341edab565bff7f66ef3834ae1a451b23532bda20ac3579c62dde2201330af01025d1497a
   languageName: node
   linkType: hard
 
@@ -838,7 +838,7 @@ __metadata:
     "@metamask/eslint-config-commonjs": ^11.1.0
     "@metamask/eslint-config-jest": ^11.1.0
     "@metamask/eslint-config-nodejs": ^11.1.0
-    "@metamask/eth-hd-keyring": ^5.0.1
+    "@metamask/eth-hd-keyring": ^6.0.0
     "@metamask/eth-sig-util": 5.0.2
     "@metamask/eth-simple-keyring": ^5.0.0
     eslint: ^8.29.0
