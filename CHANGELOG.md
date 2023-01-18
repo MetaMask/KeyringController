@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [10.0.0]
+### Uncategorized
+- bump @metamask/eth-hd-keyring to v6.0.0 ([#193](https://github.com/MetaMask/KeyringController/pull/193))
+- Bump @metamask/scure-bip39 from 2.0.4 to 2.1.0 ([#192](https://github.com/MetaMask/KeyringController/pull/192))
+- Bump json5 from 1.0.1 to 1.0.2 ([#191](https://github.com/MetaMask/KeyringController/pull/191))
+- Bump @metamask/scure-bip39 from 2.0.3 to 2.0.4 ([#190](https://github.com/MetaMask/KeyringController/pull/190))
+- Update module name to use `@metamask` scope ([#187](https://github.com/MetaMask/KeyringController/pull/187))
+
 ## [9.0.0]
 ### Added
 - Add support for keyring `init` method ([#163](https://github.com/MetaMask/KeyringController/pull/163)).
@@ -87,7 +95,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v9.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v10.0.0...HEAD
+[10.0.0]: https://github.com/MetaMask/KeyringController/compare/v9.0.0...v10.0.0
 [9.0.0]: https://github.com/MetaMask/KeyringController/compare/v8.1.0...v9.0.0
 [8.1.0]: https://github.com/MetaMask/KeyringController/compare/v8.0.1...v8.1.0
 [8.0.1]: https://github.com/MetaMask/KeyringController/compare/v8.0.0...v8.0.1
