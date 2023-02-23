@@ -57,7 +57,7 @@ class KeyringController extends EventEmitter {
 
   cacheEncryptionKey: boolean;
 
-  #unsupportedKeyrings: any[];
+  unsupportedKeyrings: any[];
 
   password?: string;
 
@@ -83,7 +83,7 @@ class KeyringController extends EventEmitter {
 
     this.encryptor = opts.encryptor || encryptor;
     this.keyrings = [];
-    this.#unsupportedKeyrings = [];
+    this.unsupportedKeyrings = [];
 
     // This option allows the controller to cache an exported key
     // for use in decrypting and encrypting data without password
@@ -206,7 +206,7 @@ class KeyringController extends EventEmitter {
    * @returns A promise that resolves to the state.
    */
   async submitPassword(password: string): Promise<State> {
-    this.keyrings = await this.#unlockKeyrings(password);
+    this.keyrings = await this.unlockKeyrings(password);
 
     this.#setUnlocked();
     return this.fullUpdate();
@@ -227,7 +227,7 @@ class KeyringController extends EventEmitter {
     encryptionKey: string,
     encryptionSalt: string,
   ): Promise<State> {
-    this.keyrings = await this.#unlockKeyrings(
+    this.keyrings = await this.unlockKeyrings(
       undefined,
       encryptionKey,
       encryptionSalt,
@@ -337,7 +337,7 @@ class KeyringController extends EventEmitter {
           accounts.find(
             (key: string) =>
               key === newAccountArray[0] ||
-              key === stripHexPrefix(newAccountArray[0]),
+              key === stripHexPrefix(newAccountArray[0] as string),
           ),
         );
 
@@ -675,7 +675,7 @@ class KeyringController extends EventEmitter {
    * @param type - The keyring types to retrieve.
    * @returns Keyrings matching the specified type.
    */
-  getKeyringsByType(type: string): ExtendedKeyring[] {
+  getKeyringsByType(type: KeyringType): ExtendedKeyring[] {
     return this.keyrings.filter((keyring) => keyring.type === type);
   }
 
@@ -754,7 +754,7 @@ class KeyringController extends EventEmitter {
       }),
     );
 
-    serializedKeyrings.push(...this.#unsupportedKeyrings);
+    serializedKeyrings.push(...this.unsupportedKeyrings);
 
     let vault;
     let newEncryptionKey;
@@ -811,7 +811,7 @@ class KeyringController extends EventEmitter {
    * @param encryptionSalt - The salt used to encrypt the vault.
    * @returns The keyrings array.
    */
-  async #unlockKeyrings(
+  async unlockKeyrings(
     password: string | undefined,
     encryptionKey?: string,
     encryptionSalt?: string,
@@ -879,7 +879,7 @@ class KeyringController extends EventEmitter {
 
     const keyring = await this.#newKeyring(type, data);
     if (!keyring) {
-      this.#unsupportedKeyrings.push(serialized);
+      this.unsupportedKeyrings.push(serialized);
       return undefined;
     }
 
