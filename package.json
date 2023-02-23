@@ -18,9 +18,10 @@
   },
   "license": "ISC",
   "author": "Dan Finlay <dan@danfinlay.com>",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "index.js"
+    "dist/"
   ],
   "scripts": {
     "lint": "yarn lint:eslint && yarn lint:misc --check",
@@ -55,7 +56,10 @@
     "jest": "^27.0.6",
     "prettier": "^2.8.1",
     "prettier-plugin-packagejson": "^2.3.0",
-    "sinon": "^11.1.1"
+    "sinon": "^11.1.1",
+    "ts-node": "^10.7.0",
+    "typedoc": "^0.23.15",
+    "typescript": "~4.8.4"
   },
   "packageManager": "yarn@3.2.4",
   "engines": {

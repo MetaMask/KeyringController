@@ -1,4 +1,4 @@
-module.exports = {
+const config = {
   collectCoverage: true,
   // Ensures that we collect coverage from all source files, not just tested
   // ones.
@@ -24,3 +24,5 @@ module.exports = {
   testMatch: ['**/test/index.js'],
   testTimeout: 2500,
 };
+
+export default config;

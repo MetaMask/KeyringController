@@ -1,13 +1,27 @@
 module.exports = {
   root: true,
-  extends: ['@metamask/eslint-config', '@metamask/eslint-config-commonjs'],
+  extends: ['@metamask/eslint-config'],
   overrides: [
     {
-      files: ['test/**/*.js'],
+      files: ['*.ts'],
       extends: [
         '@metamask/eslint-config-jest',
-        '@metamask/eslint-config-nodejs',
+        '@metamask/eslint-config-typescript',
       ],
     },
+    {
+      files: ['*.js'],
+      parserOptions: {
+        sourceType: 'script',
+      },
+      extends: ['@metamask/eslint-config-nodejs'],
+    },
+  ],
+  ignorePatterns: [
+    '!.eslintrc.js',
+    '!.prettierrc.js',
+    'dist/',
+    'docs/',
+    '.yarn/',
   ],
 };
