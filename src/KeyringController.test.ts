@@ -1,12 +1,12 @@
-const HdKeyring = require('@metamask/eth-hd-keyring');
-const { normalize: normalizeAddress } = require('@metamask/eth-sig-util');
-const { strict: assert } = require('assert');
-const Wallet = require('ethereumjs-wallet').default;
-const sinon = require('sinon');
+import HdKeyring from '@metamask/eth-hd-keyring';
+import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
+import { strict as assert } from 'assert';
+import Wallet from 'ethereumjs-wallet';
+import { restore, spy, stub, assert as sinonAssert } from 'sinon';
 
-const { KeyringController, keyringBuilderFactory } = require('..');
-const mockEncryptor = require('./lib/mock-encryptor');
-const { KeyringMockWithInit } = require('./lib/mock-keyring');
+import { KeyringController, keyringBuilderFactory } from '.';
+import mockEncryptor from './mocks/mock-encryptor';
+import KeyringMockWithInit from './mocks/mock-keyring';
 
 const password = 'password123';
 
@@ -44,7 +44,7 @@ describe('KeyringController', function () {
   });
 
   afterEach(function () {
-    sinon.restore();
+    restore();
   });
 
   describe('setLocked', function () {
@@ -63,12 +63,12 @@ describe('KeyringController', function () {
     });
 
     it('emits "lock" event', async function () {
-      const spy = sinon.spy();
-      keyringController.on('lock', spy);
+      const lockSpy = spy();
+      keyringController.on('lock', lockSpy);
 
       await keyringController.setLocked();
 
-      expect(spy.calledOnce).toBe(true);
+      expect(lockSpy.calledOnce).toBe(true);
     });
   });
 
@@ -90,11 +90,11 @@ describe('KeyringController', function () {
     it('emits "unlock" event', async function () {
       await keyringController.setLocked();
 
-      const spy = sinon.spy();
-      keyringController.on('unlock', spy);
+      const unlockSpy = spy();
+      keyringController.on('unlock', unlockSpy);
 
       await keyringController.submitPassword(password);
-      expect(spy.calledOnce).toBe(true);
+      expect(unlockSpy.calledOnce).toBe(true);
     });
   });
 
@@ -149,7 +149,7 @@ describe('KeyringController', function () {
     it('should throw error if accounts are not generated correctly', async () => {
       jest
         .spyOn(HdKeyring.prototype, 'getAccounts')
-        .mockImplementation(() => Promise.resolve([]));
+        .mockImplementation(async () => Promise.resolve([]));
 
       await expect(() =>
         keyringController.createNewVaultAndKeychain(password),
@@ -219,7 +219,7 @@ describe('KeyringController', function () {
     it('throws error if accounts are not created properly', async () => {
       jest
         .spyOn(HdKeyring.prototype, 'getAccounts')
-        .mockImplementation(() => Promise.resolve([]));
+        .mockImplementation(async () => Promise.resolve([]));
 
       await expect(() =>
         keyringController.createNewVaultAndRestore(
@@ -277,7 +277,7 @@ describe('KeyringController', function () {
     });
 
     it('should call init method if available', async function () {
-      const initSpy = sinon.spy(KeyringMockWithInit.prototype, 'init');
+      const initSpy = spy(KeyringMockWithInit.prototype, 'init');
 
       const keyring = await keyringController.addNewKeyring(
         'Keyring Mock With Init',
@@ -285,12 +285,12 @@ describe('KeyringController', function () {
 
       expect(keyring).toBeInstanceOf(KeyringMockWithInit);
 
-      sinon.assert.calledOnce(initSpy);
+      sinonAssert.calledOnce(initSpy);
     });
 
     it('should add HD Key Tree when addAccounts is asynchronous', async function () {
       const originalAccAccounts = HdKeyring.prototype.addAccounts;
-      sinon.stub(HdKeyring.prototype, 'addAccounts').callsFake(function () {
+      stub(HdKeyring.prototype, 'addAccounts').callsFake(async function () {
         return new Promise((resolve) => {
           setImmediate(() => {
             resolve(originalAccAccounts.bind(this)());
@@ -336,12 +336,12 @@ describe('KeyringController', function () {
     it('returns the result of getAccounts for each keyring', async function () {
       keyringController.keyrings = [
         {
-          getAccounts() {
+          async getAccounts() {
             return Promise.resolve([1, 2, 3]);
           },
         },
         {
-          getAccounts() {
+          async getAccounts() {
             return Promise.resolve([4, 5, 6]);
           },
         },
@@ -470,7 +470,7 @@ describe('KeyringController', function () {
         walletOneSeedWords,
       );
 
-      await expect(() =>
+      expect(() =>
         keyringController.verifyPassword(password),
       ).not.toThrow();
     });
@@ -499,11 +499,11 @@ describe('KeyringController', function () {
       const keyring = await keyringController.addNewKeyring('Simple Key Pair', [
         privateKey,
       ]);
-      keyring.getAppKeyAddress = sinon.spy();
+      keyring.getAppKeyAddress = spy();
       /* eslint-disable-next-line require-atomic-updates */
-      keyringController.getKeyringForAccount = sinon
-        .stub()
-        .returns(Promise.resolve(keyring));
+      keyringController.getKeyringForAccount = stub().returns(
+        Promise.resolve(keyring),
+      );
 
       await keyringController.getAppKeyAddress(address, 'someapp.origin.io');
 
@@ -560,7 +560,7 @@ describe('KeyringController', function () {
 
     it('forget hardware device', async function () {
       const hdKeyring = keyringController.getKeyringsByType('HD Key Tree');
-      hdKeyring.forgetDevice = sinon.spy();
+      hdKeyring.forgetDevice = spy();
       keyringController.forgetKeyring(hdKeyring);
       expect(hdKeyring.forgetDevice.calledOnce).toBe(true);
     });
@@ -591,7 +591,7 @@ describe('KeyringController', function () {
     it('throws error when there are no matching keyrings', async function () {
       keyringController.keyrings = [
         {
-          getAccounts() {
+          async getAccounts() {
             return Promise.resolve([1, 2, 3]);
           },
         },
@@ -622,8 +622,11 @@ describe('KeyringController', function () {
     it('unlocks the keyrings with valid information', async function () {
       keyringController.cacheEncryptionKey = true;
       const returnValue = await keyringController.encryptor.decryptWithKey();
-      const stub = sinon.stub(keyringController.encryptor, 'decryptWithKey');
-      stub.resolves(Promise.resolve(returnValue));
+      const decryptWithKeyStub = stub(
+        keyringController.encryptor,
+        'decryptWithKey',
+      );
+      decryptWithKeyStub.resolves(Promise.resolve(returnValue));
 
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
 

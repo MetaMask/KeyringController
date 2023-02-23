@@ -1,4 +1,4 @@
-const sinon = require('sinon');
+import { stub } from 'sinon';
 
 const PASSWORD = 'password123';
 const MOCK_ENCRYPTION_KEY =
@@ -12,14 +12,14 @@ const MOCK_HEX = '0xabcdef0123456789';
 const MOCK_KEY = Buffer.alloc(32);
 let cacheVal;
 
-module.exports = {
-  encrypt: sinon.stub().callsFake(function (_password, dataObj) {
+const mockEncryptor = {
+  encrypt: stub().callsFake(async function (_password, dataObj) {
     cacheVal = dataObj;
 
     return Promise.resolve(MOCK_HEX);
   }),
 
-  encryptWithDetail: sinon.stub().callsFake(function (_password, dataObj) {
+  encryptWithDetail: stub().callsFake(async function (_password, dataObj) {
     cacheVal = dataObj;
 
     return Promise.resolve({ vault: MOCK_HEX, exportedKeyString: '' });
@@ -38,7 +38,7 @@ module.exports = {
     return vault;
   },
 
-  decryptWithDetail(_password, _text) {
+  async decryptWithDetail(_password: string, _text: string) {
     if (_password && _password !== PASSWORD) {
       throw new Error(INVALID_PASSWORD_ERROR);
     }
@@ -53,7 +53,7 @@ module.exports = {
     return Promise.resolve(result);
   },
 
-  importKey(keyString) {
+  importKey(keyString: string) {
     if (keyString === '{}') {
       throw new TypeError(
         `Failed to execute 'importKey' on 'SubtleCrypto': The provided value is not of type '(ArrayBuffer or ArrayBufferView or JsonWebKey)'.`,
@@ -69,11 +69,11 @@ module.exports = {
     return data;
   },
 
-  decryptWithKey(key, text) {
+  async decryptWithKey(key: string, text: string) {
     return this.decrypt(key, text);
   },
 
-  keyFromPassword(_password) {
+  async keyFromPassword(_password: string) {
     return Promise.resolve(MOCK_KEY);
   },
 
@@ -81,3 +81,5 @@ module.exports = {
     return 'WHADDASALT!';
   },
 };
+
+export default mockEncryptor;

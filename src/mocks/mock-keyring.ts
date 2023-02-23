@@ -1,5 +1,7 @@
 class KeyringMockWithInit {
-  init() {
+  static type: string;
+
+  async init() {
     return Promise.resolve();
   }
 
@@ -7,17 +9,15 @@ class KeyringMockWithInit {
     return [];
   }
 
-  serialize() {
+  async serialize() {
     return Promise.resolve({});
   }
 
-  deserialize(_) {
+  async deserialize(_) {
     return Promise.resolve();
   }
 }
 
 KeyringMockWithInit.type = 'Keyring Mock With Init';
 
-module.exports = {
-  KeyringMockWithInit,
-};
+export default KeyringMockWithInit;
