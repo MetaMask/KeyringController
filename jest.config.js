@@ -1,8 +1,8 @@
-const config = {
+module.exports = {
   collectCoverage: true,
   // Ensures that we collect coverage from all source files, not just tested
   // ones.
-  collectCoverageFrom: ['./index.js'],
+  collectCoverageFrom: ['./src/**/*.ts'],
   coverageReporters: ['text', 'html'],
   coverageThreshold: {
     global: {
@@ -13,6 +13,7 @@ const config = {
     },
   },
   moduleFileExtensions: ['js', 'json', 'jsx', 'ts', 'tsx', 'node'],
+  preset: 'ts-jest',
   // "resetMocks" resets all mocks, including mocked modules, to jest.fn(),
   // between each test case.
   resetMocks: true,
@@ -21,8 +22,6 @@ const config = {
   // modules.
   restoreMocks: true,
   testEnvironment: 'node',
-  testMatch: ['**/test/index.js'],
+  testRegex: ['\\.test\\.(ts|js)$'],
   testTimeout: 2500,
 };
-
-export default config;
