@@ -1,10 +1,10 @@
 import encryptor from '@metamask/browser-passworder';
 // @ts-ignore
-import HdKeyring from '@metamask/eth-hd-keyring';
+import HDKeyring from '@metamask/eth-hd-keyring';
+import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
 // @ts-ignore
 import SimpleKeyring from '@metamask/eth-simple-keyring';
-import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
-import {
+import type {
   Hex,
   Keyring,
   KeyringClass,
@@ -18,20 +18,18 @@ import { EventEmitter } from 'events';
 // @ts-ignore
 import ObservableStore from 'obs-store';
 
-type State = any;
-type ExtendedKeyring = Keyring<State> & {
-  generateRandomMnemonic: () => string;
-};
+import {
+  MessageParams,
+  KeyringType,
+  State,
+  ExtendedKeyring,
+  IKeyringController,
+} from './types';
 
 const defaultKeyringBuilders = [
   keyringBuilderFactory(SimpleKeyring),
-  keyringBuilderFactory(HdKeyring),
+  keyringBuilderFactory(HDKeyring),
 ];
-
-const enum KeyringType {
-  HDKeyring = 'HD Key Tree',
-  SimpleKeyring = 'Simple Key Pair',
-}
 
 /**
  * Strip the hex prefix from an address, if present.
@@ -152,7 +150,7 @@ class KeyringController extends EventEmitter {
     this.password = password;
 
     await this.#clearKeyrings();
-    const keyring = await this.addNewKeyring(KeyringType.HDKeyring, {
+    const keyring = await this.addNewKeyring(KeyringType.HD, {
       mnemonic: seedPhrase,
       numberOfAccounts: 1,
     });
@@ -277,7 +275,7 @@ class KeyringController extends EventEmitter {
       throw new Error('KeyringController - No keyring found');
     }
 
-    if ((!opts || !opts.mnemonic) && type === KeyringType.HDKeyring) {
+    if (!opts?.mnemonic && type === KeyringType.HD) {
       keyring.generateRandomMnemonic();
       await keyring.addAccounts(1);
     }
@@ -286,7 +284,7 @@ class KeyringController extends EventEmitter {
     await this.checkForDuplicate(type, accounts);
 
     this.keyrings.push(keyring);
-    await this.#persistAllKeyrings();
+    await this.persistAllKeyrings();
 
     this.fullUpdate();
 
@@ -331,10 +329,10 @@ class KeyringController extends EventEmitter {
     type: string,
     newAccountArray: string[],
   ): Promise<string[]> {
-    const accounts = await this.#getAccounts();
+    const accounts = await this.getAccounts();
 
     switch (type) {
-      case KeyringType.SimpleKeyring: {
+      case KeyringType.Simple: {
         const isIncluded = Boolean(
           accounts.find(
             (key: string) =>
@@ -372,7 +370,7 @@ class KeyringController extends EventEmitter {
       this.emit('newAccount', hexAccount);
     });
 
-    await this.#persistAllKeyrings();
+    await this.persistAllKeyrings();
     return this.fullUpdate();
   }
 
@@ -426,7 +424,7 @@ class KeyringController extends EventEmitter {
       await this.removeEmptyKeyrings();
     }
 
-    await this.#persistAllKeyrings();
+    await this.persistAllKeyrings();
     return this.fullUpdate();
   }
 
@@ -466,13 +464,11 @@ class KeyringController extends EventEmitter {
    * Attempts to sign the provided message parameters.
    *
    * @param msgParams - The message parameters to sign.
-   *   @param msgParams.from
-   *   @param msgParams.data
    * @param opts - Additional signing options.
    * @returns The raw signature.
    */
   async signMessage(
-    msgParams: { from: Hex | string; data: string },
+    msgParams: MessageParams,
     opts: Record<string, unknown> = {},
   ) {
     const address = normalizeAddress(msgParams.from) as Hex;
@@ -483,7 +479,7 @@ class KeyringController extends EventEmitter {
       );
     }
 
-    return await keyring.signMessage(address, msgParams.data, opts);
+    return await keyring.signMessage(address, msgParams.data as string, opts);
   }
 
   /**
@@ -493,13 +489,11 @@ class KeyringController extends EventEmitter {
    * Prefixes the hash before signing per the personal sign expectation.
    *
    * @param msgParams - The message parameters to sign.
-   * @param msgParams.from
    * @param opts - Additional signing options.
-   * @param msgParams.data
    * @returns The raw signature.
    */
   async signPersonalMessage(
-    msgParams: { from: Hex | string; data: Hex },
+    msgParams: MessageParams,
     opts: Record<string, unknown> = {},
   ): Promise<string | Buffer> {
     const address = normalizeAddress(msgParams.from) as Hex;
@@ -510,7 +504,11 @@ class KeyringController extends EventEmitter {
       );
     }
 
-    return await keyring.signPersonalMessage(address, msgParams.data, opts);
+    return await keyring.signPersonalMessage(
+      address,
+      msgParams.data as Hex,
+      opts,
+    );
   }
 
   /**
@@ -543,15 +541,9 @@ class KeyringController extends EventEmitter {
    * Attempts to decrypt the provided message parameters.
    *
    * @param msgParams - The decryption message parameters.
-   * @param opts - Additional decryption options.
-   * @param msgParams.from
-   * @param msgParams.data
    * @returns The raw decryption result.
    */
-  async decryptMessage(msgParams: {
-    from: Hex | string;
-    data: Eip1024EncryptedData;
-  }): Promise<string | Buffer> {
+  async decryptMessage(msgParams: MessageParams): Promise<string | Buffer> {
     const address = normalizeAddress(msgParams.from) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.decryptMessage) {
@@ -560,7 +552,10 @@ class KeyringController extends EventEmitter {
       );
     }
 
-    return keyring.decryptMessage(address, msgParams.data);
+    return keyring.decryptMessage(
+      address,
+      msgParams.data as Eip1024EncryptedData,
+    );
   }
 
   /**
@@ -568,13 +563,11 @@ class KeyringController extends EventEmitter {
    *
    * @see {@link https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454|EIP712}.
    * @param msgParams - The message parameters to sign.
-   * @param msgParams.from
-   * @param msgParams.data
    * @param opts - Additional signing options.
    * @returns The raw signature.
    */
   async signTypedMessage(
-    msgParams: { from: Hex | string; data: Eip1024EncryptedData },
+    msgParams: MessageParams,
     opts = { version: 'V1' },
   ): Promise<string | Buffer> {
     const address = normalizeAddress(msgParams.from) as Hex;
@@ -585,7 +578,11 @@ class KeyringController extends EventEmitter {
       );
     }
 
-    return keyring.signTypedData(address, msgParams.data, opts);
+    return keyring.signTypedData(
+      address,
+      msgParams.data as Eip1024EncryptedData,
+      opts,
+    );
   }
 
   /**
@@ -639,10 +636,12 @@ class KeyringController extends EventEmitter {
    *
    * @param keyring - The keyring to forget.
    */
-  forgetKeyring(keyring: ExtendedKeyring & { forgetDevice?: () => void }) {
+  async forgetKeyring(
+    keyring: ExtendedKeyring & { forgetDevice?: () => void },
+  ): Promise<void> {
     if (keyring.forgetDevice) {
       keyring.forgetDevice();
-      this.#persistAllKeyrings();
+      await this.persistAllKeyrings();
     } else {
       throw new Error(
         `KeyringController - keyring does not have method "forgetDevice", keyring type: ${keyring.type}`,
@@ -709,9 +708,9 @@ class KeyringController extends EventEmitter {
    * @returns A promise that resolves if the operation was successful.
    */
   async #createFirstKeyTree(): Promise<null> {
-    this.#clearKeyrings();
+    await this.#clearKeyrings();
 
-    const keyring = await this.addNewKeyring(KeyringType.HDKeyring);
+    const keyring = await this.addNewKeyring(KeyringType.HD);
     if (!keyring) {
       throw new Error('KeyringController - No keyring found');
     }
@@ -736,7 +735,7 @@ class KeyringController extends EventEmitter {
    *
    * @returns Resolves to true once keyrings are persisted.
    */
-  async #persistAllKeyrings() {
+  async persistAllKeyrings() {
     const { encryptionKey, encryptionSalt } = this.memStore.getState();
 
     if (!this.password && !encryptionKey) {
@@ -915,7 +914,7 @@ class KeyringController extends EventEmitter {
    *
    * @returns The array of accounts.
    */
-  async #getAccounts(): Promise<string[]> {
+  async getAccounts(): Promise<string[]> {
     const keyrings = this.keyrings || [];
 
     const keyringArrays = await Promise.all(
@@ -959,9 +958,9 @@ class KeyringController extends EventEmitter {
     let errorInfo = '';
     if (!address) {
       errorInfo = 'The address passed in is invalid/empty';
-    } else if (!candidates || !candidates.length) {
+    } else if (!candidates?.length) {
       errorInfo = 'There are no keyrings';
-    } else if (!winners || !winners.length) {
+    } else if (!winners?.length) {
       errorInfo = 'There are keyrings, but none match the address';
     }
     throw new Error(

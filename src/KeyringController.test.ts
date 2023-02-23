@@ -1,5 +1,6 @@
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
+import type { Hex } from '@metamask/utils';
 import { strict as assert } from 'assert';
 import Wallet from 'ethereumjs-wallet';
 import { restore, spy, stub, assert as sinonAssert } from 'sinon';
@@ -7,6 +8,7 @@ import { restore, spy, stub, assert as sinonAssert } from 'sinon';
 import { KeyringController, keyringBuilderFactory } from '.';
 import mockEncryptor from './mocks/mock-encryptor';
 import KeyringMockWithInit from './mocks/mock-keyring';
+import { ExtendedKeyring, KeyringType } from './types';
 
 const password = 'password123';
 
@@ -31,7 +33,7 @@ const walletTwoAddresses = [
 ];
 
 describe('KeyringController', function () {
-  let keyringController;
+  let keyringController: KeyringController;
 
   beforeEach(async function () {
     keyringController = new KeyringController({
@@ -101,7 +103,7 @@ describe('KeyringController', function () {
   describe('persistAllKeyrings', function () {
     it('should persist keyrings in _unsupportedKeyrings array', async function () {
       const unsupportedKeyring = 'DUMMY_KEYRING';
-      keyringController._unsupportedKeyrings = [unsupportedKeyring];
+      keyringController.#unsupportedKeyrings = [unsupportedKeyring];
       await keyringController.persistAllKeyrings();
 
       const { vault } = keyringController.store.getState();
@@ -141,7 +143,7 @@ describe('KeyringController', function () {
       const { vault } = keyringController.store.getState();
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(vault).toBeTruthy();
-      keyringController.encryptor.encrypt.args.forEach(([actualPassword]) => {
+      keyringController.encryptor.encrypt.args.forEach(([actualPassword]: string[]) => {
         expect(actualPassword).toBe(password);
       });
     });
@@ -193,7 +195,7 @@ describe('KeyringController', function () {
       );
 
       await expect(() =>
-        keyringController.createNewVaultAndRestore(password, 1234),
+        keyringController.createNewVaultAndRestore(password, '1234'),
       ).rejects.toThrow(
         'Eth-Hd-Keyring: Invalid secret recovery phrase provided',
       );
@@ -238,7 +240,7 @@ describe('KeyringController', function () {
       const keyring = await keyringController.addNewKeyring('Simple Key Pair', [
         privateKey,
       ]);
-      const keyringAccounts = await keyring.getAccounts();
+      const keyringAccounts = await keyring?.getAccounts();
       const expectedKeyringAccounts = [
         '0x627306090abab3a6e1400e9345bc60c78a8bef57',
       ];
@@ -255,7 +257,7 @@ describe('KeyringController', function () {
       const previousAllAccounts = await keyringController.getAccounts();
       expect(previousAllAccounts).toHaveLength(1);
       const keyring = await keyringController.addNewKeyring('HD Key Tree');
-      const keyringAccounts = await keyring.getAccounts();
+      const keyringAccounts = await keyring?.getAccounts();
       expect(keyringAccounts).toHaveLength(1);
       const allAccounts = await keyringController.getAccounts();
       expect(allAccounts).toHaveLength(2);
@@ -268,10 +270,10 @@ describe('KeyringController', function () {
         numberOfAccounts: 2,
         mnemonic: walletTwoSeedWords,
       });
-      const keyringAccounts = await keyring.getAccounts();
+      const keyringAccounts = await keyring?.getAccounts();
       expect(keyringAccounts).toHaveLength(2);
-      expect(keyringAccounts[0]).toStrictEqual(walletTwoAddresses[0]);
-      expect(keyringAccounts[1]).toStrictEqual(walletTwoAddresses[1]);
+      expect(keyringAccounts![0]).toStrictEqual(walletTwoAddresses[0]);
+      expect(keyringAccounts![1]).toStrictEqual(walletTwoAddresses[1]);
       const allAccounts = await keyringController.getAccounts();
       expect(allAccounts).toHaveLength(3);
     });
@@ -300,7 +302,7 @@ describe('KeyringController', function () {
 
       const keyring = await keyringController.addNewKeyring('HD Key Tree');
 
-      const keyringAccounts = await keyring.getAccounts();
+      const keyringAccounts = await keyring?.getAccounts();
       expect(keyringAccounts).toHaveLength(1);
     });
   });
@@ -316,11 +318,11 @@ describe('KeyringController', function () {
       };
 
       const keyring = await keyringController.restoreKeyring(mockSerialized);
-      const wallet = await keyring.serialize();
+      const wallet = await keyring?.serialize();
       expect(wallet.numberOfAccounts).toBe(1);
 
-      const accounts = await keyring.getAccounts();
-      expect(accounts[0]).toBe(walletOneAddresses[0]);
+      const accounts = await keyring?.getAccounts();
+      expect(accounts![0]).toBe(walletOneAddresses[0]);
     });
 
     it('should return undefined if keyring type is not supported.', async function () {
@@ -376,7 +378,7 @@ describe('KeyringController', function () {
       expect(keyringController.keyrings).toHaveLength(2);
 
       // remove that account that we just added
-      await keyringController.removeAccount(account.publicKey);
+      await keyringController.removeAccount(account.publicKey as Hex);
 
       expect(keyringController.keyrings).toHaveLength(1);
       // fetch accounts after removal
@@ -400,7 +402,7 @@ describe('KeyringController', function () {
       expect(keyringController.keyrings).toHaveLength(2);
 
       // remove that account that we just added
-      await keyringController.removeAccount(account.publicKey);
+      await keyringController.removeAccount(account.publicKey as Hex);
 
       // Check that the previous keyring with only one account
       // was also removed after removing the account
@@ -418,7 +420,7 @@ describe('KeyringController', function () {
       expect(keyringController.keyrings).toHaveLength(2);
 
       // remove one account from the keyring we just added
-      await keyringController.removeAccount(walletTwoAddresses[0]);
+      await keyringController.removeAccount(walletTwoAddresses[0] as Hex);
 
       // Check that the newly added keyring was not removed after
       // removing the account since it still has an account left
@@ -440,13 +442,13 @@ describe('KeyringController', function () {
     });
 
     it('add serialized keyring to _unsupportedKeyrings array if keyring type is not known', async function () {
-      const _unsupportedKeyrings = [{ type: 'Ledger Keyring', data: 'DUMMY' }];
-      mockEncryptor.encrypt(password, _unsupportedKeyrings);
+      const unsupportedKeyrings = [{ type: 'Ledger Keyring', data: 'DUMMY' }];
+      mockEncryptor.encrypt(password, unsupportedKeyrings);
       await keyringController.setLocked();
       const keyrings = await keyringController.unlockKeyrings(password);
       expect(keyrings).toHaveLength(0);
-      expect(keyringController._unsupportedKeyrings).toStrictEqual(
-        _unsupportedKeyrings,
+      expect(keyringController.unsupportedKeyrings).toStrictEqual(
+        unsupportedKeyrings,
       );
     });
   });
@@ -470,22 +472,20 @@ describe('KeyringController', function () {
         walletOneSeedWords,
       );
 
-      expect(() =>
-        keyringController.verifyPassword(password),
-      ).not.toThrow();
+      expect(() => keyringController.verifyPassword(password)).not.toThrow();
     });
   });
 
   describe('addNewAccount', function () {
     it('adds a new account to the keyring it receives as an argument', async function () {
       const [HDKeyring] = await keyringController.getKeyringsByType(
-        'HD Key Tree',
+        KeyringType.HD
       );
-      const initialAccounts = await HDKeyring.getAccounts();
+      const initialAccounts = await HDKeyring?.getAccounts();
       expect(initialAccounts).toHaveLength(1);
 
-      await keyringController.addNewAccount(HDKeyring);
-      const accountsAfterAdd = await HDKeyring.getAccounts();
+      await keyringController.addNewAccount(HDKeyring!);
+      const accountsAfterAdd = await HDKeyring?.getAccounts();
       expect(accountsAfterAdd).toHaveLength(2);
     });
   });
@@ -496,10 +496,12 @@ describe('KeyringController', function () {
       const privateKey =
         '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952';
 
-      const keyring = await keyringController.addNewKeyring('Simple Key Pair', [
+      const keyring = await keyringController.addNewKeyring(KeyringType.Simple, [
         privateKey,
       ]);
-      keyring.getAppKeyAddress = spy();
+
+      const getAppKeyAddressSpy = spy();
+      keyringController.on('getAppKeyAddress', getAppKeyAddressSpy);
       /* eslint-disable-next-line require-atomic-updates */
       keyringController.getKeyringForAccount = stub().returns(
         Promise.resolve(keyring),
@@ -507,12 +509,12 @@ describe('KeyringController', function () {
 
       await keyringController.getAppKeyAddress(address, 'someapp.origin.io');
 
-      expect(keyringController.getKeyringForAccount.calledOnce).toBe(true);
-      expect(keyringController.getKeyringForAccount.getCall(0).args[0]).toBe(
+      expect(getAppKeyAddressSpy.calledOnce).toBe(true);
+      expect(getAppKeyAddressSpy.getCall(0).args[0]).toBe(
         normalizeAddress(address),
       );
-      expect(keyring.getAppKeyAddress.calledOnce).toBe(true);
-      expect(keyring.getAppKeyAddress.getCall(0).args).toStrictEqual([
+      expect(getAppKeyAddressSpy.calledOnce).toBe(true);
+      expect(getAppKeyAddressSpy.getCall(0).args).toStrictEqual([
         normalizeAddress(address),
         'someapp.origin.io',
       ]);
@@ -559,10 +561,11 @@ describe('KeyringController', function () {
     });
 
     it('forget hardware device', async function () {
-      const hdKeyring = keyringController.getKeyringsByType('HD Key Tree');
-      hdKeyring.forgetDevice = spy();
+      const hdKeyring = keyringController.getKeyringsByType(KeyringType.HD);
+      const forgetDeviceSpy = spy();
+      keyringController.on('forgetDevice', forgetDeviceSpy);
       keyringController.forgetKeyring(hdKeyring);
-      expect(hdKeyring.forgetDevice.calledOnce).toBe(true);
+      expect(forgetDeviceSpy.calledOnce).toBe(true);
     });
   });
 
@@ -681,10 +684,10 @@ describe('KeyringController', function () {
 
       const [firstKeyring] = keyringController.keyrings;
 
-      await keyringController.addNewAccount(firstKeyring);
+      await keyringController.addNewAccount(firstKeyring as ExtendedKeyring);
       expect(await keyringController.getAccounts()).toHaveLength(2);
 
-      await keyringController.addNewAccount(firstKeyring);
+      await keyringController.addNewAccount(firstKeyring as ExtendedKeyring);
       expect(await keyringController.getAccounts()).toHaveLength(3);
 
       const account = {
@@ -700,7 +703,7 @@ describe('KeyringController', function () {
       expect(await keyringController.getAccounts()).toHaveLength(4);
 
       // remove that account that we just added
-      await keyringController.removeAccount(account.publicKey);
+      await keyringController.removeAccount(account.publicKey as Hex);
       expect(await keyringController.getAccounts()).toHaveLength(3);
     });
 
@@ -738,7 +741,7 @@ describe('KeyringController', function () {
         walletOneSeedWords,
       );
       const privateKey = await keyringController.exportAccount(
-        walletOneAddresses[0],
+        walletOneAddresses[0] as Hex,
       );
       expect(privateKey).toStrictEqual(walletOnePrivateKey[0]);
     });
@@ -754,7 +757,7 @@ describe('KeyringController', function () {
 
     it('signMessage', async () => {
       const inputParams = {
-        from: walletOneAddresses[0],
+        from: walletOneAddresses[0] as Hex,
         data: '0x879a053d4800c6354e76c7985a865d2922c82fb5b3f4577b2fe08b998954f2e0',
         origin: 'https://metamask.github.io',
       };
@@ -766,7 +769,7 @@ describe('KeyringController', function () {
 
     it('signPersonalMessage', async () => {
       const inputParams = {
-        from: walletOneAddresses[0],
+        from: walletOneAddresses[0] as Hex,
         data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
         origin: 'https://metamask.github.io',
       };
@@ -778,14 +781,14 @@ describe('KeyringController', function () {
 
     it('getEncryptionPublicKey', async () => {
       const result = await keyringController.getEncryptionPublicKey(
-        walletOneAddresses[0],
+        walletOneAddresses[0] as Hex,
       );
       expect(result).toBe('SR6bQ1m3OTHvI1FLwcGzm+Uk6hffoFPxsQ0DTOeKMEc=');
     });
 
     it('signTypedMessage', async () => {
       const inputParams = {
-        from: walletOneAddresses[0],
+        from: walletOneAddresses[0] as Hex,
         data: [
           {
             type: 'string',
