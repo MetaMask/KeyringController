@@ -1,8 +1,6 @@
 import type { Hex, Eip1024EncryptedData, Keyring } from '@metamask/utils';
 
-export interface IKeyringController {
-    
-}
+export type IKeyringController = {};
 
 export type MessageParams = {
   from: Hex | string;

@@ -143,9 +143,11 @@ describe('KeyringController', function () {
       const { vault } = keyringController.store.getState();
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(vault).toBeTruthy();
-      keyringController.encryptor.encrypt.args.forEach(([actualPassword]: string[]) => {
-        expect(actualPassword).toBe(password);
-      });
+      keyringController.encryptor.encrypt.args.forEach(
+        ([actualPassword]: string[]) => {
+          expect(actualPassword).toBe(password);
+        },
+      );
     });
 
     it('should throw error if accounts are not generated correctly', async () => {
@@ -153,7 +155,7 @@ describe('KeyringController', function () {
         .spyOn(HdKeyring.prototype, 'getAccounts')
         .mockImplementation(async () => Promise.resolve([]));
 
-      await expect(() =>
+      await expect(async () =>
         keyringController.createNewVaultAndKeychain(password),
       ).rejects.toThrow('KeyringController - No account found on keychain.');
     });
@@ -179,13 +181,13 @@ describe('KeyringController', function () {
     });
 
     it('throws error if argument password is not a string', async function () {
-      await expect(() =>
+      await expect(async () =>
         keyringController.createNewVaultAndRestore(12, walletTwoSeedWords),
       ).rejects.toThrow('Password must be text.');
     });
 
     it('throws error if mnemonic passed is invalid', async function () {
-      await expect(() =>
+      await expect(async () =>
         keyringController.createNewVaultAndRestore(
           password,
           'test test test palace city barely security section midnight wealth south deer',
@@ -194,7 +196,7 @@ describe('KeyringController', function () {
         'Eth-Hd-Keyring: Invalid secret recovery phrase provided',
       );
 
-      await expect(() =>
+      await expect(async () =>
         keyringController.createNewVaultAndRestore(password, '1234'),
       ).rejects.toThrow(
         'Eth-Hd-Keyring: Invalid secret recovery phrase provided',
@@ -223,7 +225,7 @@ describe('KeyringController', function () {
         .spyOn(HdKeyring.prototype, 'getAccounts')
         .mockImplementation(async () => Promise.resolve([]));
 
-      await expect(() =>
+      await expect(async () =>
         keyringController.createNewVaultAndRestore(
           password,
           walletTwoSeedWords,
@@ -461,7 +463,7 @@ describe('KeyringController', function () {
     });
 
     it('throws an error if no encrypted vault is in controller state', async function () {
-      await expect(() =>
+      await expect(async () =>
         keyringController.verifyPassword('test'),
       ).rejects.toThrow('Cannot unlock without a previous vault.');
     });
@@ -472,15 +474,15 @@ describe('KeyringController', function () {
         walletOneSeedWords,
       );
 
-      expect(() => keyringController.verifyPassword(password)).not.toThrow();
+      expect(async () =>
+        keyringController.verifyPassword(password),
+      ).not.toThrow();
     });
   });
 
   describe('addNewAccount', function () {
     it('adds a new account to the keyring it receives as an argument', async function () {
-      const [HDKeyring] = await keyringController.getKeyringsByType(
-        KeyringType.HD
-      );
+      const [HDKeyring] = keyringController.getKeyringsByType(KeyringType.HD);
       const initialAccounts = await HDKeyring?.getAccounts();
       expect(initialAccounts).toHaveLength(1);
 
@@ -496,9 +498,10 @@ describe('KeyringController', function () {
       const privateKey =
         '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952';
 
-      const keyring = await keyringController.addNewKeyring(KeyringType.Simple, [
-        privateKey,
-      ]);
+      const keyring = await keyringController.addNewKeyring(
+        KeyringType.Simple,
+        [privateKey],
+      );
 
       const getAppKeyAddressSpy = spy();
       keyringController.on('getAppKeyAddress', getAppKeyAddressSpy);
@@ -553,7 +556,7 @@ describe('KeyringController', function () {
         privateKey,
       ]);
       expect(keyringController.keyrings).toHaveLength(2);
-      expect(() => keyringController.forgetKeyring(keyring)).toThrow(
+      expect(async () => keyringController.forgetKeyring(keyring)).toThrow(
         new Error(
           'KeyringController - keyring does not have method "forgetDevice", keyring type: Simple Key Pair',
         ),
@@ -564,7 +567,7 @@ describe('KeyringController', function () {
       const hdKeyring = keyringController.getKeyringsByType(KeyringType.HD);
       const forgetDeviceSpy = spy();
       keyringController.on('forgetDevice', forgetDeviceSpy);
-      keyringController.forgetKeyring(hdKeyring);
+      await keyringController.forgetKeyring(hdKeyring);
       expect(forgetDeviceSpy.calledOnce).toBe(true);
     });
   });
