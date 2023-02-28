@@ -1,6 +1,6 @@
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
-import type { Hex } from '@metamask/utils';
+import type { Hex, KeyringClass } from '@metamask/utils';
 import { strict as assert } from 'assert';
 import Wallet from 'ethereumjs-wallet';
 import { restore, spy, stub, assert as sinonAssert } from 'sinon';
@@ -32,13 +32,17 @@ const walletTwoAddresses = [
   '0x49dd2653f38f75d40fdbd51e83b9c9724c87f7eb',
 ];
 
-describe('KeyringController', function () {
+describe('KeyringController', () => {
   let keyringController: KeyringController;
 
   beforeEach(async function () {
     keyringController = new KeyringController({
       encryptor: mockEncryptor,
-      keyringBuilders: [keyringBuilderFactory(KeyringMockWithInit)],
+      keyringBuilders: [
+        keyringBuilderFactory(
+          KeyringMockWithInit as unknown as KeyringClass<any>,
+        ),
+      ],
     });
 
     await keyringController.createNewVaultAndKeychain(password);
@@ -103,7 +107,7 @@ describe('KeyringController', function () {
   describe('persistAllKeyrings', function () {
     it('should persist keyrings in _unsupportedKeyrings array', async function () {
       const unsupportedKeyring = 'DUMMY_KEYRING';
-      keyringController.#unsupportedKeyrings = [unsupportedKeyring];
+      keyringController.unsupportedKeyrings = [unsupportedKeyring];
       await keyringController.persistAllKeyrings();
 
       const { vault } = keyringController.store.getState();
@@ -166,7 +170,7 @@ describe('KeyringController', function () {
       const initialAccounts = await keyringController.getAccounts();
       expect(initialAccounts).toHaveLength(1);
 
-      await keyringController.addNewKeyring('HD Key Tree');
+      await keyringController.addNewKeyring(KeyringType.HD);
       const allAccounts = await keyringController.getAccounts();
       expect(allAccounts).toHaveLength(2);
 
@@ -182,7 +186,10 @@ describe('KeyringController', function () {
 
     it('throws error if argument password is not a string', async function () {
       await expect(async () =>
-        keyringController.createNewVaultAndRestore(12, walletTwoSeedWords),
+        keyringController.createNewVaultAndRestore(
+          12 as any,
+          walletTwoSeedWords,
+        ),
       ).rejects.toThrow('Password must be text.');
     });
 
@@ -234,14 +241,16 @@ describe('KeyringController', function () {
     });
   });
 
-  describe('addNewKeyring', function () {
+  describe('addNewKeyring', () => {
     it('should add simple key pair', async function () {
       const privateKey =
         'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3';
       const previousAccounts = await keyringController.getAccounts();
-      const keyring = await keyringController.addNewKeyring('Simple Key Pair', [
-        privateKey,
-      ]);
+      const keyring = await keyringController.addNewKeyring(
+        KeyringType.Simple,
+        { privateKeyArray: [privateKey] },
+      );
+
       const keyringAccounts = await keyring?.getAccounts();
       const expectedKeyringAccounts = [
         '0x627306090abab3a6e1400e9345bc60c78a8bef57',
@@ -258,7 +267,7 @@ describe('KeyringController', function () {
     it('should add HD Key Tree without mnemonic passed as an argument', async function () {
       const previousAllAccounts = await keyringController.getAccounts();
       expect(previousAllAccounts).toHaveLength(1);
-      const keyring = await keyringController.addNewKeyring('HD Key Tree');
+      const keyring = await keyringController.addNewKeyring(KeyringType.HD);
       const keyringAccounts = await keyring?.getAccounts();
       expect(keyringAccounts).toHaveLength(1);
       const allAccounts = await keyringController.getAccounts();
@@ -268,14 +277,14 @@ describe('KeyringController', function () {
     it('should add HD Key Tree with mnemonic passed as an argument', async function () {
       const previousAllAccounts = await keyringController.getAccounts();
       expect(previousAllAccounts).toHaveLength(1);
-      const keyring = await keyringController.addNewKeyring('HD Key Tree', {
+      const keyring = await keyringController.addNewKeyring(KeyringType.HD, {
         numberOfAccounts: 2,
         mnemonic: walletTwoSeedWords,
       });
       const keyringAccounts = await keyring?.getAccounts();
       expect(keyringAccounts).toHaveLength(2);
-      expect(keyringAccounts![0]).toStrictEqual(walletTwoAddresses[0]);
-      expect(keyringAccounts![1]).toStrictEqual(walletTwoAddresses[1]);
+      expect(keyringAccounts?.[0]).toStrictEqual(walletTwoAddresses[0]);
+      expect(keyringAccounts?.[1]).toStrictEqual(walletTwoAddresses[1]);
       const allAccounts = await keyringController.getAccounts();
       expect(allAccounts).toHaveLength(3);
     });
@@ -292,9 +301,9 @@ describe('KeyringController', function () {
       sinonAssert.calledOnce(initSpy);
     });
 
-    it('should add HD Key Tree when addAccounts is asynchronous', async function () {
+    it('should add HD Key Tree when addAccounts is asynchronous', async () => {
       const originalAccAccounts = HdKeyring.prototype.addAccounts;
-      stub(HdKeyring.prototype, 'addAccounts').callsFake(async function () {
+      stub(HdKeyring.prototype, 'addAccounts').callsFake(async () => {
         return new Promise((resolve) => {
           setImmediate(() => {
             resolve(originalAccAccounts.bind(this)());
@@ -302,7 +311,7 @@ describe('KeyringController', function () {
         });
       });
 
-      const keyring = await keyringController.addNewKeyring('HD Key Tree');
+      const keyring = await keyringController.addNewKeyring(KeyringType.HD);
 
       const keyringAccounts = await keyring?.getAccounts();
       expect(keyringAccounts).toHaveLength(1);
@@ -324,7 +333,7 @@ describe('KeyringController', function () {
       expect(wallet.numberOfAccounts).toBe(1);
 
       const accounts = await keyring?.getAccounts();
-      expect(accounts![0]).toBe(walletOneAddresses[0]);
+      expect(accounts?.[0]).toBe(walletOneAddresses[0]);
     });
 
     it('should return undefined if keyring type is not supported.', async function () {
@@ -343,12 +352,12 @@ describe('KeyringController', function () {
           async getAccounts() {
             return Promise.resolve([1, 2, 3]);
           },
-        },
+        } as unknown as ExtendedKeyring,
         {
           async getAccounts() {
             return Promise.resolve([4, 5, 6]);
           },
-        },
+        } as unknown as ExtendedKeyring,
       ];
 
       const result = await keyringController.getAccounts();
@@ -374,9 +383,9 @@ describe('KeyringController', function () {
       const accountsBeforeAdding = await keyringController.getAccounts();
 
       // Add a new keyring with one account
-      await keyringController.addNewKeyring('Simple Key Pair', [
-        account.privateKey,
-      ]);
+      await keyringController.addNewKeyring(KeyringType.Simple, {
+        privateKeyArray: [account.privateKey],
+      });
       expect(keyringController.keyrings).toHaveLength(2);
 
       // remove that account that we just added
@@ -396,9 +405,9 @@ describe('KeyringController', function () {
       };
 
       // Add a new keyring with one account
-      await keyringController.addNewKeyring('Simple Key Pair', [
-        account.privateKey,
-      ]);
+      await keyringController.addNewKeyring(KeyringType.Simple, {
+        privateKeyArray: [account.privateKey],
+      });
 
       // We should have 2 keyrings
       expect(keyringController.keyrings).toHaveLength(2);
@@ -413,7 +422,7 @@ describe('KeyringController', function () {
 
     it('does not remove the keyring if there are accounts remaining after removing one from the keyring', async function () {
       // Add a new keyring with two accounts
-      await keyringController.addNewKeyring('HD Key Tree', {
+      await keyringController.addNewKeyring(KeyringType.HD, {
         mnemonic: walletTwoSeedWords,
         numberOfAccounts: 2,
       });
@@ -486,7 +495,7 @@ describe('KeyringController', function () {
       const initialAccounts = await HDKeyring?.getAccounts();
       expect(initialAccounts).toHaveLength(1);
 
-      await keyringController.addNewAccount(HDKeyring!);
+      await keyringController.addNewAccount(HDKeyring as ExtendedKeyring);
       const accountsAfterAdd = await HDKeyring?.getAccounts();
       expect(accountsAfterAdd).toHaveLength(2);
     });
@@ -500,11 +509,10 @@ describe('KeyringController', function () {
 
       const keyring = await keyringController.addNewKeyring(
         KeyringType.Simple,
-        [privateKey],
+        { privateKeyArray: [privateKey] },
       );
 
-      const getAppKeyAddressSpy = spy();
-      keyringController.on('getAppKeyAddress', getAppKeyAddressSpy);
+      const getAppKeyAddressSpy = spy(keyringController, 'getAppKeyAddress');
       /* eslint-disable-next-line require-atomic-updates */
       keyringController.getKeyringForAccount = stub().returns(
         Promise.resolve(keyring),
@@ -529,7 +537,9 @@ describe('KeyringController', function () {
       const address = '0x01560cd3bac62cc6d7e6380600d9317363400896';
       const privateKey =
         '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952';
-      await keyringController.addNewKeyring('Simple Key Pair', [privateKey]);
+      await keyringController.addNewKeyring(KeyringType.Simple, {
+        privateKeyArray: [privateKey],
+      });
       const appKeyAddress = await keyringController.getAppKeyAddress(
         address,
         'someapp.origin.io',
@@ -552,11 +562,14 @@ describe('KeyringController', function () {
     it('throw when keyring is not hardware device', async function () {
       const privateKey =
         '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952';
-      const keyring = await keyringController.addNewKeyring('Simple Key Pair', [
-        privateKey,
-      ]);
+      const keyring = await keyringController.addNewKeyring(
+        KeyringType.Simple,
+        { privateKeyArray: [privateKey] },
+      );
       expect(keyringController.keyrings).toHaveLength(2);
-      expect(async () => keyringController.forgetKeyring(keyring)).toThrow(
+      expect(async () =>
+        keyringController.forgetKeyring(keyring as ExtendedKeyring),
+      ).toThrow(
         new Error(
           'KeyringController - keyring does not have method "forgetDevice", keyring type: Simple Key Pair',
         ),
@@ -564,10 +577,10 @@ describe('KeyringController', function () {
     });
 
     it('forget hardware device', async function () {
-      const hdKeyring = keyringController.getKeyringsByType(KeyringType.HD);
+      const [hdKeyring] = keyringController.getKeyringsByType(KeyringType.HD);
       const forgetDeviceSpy = spy();
       keyringController.on('forgetDevice', forgetDeviceSpy);
-      await keyringController.forgetKeyring(hdKeyring);
+      await keyringController.forgetKeyring(hdKeyring as ExtendedKeyring);
       expect(forgetDeviceSpy.calledOnce).toBe(true);
     });
   });
@@ -575,7 +588,7 @@ describe('KeyringController', function () {
   describe('getKeyringForAccount', function () {
     it('throws error when address is not provided', async function () {
       await expect(
-        keyringController.getKeyringForAccount(undefined),
+        keyringController.getKeyringForAccount(undefined as any),
       ).rejects.toThrow(
         new Error(
           'No keyring found for the requested account. Error info: The address passed in is invalid/empty',
@@ -600,7 +613,7 @@ describe('KeyringController', function () {
           async getAccounts() {
             return Promise.resolve([1, 2, 3]);
           },
-        },
+        } as unknown as ExtendedKeyring,
       ];
 
       await expect(
@@ -700,9 +713,9 @@ describe('KeyringController', function () {
       };
 
       // Add a new keyring with one account
-      await keyringController.addNewKeyring('Simple Key Pair', [
-        account.privateKey,
-      ]);
+      await keyringController.addNewKeyring(KeyringType.Simple, {
+        privateKeyArray: [account.privateKey],
+      });
       expect(await keyringController.getAccounts()).toHaveLength(4);
 
       // remove that account that we just added
