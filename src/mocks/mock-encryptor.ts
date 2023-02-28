@@ -9,6 +9,7 @@ const MOCK_ENCRYPTION_DATA = `{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZ
 const INVALID_PASSWORD_ERROR = 'Incorrect password.';
 
 const MOCK_HEX = '0xabcdef0123456789';
+// eslint-disable-next-line no-restricted-globals
 const MOCK_KEY = Buffer.alloc(32);
 let cacheVal;
 
@@ -34,7 +35,7 @@ const mockEncryptor = {
   },
 
   async decryptWithEncryptedKeyString(_keyStr) {
-    const { vault } = await this.decryptWithDetail();
+    const { vault } = await this.decryptWithDetail(_keyStr, 'mock vault');
     return vault;
   },
 
