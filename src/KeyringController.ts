@@ -267,6 +267,8 @@ class KeyringController extends EventEmitter {
         : opts,
     );
 
+    console.log('In the code', { keyring });
+
     if (!keyring) {
       throw new Error('KeyringController - No keyring found');
     }
@@ -640,7 +642,7 @@ class KeyringController extends EventEmitter {
       await this.persistAllKeyrings();
     } else {
       throw new Error(
-        `KeyringController - keyring does not have method "forgetDevice", keyring type: ${keyring.type}`,
+        `KeyringController - keyring does not have method forgetDevice, keyring type: ${keyring.type}`,
       );
     }
   }

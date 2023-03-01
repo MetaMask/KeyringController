@@ -566,12 +566,13 @@ describe('KeyringController', () => {
         KeyringType.Simple,
         { privateKeyArray: [privateKey] },
       );
+
       expect(keyringController.keyrings).toHaveLength(2);
-      expect(async () =>
+      await expect(async () =>
         keyringController.forgetKeyring(keyring as ExtendedKeyring),
-      ).toThrow(
+      ).rejects.toThrow(
         new Error(
-          'KeyringController - keyring does not have method "forgetDevice", keyring type: Simple Key Pair',
+          'KeyringController - keyring does not have method forgetDevice, keyring type: Simple Key Pair',
         ),
       );
     });
