@@ -248,7 +248,7 @@ describe('KeyringController', () => {
       const previousAccounts = await keyringController.getAccounts();
       const keyring = await keyringController.addNewKeyring(
         KeyringType.Simple,
-        { privateKeyArray: [privateKey] },
+        { privateKeys: [privateKey] },
       );
 
       const keyringAccounts = await keyring?.getAccounts();
@@ -399,7 +399,7 @@ describe('KeyringController', () => {
 
       // Add a new keyring with one account
       await keyringController.addNewKeyring(KeyringType.Simple, {
-        privateKeyArray: [account.privateKey],
+        privateKeys: [account.privateKey],
       });
       expect(keyringController.keyrings).toHaveLength(2);
 
@@ -421,7 +421,7 @@ describe('KeyringController', () => {
 
       // Add a new keyring with one account
       await keyringController.addNewKeyring(KeyringType.Simple, {
-        privateKeyArray: [account.privateKey],
+        privateKeys: [account.privateKey],
       });
 
       // We should have 2 keyrings
@@ -524,7 +524,7 @@ describe('KeyringController', () => {
 
       const keyring = await keyringController.addNewKeyring(
         KeyringType.Simple,
-        { privateKeyArray: [privateKey] },
+        { privateKeys: [privateKey] },
       );
 
       const getAppKeyAddressSpy = spy(keyringController, 'getAppKeyAddress');
@@ -553,7 +553,7 @@ describe('KeyringController', () => {
       const privateKey =
         '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952';
       await keyringController.addNewKeyring(KeyringType.Simple, {
-        privateKeyArray: [privateKey],
+        privateKeys: [privateKey],
       });
       const appKeyAddress = await keyringController.getAppKeyAddress(
         address,
@@ -702,7 +702,7 @@ describe('KeyringController', () => {
 
       // Add a new keyring with one account
       await keyringController.addNewKeyring(KeyringType.Simple, {
-        privateKeyArray: [account.privateKey],
+        privateKeys: [account.privateKey],
       });
       expect(await keyringController.getAccounts()).toHaveLength(4);
 

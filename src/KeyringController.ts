@@ -263,8 +263,8 @@ class KeyringController extends EventEmitter {
   ): Promise<ExtendedKeyring | void> {
     const keyring = await this.#newKeyring(
       type,
-      type === KeyringType.Simple && opts?.privateKeyArray
-        ? opts?.privateKeyArray
+      type === KeyringType.Simple && opts?.privateKeys
+        ? opts?.privateKeys
         : opts,
     );
 
