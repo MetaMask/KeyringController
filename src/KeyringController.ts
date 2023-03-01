@@ -682,6 +682,7 @@ class KeyringController extends EventEmitter {
    */
   async #updateMemStoreKeyrings(): Promise<State> {
     const keyrings = await Promise.all(
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       this.keyrings.map(this.#displayForKeyring),
     );
     return this.memStore.updateState({ keyrings });
