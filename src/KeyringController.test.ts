@@ -1,6 +1,6 @@
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
-import type { Hex, KeyringClass } from '@metamask/utils';
+import type { Hex, Json, KeyringClass } from '@metamask/utils';
 import { strict as assert } from 'assert';
 import Wallet from 'ethereumjs-wallet';
 import { restore, spy, stub, assert as sinonAssert } from 'sinon';
@@ -343,8 +343,9 @@ describe('KeyringController', () => {
       };
 
       const keyring = await keyringController.restoreKeyring(mockSerialized);
-      const wallet = await keyring?.serialize();
-      expect(wallet.numberOfAccounts).toBe(1);
+      // eslint-disable-next-line no-unsafe-optional-chaining
+      const { numberOfAccounts } = (await keyring?.serialize()) as any;
+      expect(numberOfAccounts).toBe(1);
 
       const accounts = await keyring?.getAccounts();
       expect(accounts?.[0]).toBe(walletOneAddresses[0]);
@@ -460,8 +461,8 @@ describe('KeyringController', () => {
       expect(keyrings).toHaveLength(1);
       await Promise.all(
         keyrings.map(async (keyring) => {
-          const wallet = await keyring.serialize();
-          expect(wallet.numberOfAccounts).toBe(1);
+          const { numberOfAccounts } = (await keyring.serialize()) as any;
+          expect(numberOfAccounts).toBe(1);
         }),
       );
     });
