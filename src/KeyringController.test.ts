@@ -6,7 +6,8 @@ import Wallet from 'ethereumjs-wallet';
 import { restore, spy, stub, assert as sinonAssert } from 'sinon';
 
 import { KeyringController, keyringBuilderFactory } from '.';
-import { mockEncryptor, KeyringMockWithInit } from './mocks';
+import mockEncryptor from './mocks/mock-encryptor';
+import KeyringMockWithInit from './mocks/mock-keyring';
 import { ExtendedKeyring, KeyringType } from './types';
 
 const password = 'password123';
