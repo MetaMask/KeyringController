@@ -267,8 +267,6 @@ class KeyringController extends EventEmitter {
         : opts,
     );
 
-    console.log('In the code', { keyring });
-
     if (!keyring) {
       throw new Error('KeyringController - No keyring found');
     }
