@@ -626,26 +626,6 @@ class KeyringController extends EventEmitter {
   }
 
   /**
-   * Forget hardware keyring.
-   *
-   * Forget hardware and update memorized state.
-   *
-   * @param keyring - The keyring to forget.
-   */
-  async forgetKeyring(
-    keyring: ExtendedKeyring & { forgetDevice?: () => void },
-  ): Promise<void> {
-    if (keyring.forgetDevice) {
-      keyring.forgetDevice();
-      await this.persistAllKeyrings();
-    } else {
-      throw new Error(
-        `KeyringController - keyring does not have method forgetDevice, keyring type: ${keyring.type}`,
-      );
-    }
-  }
-
-  /**
    * Restore Keyring
    *
    * Attempts to initialize a new keyring from the provided serialized payload.

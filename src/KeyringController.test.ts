@@ -311,7 +311,21 @@ describe('KeyringController', () => {
         });
       });
 
-      const keyring = await keyringController.addNewKeyring(KeyringType.HD);
+      stub(HdKeyring.prototype, 'deserialize').callsFake(async () => {
+        return new Promise<void>((resolve) => {
+          setImmediate(() => {
+            resolve();
+          });
+        });
+      });
+
+      stub(HdKeyring.prototype, 'getAccounts').callsFake(() => [
+        'mock account',
+      ]);
+
+      const keyring = await keyringController.addNewKeyring(KeyringType.HD, {
+        mnemonic: 'mock mnemonic',
+      });
 
       const keyringAccounts = await keyring?.getAccounts();
       expect(keyringAccounts).toHaveLength(1);
@@ -555,34 +569,6 @@ describe('KeyringController', () => {
 
       expect(recoveredAddress).toBe(appKeyAddress);
       expect(privateAppKey).not.toBe(privateKey);
-    });
-  });
-
-  describe('forgetHardwareDevice', function () {
-    it('throw when keyring is not hardware device', async function () {
-      const privateKey =
-        '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952';
-      const keyring = await keyringController.addNewKeyring(
-        KeyringType.Simple,
-        { privateKeyArray: [privateKey] },
-      );
-
-      expect(keyringController.keyrings).toHaveLength(2);
-      await expect(async () =>
-        keyringController.forgetKeyring(keyring as ExtendedKeyring),
-      ).rejects.toThrow(
-        new Error(
-          'KeyringController - keyring does not have method forgetDevice, keyring type: Simple Key Pair',
-        ),
-      );
-    });
-
-    it('forget hardware device', async function () {
-      const [hdKeyring] = keyringController.getKeyringsByType(KeyringType.HD);
-      const forgetDeviceSpy = spy();
-      keyringController.on('forgetDevice', forgetDeviceSpy);
-      await keyringController.forgetKeyring(hdKeyring as ExtendedKeyring);
-      expect(forgetDeviceSpy.calledOnce).toBe(true);
     });
   });
 
