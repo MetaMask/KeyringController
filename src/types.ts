@@ -1,4 +1,4 @@
-import type { Hex, Eip1024EncryptedData, Keyring } from '@metamask/utils';
+import type { Hex, Json, Keyring, Eip1024EncryptedData } from '@metamask/utils';
 
 export type IKeyringController = any;
 
@@ -12,7 +12,6 @@ export enum KeyringType {
   Simple = 'Simple Key Pair',
 }
 
-export type State = any;
-export type ExtendedKeyring = Keyring<State> & {
+export type ExtendedKeyring = Keyring<Json> & {
   generateRandomMnemonic: () => string;
 };

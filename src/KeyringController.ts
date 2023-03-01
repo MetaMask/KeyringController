@@ -4,6 +4,7 @@ import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
 import type {
   Hex,
+  Json,
   Bytes,
   KeyringClass,
   Transaction,
@@ -15,7 +16,7 @@ import type {
 import { EventEmitter } from 'events';
 import ObservableStore from 'obs-store';
 
-import { MessageParams, KeyringType, State, ExtendedKeyring } from './types';
+import { MessageParams, KeyringType, ExtendedKeyring } from './types';
 
 const defaultKeyringBuilders = [
   keyringBuilderFactory(SimpleKeyring),
@@ -95,6 +96,7 @@ class KeyringController extends EventEmitter {
    */
   fullUpdate() {
     this.emit('update', this.memStore.getState());
+    console.log(this.memStore.getState());
     return this.memStore.getState();
   }
 
@@ -110,7 +112,7 @@ class KeyringController extends EventEmitter {
    * @param password - The password to encrypt the vault with.
    * @returns A promise that resolves to the state.
    */
-  async createNewVaultAndKeychain(password: string): Promise<State> {
+  async createNewVaultAndKeychain(password: string): Promise<Json> {
     this.password = password;
 
     await this.#createFirstKeyTree();
@@ -134,7 +136,7 @@ class KeyringController extends EventEmitter {
   async createNewVaultAndRestore(
     password: string,
     seedPhrase: Uint8Array | string | number[],
-  ): Promise<State> {
+  ): Promise<Json> {
     if (typeof password !== 'string') {
       throw new Error('Password must be text.');
     }
@@ -166,7 +168,7 @@ class KeyringController extends EventEmitter {
    * @fires KeyringController#lock
    * @returns A promise that resolves to the state.
    */
-  async setLocked(): Promise<State> {
+  async setLocked(): Promise<Json> {
     delete this.password;
 
     // set locked
@@ -196,7 +198,7 @@ class KeyringController extends EventEmitter {
    * @param password - The keyring controller password.
    * @returns A promise that resolves to the state.
    */
-  async submitPassword(password: string): Promise<State> {
+  async submitPassword(password: string): Promise<Json> {
     this.keyrings = await this.unlockKeyrings(password);
 
     this.#setUnlocked();
@@ -217,7 +219,7 @@ class KeyringController extends EventEmitter {
   async submitEncryptionKey(
     encryptionKey: string,
     encryptionSalt: string,
-  ): Promise<State> {
+  ): Promise<Json> {
     this.keyrings = await this.unlockKeyrings(
       undefined,
       encryptionKey,
@@ -360,7 +362,7 @@ class KeyringController extends EventEmitter {
    * @param selectedKeyring - The currently selected keyring.
    * @returns A Promise that resolves to the state.
    */
-  async addNewAccount(selectedKeyring: ExtendedKeyring): Promise<State> {
+  async addNewAccount(selectedKeyring: ExtendedKeyring): Promise<Json> {
     const accounts = await selectedKeyring.addAccounts(1);
     accounts.forEach((hexAccount: string) => {
       this.emit('newAccount', hexAccount);
@@ -401,7 +403,7 @@ class KeyringController extends EventEmitter {
    * @param address - The address of the account to remove.
    * @returns A promise that resolves if the operation was successful.
    */
-  async removeAccount(address: Hex): Promise<State> {
+  async removeAccount(address: Hex): Promise<Json> {
     const keyring = await this.getKeyringForAccount(address);
 
     // Not all the keyrings support this, so we have to check
@@ -660,7 +662,7 @@ class KeyringController extends EventEmitter {
    *
    * Updates the in-memory keyrings, without persisting.
    */
-  async #updateMemStoreKeyrings(): Promise<State> {
+  async #updateMemStoreKeyrings(): Promise<Json> {
     const keyrings = await Promise.all(
       // eslint-disable-next-line @typescript-eslint/unbound-method
       this.keyrings.map(this.#displayForKeyring),
@@ -1026,7 +1028,7 @@ class KeyringController extends EventEmitter {
  * @param Keyring - The Keyring class for the builder.
  * @returns A builder function for the given Keyring.
  */
-function keyringBuilderFactory(Keyring: KeyringClass<State>) {
+function keyringBuilderFactory(Keyring: KeyringClass<Json>) {
   const builder = () => new Keyring();
 
   builder.type = Keyring.type;
