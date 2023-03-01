@@ -24,6 +24,8 @@
     "dist/"
   ],
   "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "build:docs": "typedoc",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "eslint . --cache --ext js,ts",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
