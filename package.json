@@ -27,10 +27,11 @@
     "build": "tsc --project tsconfig.build.json",
     "build:docs": "typedoc",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
+    "lint:dependencies": "depcheck",
     "lint:eslint": "eslint . --cache --ext js,ts",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
     "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' '**/*.yml' '!.yarnrc.yml' --ignore-path .gitignore --no-error-on-unmatched-pattern",
-    "test": "jest"
+    "test": "jest && jest-it-up"
   },
   "dependencies": {
     "@metamask/browser-passworder": "^4.0.2",
@@ -44,7 +45,6 @@
     "@lavamoat/allow-scripts": "^2.1.0",
     "@metamask/auto-changelog": "^3.0.0",
     "@metamask/eslint-config": "^11.1.0",
-    "@metamask/eslint-config-commonjs": "^11.1.0",
     "@metamask/eslint-config-jest": "^11.1.0",
     "@metamask/eslint-config-nodejs": "^11.1.0",
     "@metamask/eslint-config-typescript": "^11.1.0",
@@ -53,6 +53,7 @@
     "@types/sinon": "^10.0.13",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.53.0",
+    "depcheck": "^1.4.3",
     "eslint": "^8.29.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
