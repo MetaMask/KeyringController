@@ -6,6 +6,7 @@ import type {
   Hex,
   Json,
   Bytes,
+  Keyring,
   KeyringClass,
   Transaction,
   SignedTransaction,
@@ -37,13 +38,13 @@ function stripHexPrefix(address: Hex | string): string {
 }
 
 class KeyringController extends EventEmitter {
-  keyringBuilders: { (): any; type: any }[];
+  keyringBuilders: { (): Keyring<Json>; type: string }[];
 
-  store: any;
+  store: typeof ObservableStore;
 
-  memStore: any;
+  memStore: typeof ObservableStore;
 
-  encryptor: any;
+  encryptor: typeof encryptor;
 
   keyrings: ExtendedKeyring[];
 
@@ -757,6 +758,9 @@ class KeyringController extends EventEmitter {
         vault = JSON.stringify(vaultJSON);
       }
     } else {
+      if (typeof this.password !== 'string') {
+        throw new Error('KeyringController: password must be of type string');
+      }
       vault = await this.encryptor.encrypt(this.password, serializedKeyrings);
     }
 
@@ -823,6 +827,12 @@ class KeyringController extends EventEmitter {
           throw new Error('Encryption key and salt provided are expired');
         }
 
+        if (typeof encryptionKey !== 'string') {
+          throw new Error(
+            'KeyringController: encryptionKey must be of type string',
+          );
+        }
+
         const key = await this.encryptor.importKey(encryptionKey);
         vault = await this.encryptor.decryptWithKey(key, parsedEncryptedVault);
 
@@ -834,6 +844,10 @@ class KeyringController extends EventEmitter {
         });
       }
     } else {
+      if (typeof password !== 'string') {
+        throw new Error('KeyringController: password must be of type string');
+      }
+
       vault = await this.encryptor.decrypt(password, encryptedVault);
       this.password = password;
     }
