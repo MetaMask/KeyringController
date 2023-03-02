@@ -632,44 +632,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/confirm@npm:^0.0.14-alpha.0":
-  version: 0.0.14-alpha.0
-  resolution: "@inquirer/confirm@npm:0.0.14-alpha.0"
-  dependencies:
-    "@inquirer/core": ^0.0.15-alpha.0
-    "@inquirer/input": ^0.0.15-alpha.0
-    chalk: ^4.1.1
-  checksum: 84daf47030318e0adf6eeef85388e341f6f68c0c06c0d1d329cb6185f6d21abf74c3124102bf62f4f42145c8dc9193d719209e3759987a1bdbcfb88139b9936c
-  languageName: node
-  linkType: hard
-
-"@inquirer/core@npm:^0.0.15-alpha.0":
-  version: 0.0.15-alpha.0
-  resolution: "@inquirer/core@npm:0.0.15-alpha.0"
-  dependencies:
-    ansi-escapes: ^4.2.1
-    chalk: ^4.1.1
-    cli-spinners: ^2.6.0
-    cli-width: ^3.0.0
-    lodash: ^4.17.21
-    mute-stream: ^0.0.8
-    run-async: ^2.3.0
-    string-width: ^4.1.0
-    strip-ansi: ^6.0.0
-  checksum: 26a94a8db80e57f926c889b5730c6c9a0f18d6bf1e6dbfb68eaa6bcda33550db66118ce6afd9e91130ea2e4da42b6d7236b94c16fbab931ed04b4f442b9a5c78
-  languageName: node
-  linkType: hard
-
-"@inquirer/input@npm:^0.0.15-alpha.0":
-  version: 0.0.15-alpha.0
-  resolution: "@inquirer/input@npm:0.0.15-alpha.0"
-  dependencies:
-    "@inquirer/core": ^0.0.15-alpha.0
-    chalk: ^4.1.1
-  checksum: c294b2fa100e2955e271b1b0590b5f360c65c560d653f39554cd381f145fdf13be9ea2c3c069d39a71f84fc3c8ba20d9d78a0b210f8cb5533d138567029e28ee
-  languageName: node
-  linkType: hard
-
 "@istanbuljs/load-nyc-config@npm:^1.0.0":
   version: 1.1.0
   resolution: "@istanbuljs/load-nyc-config@npm:1.1.0"
@@ -1104,7 +1066,6 @@ __metadata:
     "@metamask/eth-simple-keyring": ^5.0.0
     "@metamask/utils": 4.0.0
     "@types/jest": ^29.4.0
-    "@types/mocha": ^5.0.0
     "@types/sinon": ^10.0.13
     "@typescript-eslint/eslint-plugin": ^5.53.0
     "@typescript-eslint/parser": ^5.53.0
@@ -1118,11 +1079,10 @@ __metadata:
     eslint-plugin-prettier: ^4.2.1
     ethereumjs-wallet: ^1.0.1
     jest: ^29.0.0
-    jest-it-up: ^2.1.0
     obs-store: ^4.0.3
     prettier: ^2.8.1
     prettier-plugin-packagejson: ^2.3.0
-    sinon: ^11.1.1
+    sinon: 15.0.1
     ts-jest: ^29.0.3
     ts-node: ^10.7.0
     typedoc: ^0.23.15
@@ -1310,15 +1270,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sinonjs/commons@npm:^1.6.0, @sinonjs/commons@npm:^1.7.0, @sinonjs/commons@npm:^1.8.3":
-  version: 1.8.3
-  resolution: "@sinonjs/commons@npm:1.8.3"
-  dependencies:
-    type-detect: 4.0.8
-  checksum: 6159726db5ce6bf9f2297f8427f7ca5b3dff45b31e5cee23496f1fa6ef0bb4eab878b23fb2c5e6446381f6a66aba4968ef2fc255c1180d753d4b8c271636a2e5
-  languageName: node
-  linkType: hard
-
 "@sinonjs/commons@npm:^2.0.0":
   version: 2.0.0
   resolution: "@sinonjs/commons@npm:2.0.0"
@@ -1328,7 +1279,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sinonjs/fake-timers@npm:^10.0.2":
+"@sinonjs/fake-timers@npm:10.0.2, @sinonjs/fake-timers@npm:^10.0.2":
   version: 10.0.2
   resolution: "@sinonjs/fake-timers@npm:10.0.2"
   dependencies:
@@ -1337,23 +1288,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sinonjs/fake-timers@npm:^7.0.4, @sinonjs/fake-timers@npm:^7.1.0":
-  version: 7.1.2
-  resolution: "@sinonjs/fake-timers@npm:7.1.2"
+"@sinonjs/samsam@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "@sinonjs/samsam@npm:7.0.1"
   dependencies:
-    "@sinonjs/commons": ^1.7.0
-  checksum: c84773d7973edad5511a31d2cc75023447b5cf714a84de9bb50eda45dda88a0d3bd2c30bf6e6e936da50a048d5352e2151c694e13e59b97d187ba1f329e9a00c
-  languageName: node
-  linkType: hard
-
-"@sinonjs/samsam@npm:^6.0.2":
-  version: 6.0.2
-  resolution: "@sinonjs/samsam@npm:6.0.2"
-  dependencies:
-    "@sinonjs/commons": ^1.6.0
+    "@sinonjs/commons": ^2.0.0
     lodash.get: ^4.4.2
     type-detect: ^4.0.8
-  checksum: bc1514edf15f4fa42a1bf27024b15f87654deb2999045c0e427659ff3c734eba44661fceae3624be23cc15ee9c6ddafe5209af2192845c6b267350b54eed1495
+  checksum: 291efb158d54c67dee23ddabcb28873d22063449b692aaa3b2a4f1826d2f79d38695574063c92e9c17573cc805cd6acbf0ab0c66c9f3aed7afd0f12a2b905615
   languageName: node
   linkType: hard
 
@@ -1537,13 +1479,6 @@ __metadata:
   version: 3.0.5
   resolution: "@types/minimatch@npm:3.0.5"
   checksum: c41d136f67231c3131cf1d4ca0b06687f4a322918a3a5adddc87ce90ed9dbd175a3610adee36b106ae68c0b92c637c35e02b58c8a56c424f71d30993ea220b92
-  languageName: node
-  linkType: hard
-
-"@types/mocha@npm:^5.0.0":
-  version: 5.2.7
-  resolution: "@types/mocha@npm:5.2.7"
-  checksum: 446e64292f37f4eac9221161f4c1026dd4a0dbeea0f16c4617227fcf5a1286b53d97e36a32ff7cb3a0435ab78791dd43e9ac1006f92abedb47d7d1d7636cb55c
   languageName: node
   linkType: hard
 
@@ -1980,13 +1915,6 @@ __metadata:
     json-schema-traverse: ^0.4.1
     uri-js: ^4.2.2
   checksum: 874972efe5c4202ab0a68379481fbd3d1b5d0a7bd6d3cc21d40d3536ebff3352a2a1fabb632d4fd2cc7fe4cbdcd5ed6782084c9bbf7f32a1536d18f9da5007d4
-  languageName: node
-  linkType: hard
-
-"ansi-colors@npm:^4.1.0":
-  version: 4.1.3
-  resolution: "ansi-colors@npm:4.1.3"
-  checksum: a9c2ec842038a1fabc7db9ece7d3177e2fe1c5dc6f0c51ecfbf5f39911427b89c00b5dc6b8bd95f82a26e9b16aaae2e83d45f060e98070ce4d1333038edceb0e
   languageName: node
   linkType: hard
 
@@ -2548,16 +2476,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^4.1.1":
-  version: 4.1.2
-  resolution: "chalk@npm:4.1.2"
-  dependencies:
-    ansi-styles: ^4.1.0
-    supports-color: ^7.1.0
-  checksum: fe75c9d5c76a7a98d45495b91b2172fa3b7a09e0cc9370e5c8feb1c567b85c4288e2b3fded7cfdd7359ac28d6b3844feb8b82b8686842e93d23c827c417e83fc
-  languageName: node
-  linkType: hard
-
 "char-regex@npm:^1.0.2":
   version: 1.0.2
   resolution: "char-regex@npm:1.0.2"
@@ -2619,20 +2537,6 @@ __metadata:
   version: 2.2.0
   resolution: "clean-stack@npm:2.2.0"
   checksum: 2ac8cd2b2f5ec986a3c743935ec85b07bc174d5421a5efc8017e1f146a1cf5f781ae962618f416352103b32c9cd7e203276e8c28241bbe946160cab16149fb68
-  languageName: node
-  linkType: hard
-
-"cli-spinners@npm:^2.6.0":
-  version: 2.7.0
-  resolution: "cli-spinners@npm:2.7.0"
-  checksum: a9afaf73f58d1f951fb23742f503631b3cf513f43f4c7acb1b640100eb76bfa16efbcd1994d149ffc6603a6d75dd3d4a516a76f125f90dce437de9b16fd0ee6f
-  languageName: node
-  linkType: hard
-
-"cli-width@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "cli-width@npm:3.0.0"
-  checksum: 4c94af3769367a70e11ed69aa6095f1c600c0ff510f3921ab4045af961820d57c0233acfa8b6396037391f31b4c397e1f614d234294f979ff61430a6c166c3f6
   languageName: node
   linkType: hard
 
@@ -2726,13 +2630,6 @@ __metadata:
   dependencies:
     delayed-stream: ~1.0.0
   checksum: 49fa4aeb4916567e33ea81d088f6584749fc90c7abec76fd516bf1c5aa5c79f3584b5ba3de6b86d26ddd64bae5329c4c7479343250cfe71c75bb366eae53bb7c
-  languageName: node
-  linkType: hard
-
-"commander@npm:^9.0.0":
-  version: 9.5.0
-  resolution: "commander@npm:9.5.0"
-  checksum: c7a3e27aa59e913b54a1bafd366b88650bc41d6651f0cbe258d4ff09d43d6a7394232a4dadd0bf518b3e696fdf595db1028a0d82c785b88bd61f8a440cecfade
   languageName: node
   linkType: hard
 
@@ -4814,19 +4711,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-it-up@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "jest-it-up@npm:2.1.0"
-  dependencies:
-    "@inquirer/confirm": ^0.0.14-alpha.0
-    ansi-colors: ^4.1.0
-    commander: ^9.0.0
-  bin:
-    jest-it-up: bin/jest-it-up
-  checksum: 3c1587aca43c8d7c84ae31bcf984e49e87ff13d0f2a50f25e25ec8657794bf35577a2b6d8a302db77d97d4033e9543065095e166d9212b7d3ba1b76f5ffcf057
-  languageName: node
-  linkType: hard
-
 "jest-leak-detector@npm:^29.4.3":
   version: 29.4.3
   resolution: "jest-leak-detector@npm:29.4.3"
@@ -5659,13 +5543,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mute-stream@npm:^0.0.8":
-  version: 0.0.8
-  resolution: "mute-stream@npm:0.0.8"
-  checksum: ff48d251fc3f827e5b1206cda0ffdaec885e56057ee86a3155e1951bc940fd5f33531774b1cc8414d7668c10a8907f863f6561875ee6e8768931a62121a531a1
-  languageName: node
-  linkType: hard
-
 "nanoid@npm:^3.3.4":
   version: 3.3.4
   resolution: "nanoid@npm:3.3.4"
@@ -5696,16 +5573,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nise@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "nise@npm:5.1.0"
+"nise@npm:^5.1.2":
+  version: 5.1.4
+  resolution: "nise@npm:5.1.4"
   dependencies:
-    "@sinonjs/commons": ^1.7.0
-    "@sinonjs/fake-timers": ^7.0.4
+    "@sinonjs/commons": ^2.0.0
+    "@sinonjs/fake-timers": ^10.0.2
     "@sinonjs/text-encoding": ^0.7.1
     just-extend: ^4.0.2
     path-to-regexp: ^1.7.0
-  checksum: e3843cc125163ce99b7fb0328edf427b981be32c6c719684582cf0a46fb5206173835a9a14dedac3c4833e415ab0e0493f9f4d4163572a3a0c95db39b093166d
+  checksum: bc57c10eaec28a6a7ddfb2e1e9b21d5e1fe22710e514f8858ae477cf9c7e9c891475674d5241519193403db43d16c3675f4207bc094a7a27b7e4f56584a78c1b
   languageName: node
   linkType: hard
 
@@ -6493,13 +6370,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"run-async@npm:^2.3.0":
-  version: 2.4.1
-  resolution: "run-async@npm:2.4.1"
-  checksum: a2c88aa15df176f091a2878eb840e68d0bdee319d8d97bbb89112223259cebecb94bc0defd735662b83c2f7a30bed8cddb7d1674eb48ae7322dc602b22d03797
-  languageName: node
-  linkType: hard
-
 "run-parallel@npm:^1.1.9":
   version: 1.2.0
   resolution: "run-parallel@npm:1.2.0"
@@ -6691,17 +6561,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sinon@npm:^11.1.1":
-  version: 11.1.1
-  resolution: "sinon@npm:11.1.1"
+"sinon@npm:15.0.1":
+  version: 15.0.1
+  resolution: "sinon@npm:15.0.1"
   dependencies:
-    "@sinonjs/commons": ^1.8.3
-    "@sinonjs/fake-timers": ^7.1.0
-    "@sinonjs/samsam": ^6.0.2
+    "@sinonjs/commons": ^2.0.0
+    "@sinonjs/fake-timers": 10.0.2
+    "@sinonjs/samsam": ^7.0.1
     diff: ^5.0.0
-    nise: ^5.1.0
+    nise: ^5.1.2
     supports-color: ^7.2.0
-  checksum: 1c060b8d4c7b6307c67a06f96409e338fb4e23d4046557ec3ebd40836060c1f7dd0ac376069eb110799d9843bda66354edb45042d11eeff4cfe8a6cef36c95be
+  checksum: 4b5acff291b4650cf736bf45fc9eceed44dceca63b663cbd55926dd688fe8e9baa4b4629e296ee5d5b64245aedec5c540fea0416b8bb35bccfb98ca9e9ed87f3
   languageName: node
   linkType: hard
 
