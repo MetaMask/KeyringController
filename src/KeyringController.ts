@@ -17,6 +17,7 @@ import type {
 import { EventEmitter } from 'events';
 import ObservableStore from 'obs-store';
 
+import { hexPrefix } from './constants';
 import { MessageParams, KeyringType, ExtendedKeyring } from './types';
 
 const defaultKeyringBuilders = [
@@ -31,7 +32,7 @@ const defaultKeyringBuilders = [
  * @returns The address without a hex prefix.
  */
 function stripHexPrefix(address: Hex | string): string {
-  if (address.startsWith('0x')) {
+  if (address.startsWith(hexPrefix)) {
     return address.slice(2);
   }
   return address;
@@ -53,10 +54,6 @@ class KeyringController extends EventEmitter {
   unsupportedKeyrings: any[];
 
   password?: string | undefined;
-
-  //
-  // PUBLIC METHODS
-  //
 
   constructor(opts: any) {
     super();
@@ -138,7 +135,9 @@ class KeyringController extends EventEmitter {
     seedPhrase: Uint8Array | string | number[],
   ): Promise<Json> {
     if (typeof password !== 'string') {
-      throw new Error('Password must be text.');
+      throw new TypeError(
+        'KeyringController - Password must be of type string.',
+      );
     }
     this.password = password;
 
@@ -759,7 +758,9 @@ class KeyringController extends EventEmitter {
       }
     } else {
       if (typeof this.password !== 'string') {
-        throw new Error('KeyringController: password must be of type string');
+        throw new TypeError(
+          'KeyringController: password must be of type string',
+        );
       }
       vault = await this.encryptor.encrypt(this.password, serializedKeyrings);
     }
@@ -845,7 +846,9 @@ class KeyringController extends EventEmitter {
       }
     } else {
       if (typeof password !== 'string') {
-        throw new Error('KeyringController: password must be of type string');
+        throw new TypeError(
+          'KeyringController: password must be of type string',
+        );
       }
 
       vault = await this.encryptor.decrypt(password, encryptedVault);
