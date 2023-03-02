@@ -44,7 +44,7 @@ class KeyringController extends EventEmitter {
 
   memStore: typeof ObservableStore;
 
-  encryptor: typeof encryptor;
+  encryptor: any;
 
   keyrings: ExtendedKeyring[];
 
