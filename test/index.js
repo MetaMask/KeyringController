@@ -116,6 +116,7 @@ describe('KeyringController', function () {
 
     describe('when `cacheEncryptionKey` is enabled', function () {
       it('should save an up to date encryption salt to the `memStore` when `password` is unset and `encryptionKey` is set', async function () {
+        keyringController.password = undefined;
         keyringController.cacheEncryptionKey = true;
         const vaultEncryptionKey = '🔑';
         const vaultEncryptionSalt = '🧂';
@@ -144,10 +145,10 @@ describe('KeyringController', function () {
 
         expect(response).toBe(true);
         expect(keyringController.memStore.getState().encryptionKey).toBe(
-          MOCK_HARDCODED_KEY,
+          vaultEncryptionKey,
         );
         expect(keyringController.memStore.getState().encryptionSalt).toBe(
-          MOCK_HEX,
+          vaultEncryptionSalt,
         );
       });
 
