@@ -113,7 +113,7 @@ describe('KeyringController', function () {
       expect(keyrings).toHaveLength(2);
     });
 
-    describe('on a manifest v3 build', function () {
+    describe(`when 'cacheEncryptionKey' is enabled`, function () {
       it('should save up to date encryption salt to the memStore', async function () {
         keyringController.cacheEncryptionKey = true;
         const vaultEncryptionKey = '🔑';
