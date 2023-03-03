@@ -4,11 +4,7 @@ const { strict: assert } = require('assert');
 const Wallet = require('ethereumjs-wallet').default;
 const sinon = require('sinon');
 
-const {
-  KeyringController,
-  keyringBuilderFactory,
-  KEYRINGS_TYPE_MAP,
-} = require('..');
+const { KeyringController, keyringBuilderFactory } = require('..');
 const {
   mockEncryptor,
   PASSWORD,
