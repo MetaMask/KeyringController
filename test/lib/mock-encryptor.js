@@ -8,11 +8,12 @@ const MOCK_ENCRYPTION_DATA = `{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZ
 
 const INVALID_PASSWORD_ERROR = 'Incorrect password.';
 
+const MOCK_HARDCODED_KEY = 'key';
 const MOCK_HEX = '0xabcdef0123456789';
 const MOCK_KEY = Buffer.alloc(32);
 let cacheVal;
 
-module.exports = {
+const mockEncryptor = {
   encrypt: sinon.stub().callsFake(function (_password, dataObj) {
     cacheVal = dataObj;
 
@@ -22,7 +23,10 @@ module.exports = {
   encryptWithDetail: sinon.stub().callsFake(function (_password, dataObj) {
     cacheVal = dataObj;
 
-    return Promise.resolve({ vault: MOCK_HEX, exportedKeyString: '' });
+    return Promise.resolve({
+      vault: JSON.stringify({ salt: MOCK_HEX }),
+      exportedKeyString: MOCK_HARDCODED_KEY,
+    });
   }),
 
   async decrypt(_password, _text) {
@@ -81,3 +85,5 @@ module.exports = {
     return 'WHADDASALT!';
   },
 };
+
+module.exports = { mockEncryptor, PASSWORD, MOCK_HARDCODED_KEY, MOCK_HEX };
