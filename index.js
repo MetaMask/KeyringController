@@ -57,7 +57,6 @@ class KeyringController extends EventEmitter {
 
     // This option allows the controller to cache an exported key
     // for use in decrypting and encrypting data without password
-
     this.cacheEncryptionKey = Boolean(opts.cacheEncryptionKey);
   }
 
@@ -926,5 +925,4 @@ function keyringBuilderFactory(Keyring) {
 module.exports = {
   KeyringController,
   keyringBuilderFactory,
-  KEYRINGS_TYPE_MAP,
 };
