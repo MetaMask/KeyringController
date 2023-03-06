@@ -7,11 +7,6 @@ export type MessageParams = {
   data: Hex | string | Eip1024EncryptedData | Record<string, unknown>[];
 };
 
-export enum KeyringType {
-  HD = 'HD Key Tree',
-  Simple = 'Simple Key Pair',
-}
-
 export type ExtendedKeyring = Keyring<Json> & {
   generateRandomMnemonic: () => string;
 };

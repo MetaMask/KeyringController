@@ -17,8 +17,8 @@ import type {
 import { EventEmitter } from 'events';
 import ObservableStore from 'obs-store';
 
-import { hexPrefix } from './constants';
-import { State, MessageParams, KeyringType, ExtendedKeyring } from './types';
+import { HEX_PREFIX, KeyringType } from './constants';
+import { State, MessageParams, ExtendedKeyring } from './types';
 
 const defaultKeyringBuilders = [
   keyringBuilderFactory(SimpleKeyring),
@@ -32,7 +32,7 @@ const defaultKeyringBuilders = [
  * @returns The address without a hex prefix.
  */
 function stripHexPrefix(address: Hex | string): string {
-  if (address.startsWith(hexPrefix)) {
+  if (address.startsWith(HEX_PREFIX)) {
     return address.slice(2);
   }
   return address;
@@ -239,7 +239,9 @@ class KeyringController extends EventEmitter {
   async verifyPassword(password: string): Promise<void> {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
-      throw new Error('Cannot unlock without a previous vault.');
+      throw new Error(
+        'KeyringController - Cannot unlock without a previous vault.',
+      );
     }
     await this.encryptor.decrypt(password, encryptedVault);
   }
@@ -340,7 +342,7 @@ class KeyringController extends EventEmitter {
 
         if (isIncluded) {
           throw new Error(
-            'The account you are trying to import is a duplicate',
+            'KeyringController - The account you are trying to import is a duplicate',
           );
         }
         return newAccountArray;
@@ -386,7 +388,7 @@ class KeyringController extends EventEmitter {
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.exportAccount) {
       throw new Error(
-        `The keyring for address ${address} does not support the method exportAccount.`,
+        `KeyringController - The keyring for address ${address} does not support the method exportAccount.`,
       );
     }
 
@@ -411,7 +413,7 @@ class KeyringController extends EventEmitter {
       this.emit('removedAccount', address);
     } else {
       throw new Error(
-        `Keyring ${keyring.type} doesn't support account removal operations`,
+        `KeyringController - Keyring ${keyring.type} doesn't support account removal operations`,
       );
     }
 
@@ -448,7 +450,7 @@ class KeyringController extends EventEmitter {
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signTransaction) {
       throw new Error(
-        `The keyring for address ${address} does not support the method signTransaction.`,
+        `KeyringController - The keyring for address ${address} does not support the method signTransaction.`,
       );
     }
 
@@ -472,7 +474,7 @@ class KeyringController extends EventEmitter {
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signMessage) {
       throw new Error(
-        `The keyring for address ${address} does not support the method signMessage.`,
+        `KeyringController - The keyring for address ${address} does not support the method signMessage.`,
       );
     }
 
@@ -497,7 +499,7 @@ class KeyringController extends EventEmitter {
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signPersonalMessage) {
       throw new Error(
-        `The keyring for address ${address} does not support the method signPersonalMessage.`,
+        `KeyringController - The keyring for address ${address} does not support the method signPersonalMessage.`,
       );
     }
 
@@ -525,7 +527,7 @@ class KeyringController extends EventEmitter {
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.getEncryptionPublicKey) {
       throw new Error(
-        `The keyring for address ${address} does not support the method getEncryptionPublicKey.`,
+        `KeyringController - The keyring for address ${address} does not support the method getEncryptionPublicKey.`,
       );
     }
 
@@ -545,7 +547,7 @@ class KeyringController extends EventEmitter {
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.decryptMessage) {
       throw new Error(
-        `The keyring for address ${address} does not support the method decryptMessage.`,
+        `KeyringController - The keyring for address ${address} does not support the method decryptMessage.`,
       );
     }
 
@@ -571,7 +573,7 @@ class KeyringController extends EventEmitter {
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signTypedData) {
       throw new Error(
-        `The keyring for address ${address} does not support the method signTypedData.`,
+        `KeyringController - The keyring for address ${address} does not support the method signTypedData.`,
       );
     }
 
@@ -594,7 +596,7 @@ class KeyringController extends EventEmitter {
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.getAppKeyAddress) {
       throw new Error(
-        `The keyring for address ${_address} does not support the method getAppKeyAddress.`,
+        `KeyringController - The keyring for address ${_address} does not support the method getAppKeyAddress.`,
       );
     }
 
@@ -620,7 +622,7 @@ class KeyringController extends EventEmitter {
     // eslint-disable-next-line no-restricted-syntax
     if (!keyring.exportAccount) {
       throw new Error(
-        `The keyring for address ${_address} does not support exporting.`,
+        `KeyringController - The keyring for address ${_address} does not support exporting.`,
       );
     }
     return keyring.exportAccount(address, { withAppKeyOrigin: origin });
@@ -718,7 +720,7 @@ class KeyringController extends EventEmitter {
 
     if (!this.password && !encryptionKey) {
       throw new Error(
-        'Cannot persist vault without password and encryption key',
+        'KeyringController - Cannot persist vault without password and encryption key',
       );
     }
 
@@ -759,14 +761,16 @@ class KeyringController extends EventEmitter {
     } else {
       if (typeof this.password !== 'string') {
         throw new TypeError(
-          'KeyringController: password must be of type string',
+          'KeyringController - password must be of type string',
         );
       }
       vault = await this.encryptor.encrypt(this.password, serializedKeyrings);
     }
 
     if (!vault) {
-      throw new Error('Cannot persist vault without vault information');
+      throw new Error(
+        'KeyringController - Cannot persist vault without vault information',
+      );
     }
 
     this.store.updateState({ vault });
@@ -801,7 +805,9 @@ class KeyringController extends EventEmitter {
   ): Promise<ExtendedKeyring[]> {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
-      throw new Error('Cannot unlock without a previous vault.');
+      throw new Error(
+        'KeyringController - Cannot unlock without a previous vault.',
+      );
     }
 
     await this.#clearKeyrings();
@@ -825,7 +831,9 @@ class KeyringController extends EventEmitter {
         const parsedEncryptedVault = JSON.parse(encryptedVault);
 
         if (encryptionSalt !== parsedEncryptedVault.salt) {
-          throw new Error('Encryption key and salt provided are expired');
+          throw new Error(
+            'KeyringController - Encryption key and salt provided are expired',
+          );
         }
 
         if (typeof encryptionKey !== 'string') {
@@ -847,7 +855,7 @@ class KeyringController extends EventEmitter {
     } else {
       if (typeof password !== 'string') {
         throw new TypeError(
-          'KeyringController: password must be of type string',
+          'KeyringControlle - password must be of type string',
         );
       }
 
@@ -959,7 +967,7 @@ class KeyringController extends EventEmitter {
       errorInfo = 'There are keyrings, but none match the address';
     }
     throw new Error(
-      `No keyring found for the requested account. Error info: ${errorInfo}`,
+      `KeyringController - No keyring found for the requested account. Error info: ${errorInfo}`,
     );
   }
 
