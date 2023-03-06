@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [10.0.1]
+### Fixed
+- Save encryption salt when `persistAllKeyrings` yields a new encryption key ([#203](https://github.com/MetaMask/KeyringController/pull/203))
+
 ## [10.0.0]
 ### Changed
 - **BREAKING:** Update module name to use `@metamask` scope ([#187](https://github.com/MetaMask/KeyringController/pull/187))
@@ -94,7 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v10.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v10.0.1...HEAD
+[10.0.1]: https://github.com/MetaMask/KeyringController/compare/v10.0.0...v10.0.1
 [10.0.0]: https://github.com/MetaMask/KeyringController/compare/v9.0.0...v10.0.0
 [9.0.0]: https://github.com/MetaMask/KeyringController/compare/v8.1.0...v9.0.0
 [8.1.0]: https://github.com/MetaMask/KeyringController/compare/v8.0.1...v8.1.0
