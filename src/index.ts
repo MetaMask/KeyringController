@@ -1,3 +1,5 @@
 export * from './KeyringController';
 
-export type { KeyringType, MessageParams } from './types';
+export { KeyringType } from './constants';
+
+export type { MessageParams } from './types';

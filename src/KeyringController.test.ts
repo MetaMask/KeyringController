@@ -579,7 +579,7 @@ describe('KeyringController', () => {
         keyringController.getKeyringForAccount(undefined as any),
       ).rejects.toThrow(
         new Error(
-          'No keyring found for the requested account. Error info: The address passed in is invalid/empty',
+          'KeyringController - No keyring found for the requested account. Error info: The address passed in is invalid/empty',
         ),
       );
     });
@@ -590,7 +590,7 @@ describe('KeyringController', () => {
         keyringController.getKeyringForAccount('0x04'),
       ).rejects.toThrow(
         new Error(
-          'No keyring found for the requested account. Error info: There are no keyrings',
+          'KeyringController - No keyring found for the requested account. Error info: There are no keyrings',
         ),
       );
     });
@@ -608,7 +608,7 @@ describe('KeyringController', () => {
         keyringController.getKeyringForAccount('0x04'),
       ).rejects.toThrow(
         new Error(
-          'No keyring found for the requested account. Error info: There are keyrings, but none match the address',
+          'KeyringController - No keyring found for the requested account. Error info: There are keyrings, but none match the address',
         ),
       );
     });
