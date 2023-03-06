@@ -189,7 +189,7 @@ describe('KeyringController', () => {
           12 as any,
           walletTwoSeedWords,
         ),
-      ).rejects.toThrow('Password must be text.');
+      ).rejects.toThrow('KeyringController - Password must be of type string.');
     });
 
     it('throws error if mnemonic passed is invalid', async function () {
