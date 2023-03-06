@@ -7,9 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [10.0.1]
-### Uncategorized
-- fix keeping the wallet unlocked on sw restart after onboarding ([#203](https://github.com/MetaMask/KeyringController/pull/203))
-- Bump http-cache-semantics from 4.1.0 to 4.1.1 ([#197](https://github.com/MetaMask/KeyringController/pull/197))
+### Changed
+- Save encryption salt when `persistAllKeyrings` yields a new encryption key ([#203](https://github.com/MetaMask/KeyringController/pull/203))
 
 ## [10.0.0]
 ### Changed
