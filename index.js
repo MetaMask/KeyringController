@@ -599,8 +599,12 @@ class KeyringController extends EventEmitter {
     // Not calling _updateMemStoreKeyrings results in the wrong account being selected
     // in the extension.
     await this._updateMemStoreKeyrings();
+
     if (newEncryptionKey) {
-      this.memStore.updateState({ encryptionKey: newEncryptionKey });
+      this.memStore.updateState({
+        encryptionKey: newEncryptionKey,
+        encryptionSalt: JSON.parse(vault).salt,
+      });
     }
 
     return true;

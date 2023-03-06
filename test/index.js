@@ -5,10 +5,13 @@ const Wallet = require('ethereumjs-wallet').default;
 const sinon = require('sinon');
 
 const { KeyringController, keyringBuilderFactory } = require('..');
-const mockEncryptor = require('./lib/mock-encryptor');
+const {
+  mockEncryptor,
+  PASSWORD,
+  MOCK_HARDCODED_KEY,
+  MOCK_HEX,
+} = require('./lib/mock-encryptor');
 const { KeyringMockWithInit } = require('./lib/mock-keyring');
-
-const password = 'password123';
 
 const MOCK_ENCRYPTION_KEY =
   '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
@@ -39,8 +42,8 @@ describe('KeyringController', function () {
       keyringBuilders: [keyringBuilderFactory(KeyringMockWithInit)],
     });
 
-    await keyringController.createNewVaultAndKeychain(password);
-    await keyringController.submitPassword(password);
+    await keyringController.createNewVaultAndKeychain(PASSWORD);
+    await keyringController.submitPassword(PASSWORD);
   });
 
   afterEach(function () {
@@ -74,14 +77,14 @@ describe('KeyringController', function () {
 
   describe('submitPassword', function () {
     it('should not load keyrings when incorrect password', async function () {
-      await keyringController.createNewVaultAndKeychain(password);
+      await keyringController.createNewVaultAndKeychain(PASSWORD);
       await keyringController.persistAllKeyrings();
       expect(keyringController.keyrings).toHaveLength(1);
 
       await keyringController.setLocked();
 
       await expect(
-        keyringController.submitPassword(`${password}a`),
+        keyringController.submitPassword(`${PASSWORD}a`),
       ).rejects.toThrow('Incorrect password.');
       expect(keyringController.password).toBeUndefined();
       expect(keyringController.keyrings).toHaveLength(0);
@@ -93,7 +96,7 @@ describe('KeyringController', function () {
       const spy = sinon.spy();
       keyringController.on('unlock', spy);
 
-      await keyringController.submitPassword(password);
+      await keyringController.submitPassword(PASSWORD);
       expect(spy.calledOnce).toBe(true);
     });
   });
@@ -105,9 +108,80 @@ describe('KeyringController', function () {
       await keyringController.persistAllKeyrings();
 
       const { vault } = keyringController.store.getState();
-      const keyrings = await mockEncryptor.decrypt(password, vault);
+      const keyrings = await mockEncryptor.decrypt(PASSWORD, vault);
       expect(keyrings.indexOf(unsupportedKeyring) > -1).toBe(true);
       expect(keyrings).toHaveLength(2);
+    });
+
+    describe('when `cacheEncryptionKey` is enabled', function () {
+      it('should save an up to date encryption salt to the `memStore` when `password` is unset and `encryptionKey` is set', async function () {
+        keyringController.password = undefined;
+        keyringController.cacheEncryptionKey = true;
+        const vaultEncryptionKey = '🔑';
+        const vaultEncryptionSalt = '🧂';
+        const vault = JSON.stringify({ salt: vaultEncryptionSalt });
+        keyringController.store.updateState({ vault });
+
+        expect(keyringController.memStore.getState().encryptionKey).toBeNull();
+        expect(
+          keyringController.memStore.getState().encryptionSalt,
+        ).toBeUndefined();
+
+        await keyringController.unlockKeyrings(
+          undefined,
+          vaultEncryptionKey,
+          vaultEncryptionSalt,
+        );
+
+        expect(keyringController.memStore.getState().encryptionKey).toBe(
+          vaultEncryptionKey,
+        );
+        expect(keyringController.memStore.getState().encryptionSalt).toBe(
+          vaultEncryptionSalt,
+        );
+
+        const response = await keyringController.persistAllKeyrings();
+
+        expect(response).toBe(true);
+        expect(keyringController.memStore.getState().encryptionKey).toBe(
+          vaultEncryptionKey,
+        );
+        expect(keyringController.memStore.getState().encryptionSalt).toBe(
+          vaultEncryptionSalt,
+        );
+      });
+
+      it('should save an up to date encryption salt to the `memStore` when `password` is set through `createNewVaultAndKeychain`', async function () {
+        keyringController.cacheEncryptionKey = true;
+
+        await keyringController.createNewVaultAndKeychain(PASSWORD);
+
+        const response = await keyringController.persistAllKeyrings();
+
+        expect(response).toBe(true);
+        expect(keyringController.memStore.getState().encryptionKey).toBe(
+          MOCK_HARDCODED_KEY,
+        );
+        expect(keyringController.memStore.getState().encryptionSalt).toBe(
+          MOCK_HEX,
+        );
+      });
+
+      it('should save an up to date encryption salt to the `memStore` when `password` is set through `submitPassword`', async function () {
+        keyringController.cacheEncryptionKey = true;
+
+        await keyringController.submitPassword(PASSWORD);
+
+        const response = await keyringController.persistAllKeyrings();
+
+        expect(response).toBe(true);
+        expect(keyringController.memStore.getState().encryptionKey).toBe(
+          MOCK_HARDCODED_KEY,
+        );
+        expect(keyringController.memStore.getState().encryptionSalt).toBe(
+          MOCK_HEX,
+        );
+      });
     });
   });
 
@@ -117,7 +191,7 @@ describe('KeyringController', function () {
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
       const newVault = await keyringController.createNewVaultAndKeychain(
-        password,
+        PASSWORD,
       );
       const { vault } = keyringController.store.getState();
       expect(vault).toStrictEqual(expect.stringMatching('.+'));
@@ -128,7 +202,7 @@ describe('KeyringController', function () {
       keyringController.store.updateState({ vault: null });
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
-      await keyringController.createNewVaultAndKeychain(password);
+      await keyringController.createNewVaultAndKeychain(PASSWORD);
       const { isUnlocked } = keyringController.memStore.getState();
       expect(isUnlocked).toBe(true);
     });
@@ -137,12 +211,12 @@ describe('KeyringController', function () {
       keyringController.store.updateState({ vault: null });
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
-      await keyringController.createNewVaultAndKeychain(password);
+      await keyringController.createNewVaultAndKeychain(PASSWORD);
       const { vault } = keyringController.store.getState();
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(vault).toBeTruthy();
       keyringController.encryptor.encrypt.args.forEach(([actualPassword]) => {
-        expect(actualPassword).toBe(password);
+        expect(actualPassword).toBe(PASSWORD);
       });
     });
 
@@ -152,8 +226,24 @@ describe('KeyringController', function () {
         .mockImplementation(() => Promise.resolve([]));
 
       await expect(() =>
-        keyringController.createNewVaultAndKeychain(password),
+        keyringController.createNewVaultAndKeychain(PASSWORD),
       ).rejects.toThrow('KeyringController - No account found on keychain.');
+    });
+
+    describe('when `cacheEncryptionKey` is enabled', () => {
+      it('should add an `encryptionSalt` to the `memStore` when a new vault is created', async function () {
+        keyringController.cacheEncryptionKey = true;
+
+        const initialMemStore = keyringController.memStore.getState();
+        await keyringController.createNewVaultAndKeychain(PASSWORD);
+        const finalMemStore = keyringController.memStore.getState();
+
+        expect(initialMemStore.encryptionKey).toBeNull();
+        expect(initialMemStore.encryptionSalt).toBeUndefined();
+
+        expect(finalMemStore.encryptionKey).toBe(MOCK_HARDCODED_KEY);
+        expect(finalMemStore.encryptionSalt).toBe(MOCK_HEX);
+      });
     });
   });
 
@@ -167,7 +257,7 @@ describe('KeyringController', function () {
       expect(allAccounts).toHaveLength(2);
 
       await keyringController.createNewVaultAndRestore(
-        password,
+        PASSWORD,
         walletOneSeedWords,
       );
 
@@ -185,7 +275,7 @@ describe('KeyringController', function () {
     it('throws error if mnemonic passed is invalid', async function () {
       await expect(() =>
         keyringController.createNewVaultAndRestore(
-          password,
+          PASSWORD,
           'test test test palace city barely security section midnight wealth south deer',
         ),
       ).rejects.toThrow(
@@ -193,7 +283,7 @@ describe('KeyringController', function () {
       );
 
       await expect(() =>
-        keyringController.createNewVaultAndRestore(password, 1234),
+        keyringController.createNewVaultAndRestore(PASSWORD, 1234),
       ).rejects.toThrow(
         'Eth-Hd-Keyring: Invalid secret recovery phrase provided',
       );
@@ -207,7 +297,7 @@ describe('KeyringController', function () {
       );
 
       await keyringController.createNewVaultAndRestore(
-        password,
+        PASSWORD,
         mnemonicAsArrayOfNumbers,
       );
 
@@ -223,10 +313,29 @@ describe('KeyringController', function () {
 
       await expect(() =>
         keyringController.createNewVaultAndRestore(
-          password,
+          PASSWORD,
           walletTwoSeedWords,
         ),
       ).rejects.toThrow('KeyringController - First Account not found.');
+    });
+
+    describe('when `cacheEncryptionKey` is enabled', () => {
+      it('should add an `encryptionSalt` to the `memStore` when a vault is restored', async function () {
+        keyringController.cacheEncryptionKey = true;
+
+        const initialMemStore = keyringController.memStore.getState();
+        await keyringController.createNewVaultAndRestore(
+          PASSWORD,
+          walletOneSeedWords,
+        );
+        const finalMemStore = keyringController.memStore.getState();
+
+        expect(initialMemStore.encryptionKey).toBeNull();
+        expect(initialMemStore.encryptionSalt).toBeUndefined();
+
+        expect(finalMemStore.encryptionKey).toBe(MOCK_HARDCODED_KEY);
+        expect(finalMemStore.encryptionSalt).toBe(MOCK_HEX);
+      });
     });
   });
 
@@ -429,7 +538,7 @@ describe('KeyringController', function () {
   describe('unlockKeyrings', function () {
     it('returns the list of keyrings', async function () {
       await keyringController.setLocked();
-      const keyrings = await keyringController.unlockKeyrings(password);
+      const keyrings = await keyringController.unlockKeyrings(PASSWORD);
       expect(keyrings).toHaveLength(1);
       await Promise.all(
         keyrings.map(async (keyring) => {
@@ -441,9 +550,9 @@ describe('KeyringController', function () {
 
     it('add serialized keyring to _unsupportedKeyrings array if keyring type is not known', async function () {
       const _unsupportedKeyrings = [{ type: 'Ledger Keyring', data: 'DUMMY' }];
-      mockEncryptor.encrypt(password, _unsupportedKeyrings);
+      mockEncryptor.encrypt(PASSWORD, _unsupportedKeyrings);
       await keyringController.setLocked();
-      const keyrings = await keyringController.unlockKeyrings(password);
+      const keyrings = await keyringController.unlockKeyrings(PASSWORD);
       expect(keyrings).toHaveLength(0);
       expect(keyringController._unsupportedKeyrings).toStrictEqual(
         _unsupportedKeyrings,
@@ -466,12 +575,12 @@ describe('KeyringController', function () {
 
     it('does not throw if a vault exists in state', async () => {
       await keyringController.createNewVaultAndRestore(
-        password,
+        PASSWORD,
         walletOneSeedWords,
       );
 
       await expect(() =>
-        keyringController.verifyPassword(password),
+        keyringController.verifyPassword(PASSWORD),
       ).not.toThrow();
     });
   });
@@ -610,9 +719,9 @@ describe('KeyringController', function () {
   describe('cacheEncryptionKey', function () {
     it('sets encryption key data upon submitPassword', async function () {
       keyringController.cacheEncryptionKey = true;
-      await keyringController.submitPassword(password);
+      await keyringController.submitPassword(PASSWORD);
 
-      expect(keyringController.password).toBe(password);
+      expect(keyringController.password).toBe(PASSWORD);
       expect(keyringController.memStore.getState().encryptionSalt).toBe('SALT');
       expect(keyringController.memStore.getState().encryptionKey).toStrictEqual(
         expect.stringMatching('.+'),
@@ -710,8 +819,8 @@ describe('KeyringController', function () {
 
     it('cleans up login artifacts upon lock', async function () {
       keyringController.cacheEncryptionKey = true;
-      await keyringController.submitPassword(password);
-      expect(keyringController.password).toBe(password);
+      await keyringController.submitPassword(PASSWORD);
+      expect(keyringController.password).toBe(PASSWORD);
       expect(
         keyringController.memStore.getState().encryptionSalt,
       ).toStrictEqual(expect.stringMatching('.+'));
@@ -731,7 +840,7 @@ describe('KeyringController', function () {
   describe('exportAccount', function () {
     it('returns the private key for the public key it is passed', async () => {
       await keyringController.createNewVaultAndRestore(
-        password,
+        PASSWORD,
         walletOneSeedWords,
       );
       const privateKey = await keyringController.exportAccount(
@@ -744,7 +853,7 @@ describe('KeyringController', function () {
   describe('signing methods', function () {
     beforeEach(async () => {
       await keyringController.createNewVaultAndRestore(
-        password,
+        PASSWORD,
         walletOneSeedWords,
       );
     });
