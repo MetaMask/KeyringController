@@ -786,7 +786,10 @@ class KeyringController extends EventEmitter {
     // in the extension.
     await this.#updateMemStoreKeyrings();
     if (newEncryptionKey) {
-      this.memStore.updateState({ encryptionKey: newEncryptionKey });
+      this.memStore.updateState({
+        encryptionKey: newEncryptionKey,
+        encryptionSalt: JSON.parse(vault).salt,
+      });
     }
 
     return true;
