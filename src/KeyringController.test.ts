@@ -1,6 +1,6 @@
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
-import type { Hex, KeyringClass } from '@metamask/utils';
+import type { Hex, Keyring, KeyringClass } from '@metamask/utils';
 import { strict as assert } from 'assert';
 import Wallet from 'ethereumjs-wallet';
 import { restore, spy, stub, assert as sinonAssert } from 'sinon';
@@ -8,7 +8,7 @@ import { restore, spy, stub, assert as sinonAssert } from 'sinon';
 import { KeyringController, keyringBuilderFactory } from '.';
 import { KeyringType } from './constants';
 import { mockEncryptor, KeyringMockWithInit } from './mocks';
-import { ExtendedKeyring } from './types';
+import { State } from './types';
 
 const password = 'password123';
 
@@ -367,12 +367,12 @@ describe('KeyringController', () => {
           async getAccounts() {
             return Promise.resolve([1, 2, 3]);
           },
-        } as unknown as ExtendedKeyring,
+        } as unknown as Keyring<State>,
         {
           async getAccounts() {
             return Promise.resolve([4, 5, 6]);
           },
-        } as unknown as ExtendedKeyring,
+        } as unknown as Keyring<State>,
       ];
 
       const result = await keyringController.getAccounts();
@@ -510,7 +510,7 @@ describe('KeyringController', () => {
       const initialAccounts = await HDKeyring?.getAccounts();
       expect(initialAccounts).toHaveLength(1);
 
-      await keyringController.addNewAccount(HDKeyring as ExtendedKeyring);
+      await keyringController.addNewAccount(HDKeyring as Keyring<State>);
       const accountsAfterAdd = await HDKeyring?.getAccounts();
       expect(accountsAfterAdd).toHaveLength(2);
     });
@@ -601,7 +601,7 @@ describe('KeyringController', () => {
           async getAccounts() {
             return Promise.resolve([1, 2, 3]);
           },
-        } as unknown as ExtendedKeyring,
+        } as unknown as Keyring<State>,
       ];
 
       await expect(
@@ -688,10 +688,10 @@ describe('KeyringController', () => {
 
       const [firstKeyring] = keyringController.keyrings;
 
-      await keyringController.addNewAccount(firstKeyring as ExtendedKeyring);
+      await keyringController.addNewAccount(firstKeyring as Keyring<State>);
       expect(await keyringController.getAccounts()).toHaveLength(2);
 
-      await keyringController.addNewAccount(firstKeyring as ExtendedKeyring);
+      await keyringController.addNewAccount(firstKeyring as Keyring<State>);
       expect(await keyringController.getAccounts()).toHaveLength(3);
 
       const account = {

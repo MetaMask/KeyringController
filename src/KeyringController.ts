@@ -1,3 +1,4 @@
+import type { TypedTransaction, TxData } from '@ethereumjs/tx';
 import encryptor from '@metamask/browser-passworder';
 import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
@@ -8,8 +9,6 @@ import type {
   Bytes,
   Keyring,
   KeyringClass,
-  Transaction,
-  SignedTransaction,
   Eip1024EncryptedData,
 } from '@metamask/utils';
 // TODO: Stop using `events`, and remove the notice about this from the README
@@ -18,7 +17,7 @@ import { EventEmitter } from 'events';
 import ObservableStore from 'obs-store';
 
 import { HEX_PREFIX, KeyringType } from './constants';
-import { State, MessageParams, ExtendedKeyring } from './types';
+import { State, MessageParams } from './types';
 
 const defaultKeyringBuilders = [
   keyringBuilderFactory(SimpleKeyring),
@@ -47,7 +46,7 @@ class KeyringController extends EventEmitter {
 
   public encryptor: any;
 
-  public keyrings: ExtendedKeyring[];
+  public keyrings: Keyring<State>[];
 
   public cacheEncryptionKey: boolean;
 
@@ -275,6 +274,12 @@ class KeyringController extends EventEmitter {
     }
 
     if (!opts?.mnemonic && type === KeyringType.HD) {
+      if (!keyring.generateRandomMnemonic) {
+        throw new Error(
+          `KeyringController - The current keyring does not support the method generateRandomMnemonic.`,
+        );
+      }
+
       keyring.generateRandomMnemonic();
       await keyring.addAccounts(1);
     }
@@ -297,14 +302,14 @@ class KeyringController extends EventEmitter {
    * (usually after removing the last / only account) from a keyring.
    */
   async removeEmptyKeyrings(): Promise<void> {
-    const validKeyrings: ExtendedKeyring[] = [];
+    const validKeyrings: Keyring<State>[] = [];
 
     // Since getAccounts returns a Promise
     // We need to wait to hear back form each keyring
     // in order to decide which ones are now valid (accounts.length > 0)
 
     await Promise.all(
-      this.keyrings.map(async (keyring: ExtendedKeyring) => {
+      this.keyrings.map(async (keyring: Keyring<State>) => {
         const accounts = await keyring.getAccounts();
         if (accounts.length > 0) {
           validKeyrings.push(keyring);
@@ -442,10 +447,10 @@ class KeyringController extends EventEmitter {
    * @returns The signed transaction object.
    */
   async signTransaction(
-    ethTx: Transaction,
+    ethTx: TypedTransaction,
     _address: string | Hex,
     opts: Record<string, unknown> = {},
-  ): Promise<SignedTransaction> {
+  ): Promise<TxData> {
     const address = normalizeAddress(_address) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signTransaction) {
@@ -638,7 +643,7 @@ class KeyringController extends EventEmitter {
    * @param serialized - The serialized keyring.
    * @returns The deserialized keyring.
    */
-  async restoreKeyring(serialized: any): Promise<ExtendedKeyring | undefined> {
+  async restoreKeyring(serialized: any): Promise<Keyring<State> | undefined> {
     const keyring = await this.#restoreKeyring(serialized);
     if (keyring) {
       await this.#updateMemStoreKeyrings();
@@ -654,7 +659,7 @@ class KeyringController extends EventEmitter {
    * @param type - The keyring types to retrieve.
    * @returns Keyrings matching the specified type.
    */
-  getKeyringsByType(type: KeyringType): ExtendedKeyring[] {
+  getKeyringsByType(type: KeyringType): Keyring<State>[] {
     return this.keyrings.filter((keyring) => keyring.type === type);
   }
 
@@ -802,7 +807,7 @@ class KeyringController extends EventEmitter {
     password: string | undefined,
     encryptionKey?: string,
     encryptionSalt?: string,
-  ): Promise<ExtendedKeyring[]> {
+  ): Promise<Keyring<State>[]> {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
       throw new Error(
@@ -877,7 +882,7 @@ class KeyringController extends EventEmitter {
    * @param serialized - The serialized keyring.
    * @returns The deserialized keyring or undefined if the keyring type is unsupported.
    */
-  async #restoreKeyring(serialized: any): Promise<ExtendedKeyring | undefined> {
+  async #restoreKeyring(serialized: any): Promise<Keyring<State> | undefined> {
     const { type, data } = serialized;
 
     const keyring = await this.#newKeyring(type, data);
@@ -939,7 +944,7 @@ class KeyringController extends EventEmitter {
    * @param address - An account address.
    * @returns The keyring of the account, if it exists.
    */
-  async getKeyringForAccount(address: string): Promise<ExtendedKeyring> {
+  async getKeyringForAccount(address: string): Promise<Keyring<State>> {
     const hexed = normalizeAddress(address);
 
     const candidates = await Promise.all(
@@ -980,7 +985,7 @@ class KeyringController extends EventEmitter {
    * @returns A keyring display object, with type and accounts properties.
    */
   async #displayForKeyring(
-    keyring: ExtendedKeyring,
+    keyring: Keyring<State>,
   ): Promise<{ type: string; accounts: string[] }> {
     const accounts = await keyring.getAccounts();
 
@@ -1025,7 +1030,7 @@ class KeyringController extends EventEmitter {
    * @param data - The data to restore a previously serialized keyring.
    * @returns The new keyring.
    */
-  async #newKeyring(type: string, data: any): Promise<ExtendedKeyring | void> {
+  async #newKeyring(type: string, data: any): Promise<Keyring<State> | void> {
     const keyringBuilder = this.#getKeyringBuilderForType(type);
 
     if (!keyringBuilder) {
