@@ -34,11 +34,12 @@
     "test": "jest"
   },
   "dependencies": {
+    "@ethereumjs/tx": "^4.1.1",
     "@metamask/browser-passworder": "^4.0.2",
     "@metamask/eth-hd-keyring": "^6.0.0",
     "@metamask/eth-sig-util": "5.0.2",
     "@metamask/eth-simple-keyring": "^5.0.0",
-    "@metamask/utils": "4.0.0",
+    "@metamask/utils": "5.0.0",
     "obs-store": "^4.0.3"
   },
   "devDependencies": {
