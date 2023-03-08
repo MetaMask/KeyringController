@@ -110,7 +110,7 @@ describe('KeyringController', () => {
 
   describe('persistAllKeyrings', function () {
     it('should persist keyrings in _unsupportedKeyrings array', async function () {
-      const unsupportedKeyring = 'DUMMY_KEYRING';
+      const unsupportedKeyring = { type: 'DUMMY_KEYRING', data: {} };
       keyringController.unsupportedKeyrings = [unsupportedKeyring];
       await keyringController.persistAllKeyrings();
 

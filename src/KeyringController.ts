@@ -50,7 +50,7 @@ class KeyringController extends EventEmitter {
 
   public cacheEncryptionKey: boolean;
 
-  public unsupportedKeyrings: any[];
+  public unsupportedKeyrings: { type: string; data: Json }[];
 
   public password?: string | undefined;
 
