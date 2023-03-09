@@ -8,10 +8,11 @@ export type MessageParams = {
 };
 
 export type KeyringControllerArgs = {
-  initState: State;
   keyringBuilders:
     | { (): Keyring<Json>; type: string }
     | ConcatArray<{ (): Keyring<Json>; type: string }>;
-  encryptor: any;
+
   cacheEncryptionKey: boolean;
+  initState?: State;
+  encryptor?: any;
 };
