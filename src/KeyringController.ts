@@ -337,7 +337,7 @@ class KeyringController extends EventEmitter {
       case KeyringType.Simple: {
         const isIncluded = Boolean(
           accounts.find(
-            (key: string) =>
+            (key) =>
               key === newAccountArray[0] ||
               key === stripHexPrefix(newAccountArray[0] as string),
           ),
