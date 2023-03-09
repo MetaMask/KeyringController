@@ -404,7 +404,7 @@ class KeyringController extends EventEmitter {
       );
     }
 
-    return await keyring.exportAccount(normalizeAddress(address) as Hex);
+    return await keyring.exportAccount(normalizeAddress(address));
   }
 
   /**
@@ -458,7 +458,7 @@ class KeyringController extends EventEmitter {
     rawAddress: string | Hex,
     opts: Record<string, unknown> = {},
   ): Promise<TxData> {
-    const address = normalizeAddress(rawAddress) as Hex;
+    const address = normalizeAddress(rawAddress);
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signTransaction) {
       throw new Error(
@@ -482,7 +482,7 @@ class KeyringController extends EventEmitter {
     msgParams: MessageParams,
     opts: Record<string, unknown> = {},
   ) {
-    const address = normalizeAddress(msgParams.from) as Hex;
+    const address = normalizeAddress(msgParams.from);
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signMessage) {
       throw new Error(
@@ -507,7 +507,7 @@ class KeyringController extends EventEmitter {
     msgParams: MessageParams,
     opts: Record<string, unknown> = {},
   ): Promise<string> {
-    const address = normalizeAddress(msgParams.from) as Hex;
+    const address = normalizeAddress(msgParams.from);
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signPersonalMessage) {
       throw new Error(
@@ -535,7 +535,7 @@ class KeyringController extends EventEmitter {
     address: string | Hex,
     opts: Record<string, unknown> = {},
   ): Promise<Bytes> {
-    const normalizedAddress = normalizeAddress(address) as Hex;
+    const normalizedAddress = normalizeAddress(address);
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.getEncryptionPublicKey) {
       throw new Error(
@@ -555,7 +555,7 @@ class KeyringController extends EventEmitter {
    * @returns The raw decryption result.
    */
   async decryptMessage(msgParams: MessageParams): Promise<Bytes> {
-    const address = normalizeAddress(msgParams.from) as Hex;
+    const address = normalizeAddress(msgParams.from);
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.decryptMessage) {
       throw new Error(
@@ -581,7 +581,7 @@ class KeyringController extends EventEmitter {
     msgParams: MessageParams,
     opts = { version: 'V1' },
   ): Promise<Bytes> {
-    const address = normalizeAddress(msgParams.from) as Hex;
+    const address = normalizeAddress(msgParams.from);
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signTypedData) {
       throw new Error(
@@ -604,7 +604,7 @@ class KeyringController extends EventEmitter {
    * @returns The app key address.
    */
   async getAppKeyAddress(rawAddress: string, origin: string): Promise<string> {
-    const address = normalizeAddress(rawAddress) as Hex;
+    const address = normalizeAddress(rawAddress);
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.getAppKeyAddress) {
       throw new Error(
@@ -626,7 +626,7 @@ class KeyringController extends EventEmitter {
     rawAddress: string,
     origin: string,
   ): Promise<string> {
-    const address = normalizeAddress(rawAddress) as Hex;
+    const address = normalizeAddress(rawAddress);
     const keyring = await this.getKeyringForAccount(address);
     // The "in" operator is typically restricted because it also checks inherited properties,
     // which can be unexpected for plain objects. We're allowing it here because `keyring` is not
