@@ -16,3 +16,9 @@ export type KeyringControllerArgs = {
   initState?: State;
   encryptor?: any;
 };
+
+export type SerializedKeyring = {
+  type: string;
+  data: Json;
+};
+

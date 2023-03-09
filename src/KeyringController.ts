@@ -17,7 +17,12 @@ import { EventEmitter } from 'events';
 import ObservableStore from 'obs-store';
 
 import { HEX_PREFIX, KeyringType } from './constants';
-import { State, MessageParams, KeyringControllerArgs } from './types';
+import {
+  State,
+  MessageParams,
+  SerializedKeyring,
+  KeyringControllerArgs,
+} from './types';
 
 const defaultKeyringBuilders = [
   keyringBuilderFactory(SimpleKeyring),
@@ -50,7 +55,7 @@ class KeyringController extends EventEmitter {
 
   public cacheEncryptionKey: boolean;
 
-  public unsupportedKeyrings: { type: string; data: Json }[];
+  public unsupportedKeyrings: SerializedKeyring[];
 
   public password?: string | undefined;
 
@@ -650,7 +655,9 @@ class KeyringController extends EventEmitter {
    * @param serialized - The serialized keyring.
    * @returns The deserialized keyring.
    */
-  async restoreKeyring(serialized: any): Promise<Keyring<State> | undefined> {
+  async restoreKeyring(
+    serialized: SerializedKeyring,
+  ): Promise<Keyring<State> | undefined> {
     const keyring = await this.#restoreKeyring(serialized);
     if (keyring) {
       await this.#updateMemStoreKeyrings();
@@ -894,10 +901,9 @@ class KeyringController extends EventEmitter {
    * @param serialized.data - Keyring data.
    * @returns The deserialized keyring or undefined if the keyring type is unsupported.
    */
-  async #restoreKeyring(serialized: {
-    type: KeyringType;
-    data: Json;
-  }): Promise<Keyring<State> | undefined> {
+  async #restoreKeyring(
+    serialized: SerializedKeyring,
+  ): Promise<Keyring<State> | undefined> {
     const { type, data } = serialized;
 
     let keyring: Keyring<State> | undefined;
