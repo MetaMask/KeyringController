@@ -17,7 +17,7 @@ import { EventEmitter } from 'events';
 import ObservableStore from 'obs-store';
 
 import { HEX_PREFIX, KeyringType } from './constants';
-import { State, MessageParams } from './types';
+import { State, MessageParams, KeyringControllerArgs } from './types';
 
 const defaultKeyringBuilders = [
   keyringBuilderFactory(SimpleKeyring),
@@ -54,9 +54,9 @@ class KeyringController extends EventEmitter {
 
   public password?: string | undefined;
 
-  constructor(opts: any) {
+  constructor(opts: KeyringControllerArgs) {
     super();
-    const initState = opts.initState || {};
+    const initState = opts.initState ?? {};
     this.keyringBuilders = opts.keyringBuilders
       ? defaultKeyringBuilders.concat(opts.keyringBuilders)
       : defaultKeyringBuilders;
