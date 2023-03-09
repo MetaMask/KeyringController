@@ -266,10 +266,15 @@ class KeyringController extends EventEmitter {
     type: string,
     opts: Record<string, unknown> = {},
   ): Promise<Keyring<State>> {
-    const keyring = await this.#newKeyring(
-      type,
-      type === KeyringType.Simple && opts.privateKeys ? opts.privateKeys : opts,
-    );
+    let keyring: Keyring<State>;
+    switch (type) {
+      case KeyringType.Simple:
+        keyring = await this.#newKeyring(type, opts.privateKeys);
+        break;
+      default:
+        keyring = await this.#newKeyring(type, opts);
+        break;
+    }
 
     if (!keyring) {
       throw new Error('KeyringController - No keyring found');
