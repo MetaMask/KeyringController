@@ -895,7 +895,7 @@ class KeyringController extends EventEmitter {
    * @returns The deserialized keyring or undefined if the keyring type is unsupported.
    */
   async #restoreKeyring(serialized: {
-    type: KeyringType.HD;
+    type: KeyringType;
     data: Json;
   }): Promise<Keyring<State> | undefined> {
     const { type, data } = serialized;
