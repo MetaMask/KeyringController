@@ -42,6 +42,7 @@ describe('KeyringController', () => {
   beforeEach(async () => {
     keyringController = new KeyringController({
       encryptor: mockEncryptor,
+      cacheEncryptionKey: false,
       keyringBuilders: [
         keyringBuilderFactory(
           KeyringMockWithInit as unknown as KeyringClass<any>,
@@ -115,8 +116,11 @@ describe('KeyringController', () => {
       await keyringController.persistAllKeyrings();
 
       const { vault } = keyringController.store.getState();
-      const keyrings = await mockEncryptor.decrypt(PASSWORD, vault);
-      expect(keyrings.indexOf(unsupportedKeyring) > -1).toBe(true);
+      const keyrings = (await mockEncryptor.decrypt(PASSWORD, vault)) as {
+        type: string;
+        data: State;
+      }[];
+      expect(keyrings).toContain(unsupportedKeyring);
       expect(keyrings).toHaveLength(2);
     });
 
@@ -592,7 +596,13 @@ describe('KeyringController', () => {
   describe('verifyPassword', () => {
     beforeEach(() => {
       keyringController = new KeyringController({
+        keyringBuilders: [
+          keyringBuilderFactory(
+            KeyringMockWithInit as unknown as KeyringClass<any>,
+          ),
+        ],
         encryptor: mockEncryptor,
+        cacheEncryptionKey: false,
       });
     });
 
