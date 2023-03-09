@@ -260,20 +260,18 @@ class KeyringController extends EventEmitter {
    */
   async addNewKeyring(
     type: string,
-    opts?: Record<string, unknown>,
+    opts: Record<string, unknown> = {},
   ): Promise<Keyring<State>> {
     const keyring = await this.#newKeyring(
       type,
-      type === KeyringType.Simple && opts?.privateKeys
-        ? opts?.privateKeys
-        : opts,
+      type === KeyringType.Simple && opts.privateKeys ? opts.privateKeys : opts,
     );
 
     if (!keyring) {
       throw new Error('KeyringController - No keyring found');
     }
 
-    if (!opts?.mnemonic && type === KeyringType.HD) {
+    if (!opts.mnemonic && type === KeyringType.HD) {
       if (!keyring.generateRandomMnemonic) {
         throw new Error(
           `KeyringController - The current keyring does not support the method generateRandomMnemonic.`,
