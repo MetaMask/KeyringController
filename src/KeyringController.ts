@@ -959,7 +959,7 @@ class KeyringController extends EventEmitter {
       return accounts.includes(hexed);
     });
 
-    if (winners?.length && winners?.[0]?.length) {
+    if (winners.length && winners[0]?.length) {
       return winners[0][0];
     }
 
@@ -967,9 +967,9 @@ class KeyringController extends EventEmitter {
     let errorInfo = '';
     if (!address) {
       errorInfo = 'The address passed in is invalid/empty';
-    } else if (!candidates?.length) {
+    } else if (!candidates.length) {
       errorInfo = 'There are no keyrings';
-    } else if (!winners?.length) {
+    } else if (!winners.length) {
       errorInfo = 'There are keyrings, but none match the address';
     }
     throw new Error(
