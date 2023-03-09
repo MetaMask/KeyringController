@@ -1031,7 +1031,7 @@ class KeyringController extends EventEmitter {
    * @param data - The data to restore a previously serialized keyring.
    * @returns The new keyring.
    */
-  async #newKeyring(type: string, data: any): Promise<Keyring<State> | void> {
+  async #newKeyring(type: string, data: State): Promise<Keyring<State> | void> {
     const keyringBuilder = this.#getKeyringBuilderForType(type);
 
     if (!keyringBuilder) {
