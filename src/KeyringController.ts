@@ -1,5 +1,5 @@
 import type { TypedTransaction, TxData } from '@ethereumjs/tx';
-import encryptor from '@metamask/browser-passworder';
+import * as encryptorUtils from '@metamask/browser-passworder';
 import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
@@ -58,7 +58,7 @@ class KeyringController extends EventEmitter {
     keyringBuilders,
     cacheEncryptionKey,
     initState = {},
-    encryptor = encryptorMM,
+    encryptor = encryptorUtils,
   }: KeyringControllerArgs) {
     super();
     this.keyringBuilders = keyringBuilders
