@@ -21,4 +21,3 @@ export type SerializedKeyring = {
   type: string;
   data: Json;
 };
-
