@@ -1,5 +1,7 @@
 import { stub } from 'sinon';
 
+import { State } from '../types';
+
 const PASSWORD = 'password123';
 const MOCK_ENCRYPTION_KEY = JSON.stringify({
   alg: 'A256GCM',
@@ -19,16 +21,16 @@ const MOCK_HEX = '0xabcdef0123456789';
 const MOCK_SALT = 'SALT';
 // eslint-disable-next-line no-restricted-globals
 const MOCK_KEY = Buffer.alloc(32);
-let cacheVal;
+let cacheVal: State;
 
 const mockEncryptor = {
-  encrypt: stub().callsFake(async function (_password, dataObj) {
+  encrypt: stub().callsFake(async (_password, dataObj) => {
     cacheVal = dataObj;
 
     return Promise.resolve(MOCK_HEX);
   }),
 
-  encryptWithDetail: stub().callsFake(async function (_password, dataObj) {
+  encryptWithDetail: stub().callsFake(async (_password, dataObj) => {
     cacheVal = dataObj;
 
     return Promise.resolve({
@@ -37,15 +39,15 @@ const mockEncryptor = {
     });
   }),
 
-  async decrypt(_password, _text) {
+  async decrypt(_password: string, _text: string) {
     if (_password && _password !== PASSWORD) {
       throw new Error(INVALID_PASSWORD_ERROR);
     }
 
-    return Promise.resolve(cacheVal || {});
+    return Promise.resolve(cacheVal ?? {});
   },
 
-  async decryptWithEncryptedKeyString(_keyStr) {
+  async decryptWithEncryptedKeyString(_keyStr: string) {
     const { vault } = await this.decryptWithDetail(_keyStr, 'mock vault');
     return vault;
   },

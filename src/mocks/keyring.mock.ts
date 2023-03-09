@@ -13,7 +13,7 @@ class KeyringMockWithInit {
     return Promise.resolve({});
   }
 
-  async deserialize(_) {
+  async deserialize(_: any) {
     return Promise.resolve();
   }
 }
