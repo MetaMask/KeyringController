@@ -1,5 +1,5 @@
 class KeyringMockWithInit {
-  static type: string;
+  static type = 'Keyring Mock With Init';
 
   async init() {
     return Promise.resolve();
@@ -17,7 +17,5 @@ class KeyringMockWithInit {
     return Promise.resolve();
   }
 }
-
-KeyringMockWithInit.type = 'Keyring Mock With Init';
 
 export default KeyringMockWithInit;
