@@ -54,11 +54,15 @@ class KeyringController extends EventEmitter {
 
   public password?: string | undefined;
 
-  constructor(opts: KeyringControllerArgs) {
+  constructor({
+    keyringBuilders,
+    cacheEncryptionKey,
+    initState = {},
+    encryptor = encryptorMM,
+  }: KeyringControllerArgs) {
     super();
-    const initState = opts.initState ?? {};
-    this.keyringBuilders = opts.keyringBuilders
-      ? defaultKeyringBuilders.concat(opts.keyringBuilders)
+    this.keyringBuilders = keyringBuilders
+      ? defaultKeyringBuilders.concat(keyringBuilders)
       : defaultKeyringBuilders;
     this.store = new ObservableStore(initState);
     this.memStore = new ObservableStore({
@@ -70,13 +74,13 @@ class KeyringController extends EventEmitter {
       encryptionKey: null,
     });
 
-    this.encryptor = opts.encryptor || encryptor;
+    this.encryptor = encryptor;
     this.keyrings = [];
     this.unsupportedKeyrings = [];
 
     // This option allows the controller to cache an exported key
     // for use in decrypting and encrypting data without password
-    this.cacheEncryptionKey = Boolean(opts.cacheEncryptionKey);
+    this.cacheEncryptionKey = Boolean(cacheEncryptionKey);
   }
 
   /**
