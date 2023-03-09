@@ -890,12 +890,23 @@ class KeyringController extends EventEmitter {
    * On success, returns the resulting keyring instance.
    *
    * @param serialized - The serialized keyring.
+   * @param serialized.type - Keyring type.
+   * @param serialized.data - Keyring data.
    * @returns The deserialized keyring or undefined if the keyring type is unsupported.
    */
-  async #restoreKeyring(serialized: any): Promise<Keyring<State> | undefined> {
+  async #restoreKeyring(serialized: {
+    type: KeyringType.HD;
+    data: Json;
+  }): Promise<Keyring<State> | undefined> {
     const { type, data } = serialized;
 
-    const keyring = await this.#newKeyring(type, data);
+    let keyring: Keyring<State> | undefined;
+    try {
+      keyring = await this.#newKeyring(type, data);
+    } catch {
+      // Error
+    }
+
     if (!keyring) {
       this.unsupportedKeyrings.push(serialized);
       return undefined;
@@ -1040,11 +1051,13 @@ class KeyringController extends EventEmitter {
    * @param data - The data to restore a previously serialized keyring.
    * @returns The new keyring.
    */
-  async #newKeyring(type: string, data: State): Promise<Keyring<State> | void> {
+  async #newKeyring(type: string, data: unknown): Promise<Keyring<State>> {
     const keyringBuilder = this.#getKeyringBuilderForType(type);
 
     if (!keyringBuilder) {
-      return undefined;
+      throw new Error(
+        `KeyringController - No keyringBuilder found for keyring of type ${type}`,
+      );
     }
 
     const keyring = keyringBuilder();
