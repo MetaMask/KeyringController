@@ -440,16 +440,16 @@ class KeyringController extends EventEmitter {
    * Signs an Ethereum transaction object.
    *
    * @param ethTx - The transaction to sign.
-   * @param _address - The transaction 'from' address.
+   * @param rawAddress - The transaction 'from' address.
    * @param opts - Signing options.
    * @returns The signed transaction object.
    */
   async signTransaction(
     ethTx: TypedTransaction,
-    _address: string | Hex,
+    rawAddress: string | Hex,
     opts: Record<string, unknown> = {},
   ): Promise<TxData> {
-    const address = normalizeAddress(_address) as Hex;
+    const address = normalizeAddress(rawAddress) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signTransaction) {
       throw new Error(
@@ -590,16 +590,16 @@ class KeyringController extends EventEmitter {
   /**
    * Gets the app key address for the given Ethereum address and origin.
    *
-   * @param _address - The Ethereum address for the app key.
+   * @param rawAddress - The Ethereum address for the app key.
    * @param origin - The origin for the app key.
    * @returns The app key address.
    */
-  async getAppKeyAddress(_address: string, origin: string): Promise<string> {
-    const address = normalizeAddress(_address) as Hex;
+  async getAppKeyAddress(rawAddress: string, origin: string): Promise<string> {
+    const address = normalizeAddress(rawAddress) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.getAppKeyAddress) {
       throw new Error(
-        `KeyringController - The keyring for address ${_address} does not support the method getAppKeyAddress.`,
+        `KeyringController - The keyring for address ${rawAddress} does not support the method getAppKeyAddress.`,
       );
     }
 
@@ -609,15 +609,15 @@ class KeyringController extends EventEmitter {
   /**
    * Exports an app key private key for the given Ethereum address and origin.
    *
-   * @param _address - The Ethereum address for the app key.
+   * @param rawAddress - The Ethereum address for the app key.
    * @param origin - The origin for the app key.
    * @returns The app key private key.
    */
   async exportAppKeyForAddress(
-    _address: string,
+    rawAddress: string,
     origin: string,
   ): Promise<string> {
-    const address = normalizeAddress(_address) as Hex;
+    const address = normalizeAddress(rawAddress) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     // The "in" operator is typically restricted because it also checks inherited properties,
     // which can be unexpected for plain objects. We're allowing it here because `keyring` is not
@@ -625,7 +625,7 @@ class KeyringController extends EventEmitter {
     // eslint-disable-next-line no-restricted-syntax
     if (!keyring.exportAccount) {
       throw new Error(
-        `KeyringController - The keyring for address ${_address} does not support exporting.`,
+        `KeyringController - The keyring for address ${rawAddress} does not support exporting.`,
       );
     }
     return keyring.exportAccount(address, { withAppKeyOrigin: origin });
