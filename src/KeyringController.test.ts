@@ -13,7 +13,7 @@ import {
   PASSWORD,
   MOCK_HARDCODED_KEY,
   MOCK_HEX,
-} from './mocks';
+} from './test';
 import { State } from './types';
 
 const MOCK_ENCRYPTION_KEY =
