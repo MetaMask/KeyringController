@@ -16,7 +16,7 @@ import type {
 import { EventEmitter } from 'events';
 import ObservableStore from 'obs-store';
 
-import { HEX_PREFIX, KeyringType, KeyringControllerError } from './constants';
+import { KeyringType, KeyringControllerError } from './constants';
 import {
   State,
   MessageParams,
@@ -35,12 +35,8 @@ const defaultKeyringBuilders = [
  * @param address - The address that might be hex prefixed.
  * @returns The address without a hex prefix.
  */
-function stripHexPrefix(address: Hex | string): string {
-  if (address.startsWith(HEX_PREFIX)) {
-    return address.slice(2);
-  }
-  return address;
-}
+const stripHexPrefix = (address: Hex | string): string =>
+  parseInt(address, 16).toString(16);
 
 class KeyringController extends EventEmitter {
   keyringBuilders: { (): Keyring<Json>; type: string }[];
