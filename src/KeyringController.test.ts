@@ -6,7 +6,7 @@ import Wallet from 'ethereumjs-wallet';
 import { restore, spy, stub, assert as sinonAssert } from 'sinon';
 
 import { KeyringController, keyringBuilderFactory } from '.';
-import { KeyringType } from './constants';
+import { KeyringType, KeyringControllerError } from './constants';
 import {
   mockEncryptor,
   KeyringMockWithInit,
@@ -240,7 +240,7 @@ describe('KeyringController', () => {
 
       await expect(async () =>
         keyringController.createNewVaultAndKeychain(PASSWORD),
-      ).rejects.toThrow('KeyringController - No account found on keychain.');
+      ).rejects.toThrow(KeyringControllerError.NoAccountOnKeychain);
     });
 
     describe('when `cacheEncryptionKey` is enabled', () => {
@@ -699,7 +699,7 @@ describe('KeyringController', () => {
         keyringController.getKeyringForAccount(undefined as any),
       ).rejects.toThrow(
         new Error(
-          'KeyringController - No keyring found for the requested account. Error info: The address passed in is invalid/empty',
+          `${KeyringControllerError.NoKeyring}. Error info: The address passed in is invalid/empty`,
         ),
       );
     });
@@ -710,7 +710,7 @@ describe('KeyringController', () => {
         keyringController.getKeyringForAccount('0x04'),
       ).rejects.toThrow(
         new Error(
-          'KeyringController - No keyring found for the requested account. Error info: There are no keyrings',
+          `${KeyringControllerError.NoKeyring}. Error info: There are no keyrings`,
         ),
       );
     });
@@ -728,7 +728,7 @@ describe('KeyringController', () => {
         keyringController.getKeyringForAccount('0x04'),
       ).rejects.toThrow(
         new Error(
-          'KeyringController - No keyring found for the requested account. Error info: There are keyrings, but none match the address',
+          `${KeyringControllerError.NoKeyring}. Error info: There are keyrings, but none match the address`,
         ),
       );
     });
