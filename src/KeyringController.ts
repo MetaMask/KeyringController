@@ -39,7 +39,7 @@ class KeyringController extends EventEmitter {
 
   public encryptor: any;
 
-  public keyrings: Keyring<State>[];
+  public keyrings: Keyring<Json>[];
 
   public cacheEncryptionKey: boolean;
 
@@ -258,8 +258,8 @@ class KeyringController extends EventEmitter {
   async addNewKeyring(
     type: string,
     opts: Record<string, unknown> = {},
-  ): Promise<Keyring<State>> {
-    let keyring: Keyring<State>;
+  ): Promise<Keyring<Json>> {
+    let keyring: Keyring<Json>;
     switch (type) {
       case KeyringType.Simple:
         keyring = await this.#newKeyring(type, opts.privateKeys);
@@ -302,14 +302,14 @@ class KeyringController extends EventEmitter {
    * (usually after removing the last / only account) from a keyring.
    */
   async removeEmptyKeyrings(): Promise<void> {
-    const validKeyrings: Keyring<State>[] = [];
+    const validKeyrings: Keyring<Json>[] = [];
 
     // Since getAccounts returns a Promise
     // We need to wait to hear back form each keyring
     // in order to decide which ones are now valid (accounts.length > 0)
 
     await Promise.all(
-      this.keyrings.map(async (keyring: Keyring<State>) => {
+      this.keyrings.map(async (keyring: Keyring<Json>) => {
         const accounts = await keyring.getAccounts();
         if (accounts.length > 0) {
           validKeyrings.push(keyring);
@@ -366,7 +366,7 @@ class KeyringController extends EventEmitter {
    * @param selectedKeyring - The currently selected keyring.
    * @returns A Promise that resolves to the state.
    */
-  async addNewAccount(selectedKeyring: Keyring<State>): Promise<State> {
+  async addNewAccount(selectedKeyring: Keyring<Json>): Promise<State> {
     const accounts = await selectedKeyring.addAccounts(1);
     accounts.forEach((hexAccount: string) => {
       this.emit('newAccount', hexAccount);
@@ -623,7 +623,7 @@ class KeyringController extends EventEmitter {
    */
   async restoreKeyring(
     serialized: SerializedKeyring,
-  ): Promise<Keyring<State> | undefined> {
+  ): Promise<Keyring<Json> | undefined> {
     const keyring = await this.#restoreKeyring(serialized);
     if (keyring) {
       await this.#updateMemStoreKeyrings();
@@ -639,7 +639,7 @@ class KeyringController extends EventEmitter {
    * @param type - The keyring types to retrieve.
    * @returns Keyrings matching the specified type.
    */
-  getKeyringsByType(type: KeyringType): Keyring<State>[] {
+  getKeyringsByType(type: KeyringType): Keyring<Json>[] {
     return this.keyrings.filter((keyring) => keyring.type === type);
   }
 
@@ -737,7 +737,7 @@ class KeyringController extends EventEmitter {
     password: string | undefined,
     encryptionKey?: string,
     encryptionSalt?: string,
-  ): Promise<Keyring<State>[]> {
+  ): Promise<Keyring<Json>[]> {
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
       throw new Error(KeyringControllerError.VaultError);
@@ -825,7 +825,7 @@ class KeyringController extends EventEmitter {
    * @param address - An account address.
    * @returns The keyring of the account, if it exists.
    */
-  async getKeyringForAccount(address: string): Promise<Keyring<State>> {
+  async getKeyringForAccount(address: string): Promise<Keyring<Json>> {
     const hexed = normalizeAddress(address);
 
     const candidates = await Promise.all(
@@ -917,10 +917,10 @@ class KeyringController extends EventEmitter {
    */
   async #restoreKeyring(
     serialized: SerializedKeyring,
-  ): Promise<Keyring<State> | undefined> {
+  ): Promise<Keyring<Json> | undefined> {
     const { type, data } = serialized;
 
-    let keyring: Keyring<State> | undefined;
+    let keyring: Keyring<Json> | undefined;
     try {
       keyring = await this.#newKeyring(type, data);
     } catch {
@@ -964,7 +964,7 @@ class KeyringController extends EventEmitter {
    * @returns A keyring display object, with type and accounts properties.
    */
   async #displayForKeyring(
-    keyring: Keyring<State>,
+    keyring: Keyring<Json>,
   ): Promise<{ type: string; accounts: string[] }> {
     const accounts = await keyring.getAccounts();
 
@@ -1009,7 +1009,7 @@ class KeyringController extends EventEmitter {
    * @param data - The data to restore a previously serialized keyring.
    * @returns The new keyring.
    */
-  async #newKeyring(type: string, data: unknown): Promise<Keyring<State>> {
+  async #newKeyring(type: string, data: unknown): Promise<Keyring<Json>> {
     const keyringBuilder = this.#getKeyringBuilderForType(type);
 
     if (!keyringBuilder) {
