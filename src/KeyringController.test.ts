@@ -1,6 +1,6 @@
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
-import type { Hex, Keyring, KeyringClass } from '@metamask/utils';
+import type { Hex, Json, Keyring, KeyringClass } from '@metamask/utils';
 import { strict as assert } from 'assert';
 import Wallet from 'ethereumjs-wallet';
 import { restore, spy, stub, assert as sinonAssert } from 'sinon';
@@ -14,7 +14,6 @@ import {
   MOCK_HARDCODED_KEY,
   MOCK_HEX,
 } from './test';
-import { State } from './types';
 
 const MOCK_ENCRYPTION_KEY =
   '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
@@ -118,7 +117,7 @@ describe('KeyringController', () => {
       const { vault } = keyringController.store.getState();
       const keyrings = (await mockEncryptor.decrypt(PASSWORD, vault)) as {
         type: string;
-        data: State;
+        data: Json;
       }[];
       expect(keyrings).toContain(unsupportedKeyring);
       expect(keyrings).toHaveLength(2);
@@ -481,12 +480,12 @@ describe('KeyringController', () => {
           async getAccounts() {
             return Promise.resolve([1, 2, 3]);
           },
-        } as unknown as Keyring<State>,
+        } as unknown as Keyring<Json>,
         {
           async getAccounts() {
             return Promise.resolve([4, 5, 6]);
           },
-        } as unknown as Keyring<State>,
+        } as unknown as Keyring<Json>,
       ];
 
       const result = await keyringController.getAccounts();
@@ -630,7 +629,7 @@ describe('KeyringController', () => {
       const initialAccounts = await HDKeyring?.getAccounts();
       expect(initialAccounts).toHaveLength(1);
 
-      await keyringController.addNewAccount(HDKeyring as Keyring<State>);
+      await keyringController.addNewAccount(HDKeyring as Keyring<Json>);
       const accountsAfterAdd = await HDKeyring?.getAccounts();
       expect(accountsAfterAdd).toHaveLength(2);
     });
@@ -721,7 +720,7 @@ describe('KeyringController', () => {
           async getAccounts() {
             return Promise.resolve([1, 2, 3]);
           },
-        } as unknown as Keyring<State>,
+        } as unknown as Keyring<Json>,
       ];
 
       await expect(
@@ -808,10 +807,10 @@ describe('KeyringController', () => {
 
       const [firstKeyring] = keyringController.keyrings;
 
-      await keyringController.addNewAccount(firstKeyring as Keyring<State>);
+      await keyringController.addNewAccount(firstKeyring as Keyring<Json>);
       expect(await keyringController.getAccounts()).toHaveLength(2);
 
-      await keyringController.addNewAccount(firstKeyring as Keyring<State>);
+      await keyringController.addNewAccount(firstKeyring as Keyring<Json>);
       expect(await keyringController.getAccounts()).toHaveLength(3);
 
       const account = {

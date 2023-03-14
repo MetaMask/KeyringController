@@ -18,10 +18,10 @@ import ObservableStore from 'obs-store';
 
 import { KeyringType, KeyringControllerError } from './constants';
 import {
-  State,
   MessageParams,
   SerializedKeyring,
   KeyringControllerArgs,
+  KeyringControllerState,
 } from './types';
 import { stripHexPrefix } from './utils';
 
@@ -109,7 +109,9 @@ class KeyringController extends EventEmitter {
    * @param password - The password to encrypt the vault with.
    * @returns A promise that resolves to the state.
    */
-  async createNewVaultAndKeychain(password: string): Promise<State> {
+  async createNewVaultAndKeychain(
+    password: string,
+  ): Promise<KeyringControllerState> {
     this.password = password;
 
     await this.#createFirstKeyTree();
@@ -133,7 +135,7 @@ class KeyringController extends EventEmitter {
   async createNewVaultAndRestore(
     password: string,
     seedPhrase: Uint8Array | string | number[],
-  ): Promise<State> {
+  ): Promise<KeyringControllerState> {
     if (typeof password !== 'string') {
       throw new TypeError(KeyringControllerError.WrongPasswordType);
     }
@@ -165,7 +167,7 @@ class KeyringController extends EventEmitter {
    * @fires KeyringController#lock
    * @returns A promise that resolves to the state.
    */
-  async setLocked(): Promise<State> {
+  async setLocked(): Promise<KeyringControllerState> {
     delete this.password;
 
     // set locked
@@ -195,7 +197,7 @@ class KeyringController extends EventEmitter {
    * @param password - The keyring controller password.
    * @returns A promise that resolves to the state.
    */
-  async submitPassword(password: string): Promise<State> {
+  async submitPassword(password: string): Promise<KeyringControllerState> {
     this.keyrings = await this.unlockKeyrings(password);
 
     this.#setUnlocked();
@@ -216,7 +218,7 @@ class KeyringController extends EventEmitter {
   async submitEncryptionKey(
     encryptionKey: string,
     encryptionSalt: string,
-  ): Promise<State> {
+  ): Promise<KeyringControllerState> {
     this.keyrings = await this.unlockKeyrings(
       undefined,
       encryptionKey,
@@ -366,7 +368,9 @@ class KeyringController extends EventEmitter {
    * @param selectedKeyring - The currently selected keyring.
    * @returns A Promise that resolves to the state.
    */
-  async addNewAccount(selectedKeyring: Keyring<Json>): Promise<State> {
+  async addNewAccount(
+    selectedKeyring: Keyring<Json>,
+  ): Promise<KeyringControllerState> {
     const accounts = await selectedKeyring.addAccounts(1);
     accounts.forEach((hexAccount: string) => {
       this.emit('newAccount', hexAccount);
@@ -405,7 +409,7 @@ class KeyringController extends EventEmitter {
    * @param address - The address of the account to remove.
    * @returns A promise that resolves if the operation was successful.
    */
-  async removeAccount(address: Hex): Promise<State> {
+  async removeAccount(address: Hex): Promise<KeyringControllerState> {
     const keyring = await this.getKeyringForAccount(address);
 
     // Not all the keyrings support this, so we have to check

@@ -1,6 +1,5 @@
+import { Json } from '@metamask/utils';
 import { stub } from 'sinon';
-
-import { State } from '../types';
 
 const PASSWORD = 'password123';
 const MOCK_ENCRYPTION_KEY = JSON.stringify({
@@ -21,7 +20,7 @@ const MOCK_HEX = '0xabcdef0123456789';
 const MOCK_SALT = 'SALT';
 // eslint-disable-next-line no-restricted-globals
 const MOCK_KEY = Buffer.alloc(32);
-let cacheVal: State;
+let cacheVal: Json;
 
 const mockEncryptor = {
   encrypt: stub().callsFake(async (_password, dataObj) => {
