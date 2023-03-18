@@ -55,6 +55,9 @@ class KeyringController extends EventEmitter {
     this.keyrings = [];
     this._unsupportedKeyrings = [];
 
+    this.keyringsMap = new Map();
+    this.accountsMap = new Map();
+
     // This option allows the controller to cache an exported key
     // for use in decrypting and encrypting data without password
     this.cacheEncryptionKey = Boolean(opts.cacheEncryptionKey);
@@ -241,6 +244,32 @@ class KeyringController extends EventEmitter {
     this.fullUpdate();
 
     return keyring;
+  }
+
+  /**
+   * Register a new keyring into the KeyringController.
+   *
+   * @param {string} id - Keyring ID.
+   * @param {object} keyring - Keyring object.
+   */
+  async registerKeyring(id, keyring) {
+    // TODO: log if we are updating an existing keyring
+    // TODO: merge with addNewKeyring
+    this.keyringsMap.set(id, keyring);
+  }
+
+  /**
+   * Link an account to a keyring given the keyring ID.
+   *
+   * @param {string} address - Account address.
+   * @param {string} keyringId - Keyring ID.
+   */
+  async registerAccount(address, keyringId) {
+    if (!this.keyringsMap.has(keyringId)) {
+      throw new Error(`unknown keyring ID: ${keyringId}`);
+    }
+    // TODO: merge with addNewAccount
+    this.accountsMap.set(address, this.keyringsMap.get(keyringId));
   }
 
   /**
