@@ -372,7 +372,7 @@ class KeyringController extends EventEmitter {
     selectedKeyring: Keyring<Json>,
   ): Promise<KeyringControllerState> {
     const accounts = await selectedKeyring.addAccounts(1);
-    accounts.forEach((hexAccount: string) => {
+    accounts.forEach((hexAccount) => {
       this.emit('newAccount', hexAccount);
     });
 
