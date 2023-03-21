@@ -3,7 +3,7 @@ import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
 import type { Hex, Json, Keyring, KeyringClass } from '@metamask/utils';
 import { strict as assert } from 'assert';
 import Wallet from 'ethereumjs-wallet';
-import { restore, spy, stub, assert as sinonAssert } from 'sinon';
+import * as sinon from 'sinon';
 
 import { KeyringController, keyringBuilderFactory } from '.';
 import { KeyringType, KeyringControllerError } from './constants';
@@ -54,7 +54,7 @@ describe('KeyringController', () => {
   });
 
   afterEach(() => {
-    restore();
+    sinon.restore();
   });
 
   describe('setLocked', () => {
@@ -73,7 +73,7 @@ describe('KeyringController', () => {
     });
 
     it('emits "lock" event', async () => {
-      const lockSpy = spy();
+      const lockSpy = sinon.spy();
       keyringController.on('lock', lockSpy);
 
       await keyringController.setLocked();
@@ -100,7 +100,7 @@ describe('KeyringController', () => {
     it('emits "unlock" event', async () => {
       await keyringController.setLocked();
 
-      const unlockSpy = spy();
+      const unlockSpy = sinon.spy();
       keyringController.on('unlock', unlockSpy);
 
       await keyringController.submitPassword(PASSWORD);
@@ -403,7 +403,7 @@ describe('KeyringController', () => {
     });
 
     it('should call init method if available', async () => {
-      const initSpy = spy(KeyringMockWithInit.prototype, 'init');
+      const initSpy = sinon.spy(KeyringMockWithInit.prototype, 'init');
 
       const keyring = await keyringController.addNewKeyring(
         'Keyring Mock With Init',
@@ -411,12 +411,12 @@ describe('KeyringController', () => {
 
       expect(keyring).toBeInstanceOf(KeyringMockWithInit);
 
-      sinonAssert.calledOnce(initSpy);
+      sinon.assert.calledOnce(initSpy);
     });
 
     it('should add HD Key Tree when addAccounts is asynchronous', async () => {
       const originalAccAccounts = HdKeyring.prototype.addAccounts;
-      stub(HdKeyring.prototype, 'addAccounts').callsFake(async () => {
+      sinon.stub(HdKeyring.prototype, 'addAccounts').callsFake(async () => {
         return new Promise((resolve) => {
           setImmediate(() => {
             resolve(originalAccAccounts.bind(this)());
@@ -424,7 +424,7 @@ describe('KeyringController', () => {
         });
       });
 
-      stub(HdKeyring.prototype, 'deserialize').callsFake(async () => {
+      sinon.stub(HdKeyring.prototype, 'deserialize').callsFake(async () => {
         return new Promise<void>((resolve) => {
           setImmediate(() => {
             resolve();
@@ -432,9 +432,9 @@ describe('KeyringController', () => {
         });
       });
 
-      stub(HdKeyring.prototype, 'getAccounts').callsFake(() => [
-        'mock account',
-      ]);
+      sinon
+        .stub(HdKeyring.prototype, 'getAccounts')
+        .callsFake(() => ['mock account']);
 
       const keyring = await keyringController.addNewKeyring(KeyringType.HD, {
         mnemonic: 'mock mnemonic',
@@ -646,11 +646,14 @@ describe('KeyringController', () => {
         { privateKeys: [privateKey] },
       );
 
-      const getAppKeyAddressSpy = spy(keyringController, 'getAppKeyAddress');
-      /* eslint-disable-next-line require-atomic-updates */
-      keyringController.getKeyringForAccount = stub().returns(
-        Promise.resolve(keyring),
+      const getAppKeyAddressSpy = sinon.spy(
+        keyringController,
+        'getAppKeyAddress',
       );
+      /* eslint-disable-next-line require-atomic-updates */
+      keyringController.getKeyringForAccount = sinon
+        .stub()
+        .returns(Promise.resolve(keyring));
 
       await keyringController.getAppKeyAddress(address, 'someapp.origin.io');
 
@@ -748,7 +751,7 @@ describe('KeyringController', () => {
     it('unlocks the keyrings with valid information', async () => {
       keyringController.cacheEncryptionKey = true;
       const returnValue = await keyringController.encryptor.decryptWithKey();
-      const decryptWithKeyStub = stub(
+      const decryptWithKeyStub = sinon.stub(
         keyringController.encryptor,
         'decryptWithKey',
       );
