@@ -122,7 +122,7 @@ describe('KeyringController', () => {
 
     describe('when `cacheEncryptionKey` is enabled', () => {
       it('should save an up to date encryption salt to the `memStore` when `password` is unset and `encryptionKey` is set', async () => {
-        keyringController.password = undefined;
+        delete keyringController.password;
         keyringController.cacheEncryptionKey = true;
         const vaultEncryptionKey = '🔑';
         const vaultEncryptionSalt = '🧂';
@@ -830,7 +830,7 @@ describe('KeyringController', () => {
     });
 
     it('triggers an error when trying to persist without password or encryption key', async () => {
-      keyringController.password = undefined;
+      delete keyringController.password;
       await expect(keyringController.persistAllKeyrings()).rejects.toThrow(
         'Cannot persist vault without password and encryption key',
       );

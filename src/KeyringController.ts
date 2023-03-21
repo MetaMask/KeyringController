@@ -45,7 +45,7 @@ class KeyringController extends EventEmitter {
 
   public unsupportedKeyrings: SerializedKeyring[];
 
-  public password?: string | undefined;
+  public password?: string;
 
   constructor({
     keyringBuilders,
@@ -332,7 +332,7 @@ class KeyringController extends EventEmitter {
    * @returns The account, if no duplicate is found.
    */
   async checkForDuplicate(
-    type: string,
+    type: KeyringType | string,
     newAccountArray: Hex[],
   ): Promise<string[]> {
     const accounts = await this.getAccounts();
@@ -517,7 +517,7 @@ class KeyringController extends EventEmitter {
    * @returns The public key.
    */
   async getEncryptionPublicKey(
-    address: string | Hex,
+    address: string,
     opts: Record<string, unknown> = {},
   ): Promise<Bytes> {
     const normalizedAddress = normalizeAddress(address);
@@ -643,7 +643,7 @@ class KeyringController extends EventEmitter {
    * @param type - The keyring types to retrieve.
    * @returns Keyrings matching the specified type.
    */
-  getKeyringsByType(type: KeyringType): Keyring<Json>[] {
+  getKeyringsByType(type: KeyringType | string): Keyring<Json>[] {
     return this.keyrings.filter((keyring) => keyring.type === type);
   }
 
@@ -953,7 +953,9 @@ class KeyringController extends EventEmitter {
    * @param type - The type whose class to get.
    * @returns The class, if it exists.
    */
-  #getKeyringBuilderForType(type: string): any {
+  #getKeyringBuilderForType(
+    type: KeyringType | string,
+  ): { (): Keyring<Json>; type: string } | undefined {
     return this.keyringBuilders.find(
       (keyringBuilder) => keyringBuilder.type === type,
     );
@@ -1013,7 +1015,10 @@ class KeyringController extends EventEmitter {
    * @param data - The data to restore a previously serialized keyring.
    * @returns The new keyring.
    */
-  async #newKeyring(type: string, data: unknown): Promise<Keyring<Json>> {
+  async #newKeyring(
+    type: KeyringType | string,
+    data: unknown,
+  ): Promise<Keyring<Json>> {
     const keyringBuilder = this.#getKeyringBuilderForType(type);
 
     if (!keyringBuilder) {
@@ -1024,7 +1029,7 @@ class KeyringController extends EventEmitter {
 
     const keyring = keyringBuilder();
 
-    await keyring.deserialize(data);
+    await keyring.deserialize(data as Json);
 
     if (keyring.init) {
       await keyring.init();
