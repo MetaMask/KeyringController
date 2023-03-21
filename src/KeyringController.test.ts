@@ -91,7 +91,7 @@ describe('KeyringController', () => {
       await keyringController.setLocked();
 
       await expect(
-        keyringController.submitPassword(`${PASSWORD as string}a`),
+        keyringController.submitPassword('Wrong password'),
       ).rejects.toThrow('Incorrect password.');
       expect(keyringController.password).toBeUndefined();
       expect(keyringController.keyrings).toHaveLength(0);
