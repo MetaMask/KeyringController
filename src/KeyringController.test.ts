@@ -277,10 +277,8 @@ describe('KeyringController', () => {
 
     it('throws error if argument password is not a string', async () => {
       await expect(async () =>
-        keyringController.createNewVaultAndRestore(
-          12 as any,
-          walletTwoSeedWords,
-        ),
+        // @ts-expect-error Missing other required permission types.
+        keyringController.createNewVaultAndRestore(12, walletTwoSeedWords),
       ).rejects.toThrow('KeyringController - Password must be of type string.');
     });
 
@@ -695,7 +693,8 @@ describe('KeyringController', () => {
   describe('getKeyringForAccount', () => {
     it('throws error when address is not provided', async () => {
       await expect(
-        keyringController.getKeyringForAccount(undefined as any),
+        // @ts-expect-error Missing other required permission types.
+        keyringController.getKeyringForAccount(undefined),
       ).rejects.toThrow(
         new Error(
           `${KeyringControllerError.NoKeyring}. Error info: The address passed in is invalid/empty`,
