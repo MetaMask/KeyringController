@@ -115,10 +115,7 @@ describe('KeyringController', () => {
       await keyringController.persistAllKeyrings();
 
       const { vault } = keyringController.store.getState();
-      const keyrings = (await mockEncryptor.decrypt(PASSWORD, vault)) as {
-        type: string;
-        data: Json;
-      }[];
+      const keyrings = await mockEncryptor.decrypt(PASSWORD, vault);
       expect(keyrings).toContain(unsupportedKeyring);
       expect(keyrings).toHaveLength(2);
     });
