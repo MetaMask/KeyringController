@@ -874,10 +874,7 @@ class KeyringController extends EventEmitter {
    * Updates the in-memory keyrings, without persisting.
    */
   async #updateMemStoreKeyrings(): Promise<Json> {
-    const keyrings = await Promise.all(
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      this.keyrings.map(this.#displayForKeyring),
-    );
+    const keyrings = await Promise.all(this.keyrings.map(displayForKeyring));
     return this.memStore.updateState({ keyrings });
   }
 
@@ -965,25 +962,6 @@ class KeyringController extends EventEmitter {
   }
 
   /**
-   * Display For Keyring
-   *
-   * Is used for adding the current keyrings to the state object.
-   *
-   * @param keyring - The keyring to display.
-   * @returns A keyring display object, with type and accounts properties.
-   */
-  async #displayForKeyring(
-    keyring: Keyring<Json>,
-  ): Promise<{ type: string; accounts: string[] }> {
-    const accounts = await keyring.getAccounts();
-
-    return {
-      type: keyring.type,
-      accounts: accounts.map(normalizeToHex),
-    };
-  }
-
-  /**
    * Clear Keyrings
    *
    * Deallocates all currently managed keyrings and accounts.
@@ -1053,6 +1031,25 @@ function keyringBuilderFactory(Keyring: KeyringClass<Json>) {
   builder.type = Keyring.type;
 
   return builder;
+}
+
+/**
+ * Display For Keyring
+ *
+ * Is used for adding the current keyrings to the state object.
+ *
+ * @param keyring - The keyring to display.
+ * @returns A keyring display object, with type and accounts properties.
+ */
+async function displayForKeyring(
+  keyring: Keyring<Json>,
+): Promise<{ type: string; accounts: string[] }> {
+  const accounts = await keyring.getAccounts();
+
+  return {
+    type: keyring.type,
+    accounts: accounts.map(normalizeToHex),
+  };
 }
 
 export { KeyringController, keyringBuilderFactory };
