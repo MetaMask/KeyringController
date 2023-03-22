@@ -1,9 +1,4 @@
-import type { Hex, Json, Keyring, Eip1024EncryptedData } from '@metamask/utils';
-
-export type MessageParams = {
-  from: Hex | string;
-  data: Hex | string | Eip1024EncryptedData | Record<string, unknown>[];
-};
+import type { Json, Keyring } from '@metamask/utils';
 
 export type KeyringControllerArgs = {
   keyringBuilders:

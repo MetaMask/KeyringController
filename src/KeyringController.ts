@@ -19,7 +19,6 @@ import ObservableStore from 'obs-store';
 
 import { KeyringType, KeyringControllerError } from './constants';
 import {
-  MessageParams,
   SerializedKeyring,
   KeyringControllerArgs,
   KeyringControllerState,
@@ -447,7 +446,7 @@ class KeyringController extends EventEmitter {
    */
   async signTransaction(
     ethTx: TypedTransaction,
-    rawAddress: string | Hex,
+    rawAddress: string,
     opts: Record<string, unknown> = {},
   ): Promise<TxData> {
     const address = normalizeToHex(rawAddress);
@@ -465,11 +464,16 @@ class KeyringController extends EventEmitter {
    * Attempts to sign the provided message parameters.
    *
    * @param msgParams - The message parameters to sign.
+   * @param msgParams.from - From address.
+   * @param msgParams.data - The message to sign.
    * @param opts - Additional signing options.
    * @returns The raw signature.
    */
   async signMessage(
-    msgParams: MessageParams,
+    msgParams: {
+      from: string;
+      data: string;
+    },
     opts: Record<string, unknown> = {},
   ): Promise<string> {
     const address = normalizeToHex(msgParams.from);
@@ -478,7 +482,7 @@ class KeyringController extends EventEmitter {
       throw new Error(KeyringControllerError.UnsupportedSignMessage);
     }
 
-    return await keyring.signMessage(address, msgParams.data as string, opts);
+    return await keyring.signMessage(address, msgParams.data, opts);
   }
 
   /**
@@ -488,21 +492,22 @@ class KeyringController extends EventEmitter {
    * Prefixes the hash before signing per the personal sign expectation.
    *
    * @param msgParams - The message parameters to sign.
+   * @param msgParams.from - From address.
+   * @param msgParams.data - The message to sign.
    * @param opts - Additional signing options.
    * @returns The raw signature.
    */
   async signPersonalMessage(
-    msgParams: MessageParams,
+    msgParams: {
+      from: string;
+      data: string;
+    },
     opts: Record<string, unknown> = {},
   ): Promise<string> {
     const address = normalizeToHex(msgParams.from);
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signPersonalMessage) {
       throw new Error(KeyringControllerError.UnsupportedSignPersonalMessage);
-    }
-
-    if (typeof msgParams.data !== 'string') {
-      throw new Error(KeyringControllerError.DataType);
     }
 
     const normalizedData = normalizeToHex(msgParams.data);
@@ -538,19 +543,21 @@ class KeyringController extends EventEmitter {
    * Attempts to decrypt the provided message parameters.
    *
    * @param msgParams - The decryption message parameters.
+   * @param msgParams.from - The address of the account you want to use to decrypt the message.
+   * @param msgParams.data - The encrypted data that you want to decrypt.
    * @returns The raw decryption result.
    */
-  async decryptMessage(msgParams: MessageParams): Promise<Bytes> {
+  async decryptMessage(msgParams: {
+    from: string;
+    data: Eip1024EncryptedData;
+  }): Promise<Bytes> {
     const address = normalizeToHex(msgParams.from);
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.decryptMessage) {
       throw new Error(KeyringControllerError.UnsupportedDecryptMessage);
     }
 
-    return keyring.decryptMessage(
-      address,
-      msgParams.data as Eip1024EncryptedData,
-    );
+    return keyring.decryptMessage(address, msgParams.data);
   }
 
   /**
@@ -558,11 +565,16 @@ class KeyringController extends EventEmitter {
    *
    * @see {@link https://github.com/ethereum/EIPs/pull/712#issuecomment-329988454|EIP712}.
    * @param msgParams - The message parameters to sign.
+   * @param msgParams.from - From address.
+   * @param msgParams.data - The data to sign.
    * @param opts - Additional signing options.
    * @returns The raw signature.
    */
   async signTypedMessage(
-    msgParams: MessageParams,
+    msgParams: {
+      from: string;
+      data: Record<string, unknown>[];
+    },
     opts = { version: 'V1' },
   ): Promise<Bytes> {
     const address = normalizeToHex(msgParams.from);
@@ -571,11 +583,10 @@ class KeyringController extends EventEmitter {
       throw new Error(KeyringControllerError.UnsupportedSignTypedMessage);
     }
 
-    return keyring.signTypedData(
-      address,
-      msgParams.data as Eip1024EncryptedData,
-      opts,
-    );
+    // Looks like this is not well defined in the Keyring interface since
+    // our tests show that we should be able to pass an array.
+    // @ts-expect-error Missing other required permission types.
+    return keyring.signTypedData(address, msgParams.data, opts);
   }
 
   /**

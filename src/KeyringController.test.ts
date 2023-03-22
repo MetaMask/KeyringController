@@ -22,6 +22,8 @@ const MOCK_ENCRYPTION_DATA = `{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZ
 
 const walletOneSeedWords =
   'puzzle seed penalty soldier say clay field arctic metal hen cage runway';
+
+const mockAddress = '0xef35ca8ebb9669a35c31b5f6f249a9941a812ac1';
 const walletOneAddresses = ['0xef35ca8ebb9669a35c31b5f6f249a9941a812ac1'];
 const walletOnePrivateKey = [
   'ace918800411c0b96b915f76efbbd4d50e6c997180fee58e01f60d3a412d2f7e',
@@ -645,7 +647,7 @@ describe('KeyringController', () => {
         keyringController,
         'getAppKeyAddress',
       );
-      /* eslint-disable-next-line require-atomic-updates */
+
       keyringController.getKeyringForAccount = sinon
         .stub()
         .returns(Promise.resolve(keyring));
@@ -910,7 +912,7 @@ describe('KeyringController', () => {
 
     it('signTypedMessage', async () => {
       const inputParams = {
-        from: walletOneAddresses[0] as Hex,
+        from: mockAddress,
         data: [
           {
             type: 'string',
