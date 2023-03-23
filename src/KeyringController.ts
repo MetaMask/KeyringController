@@ -938,8 +938,9 @@ class KeyringController extends EventEmitter {
     let keyring: Keyring<Json> | undefined;
     try {
       keyring = await this.#newKeyring(type, data);
-    } catch {
-      // Error
+    } catch (error) {
+      // Ignore error.
+      console.error(error);
     }
 
     if (!keyring) {
