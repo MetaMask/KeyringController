@@ -178,7 +178,7 @@ class KeyringController extends EventEmitter {
 
     // remove keyrings
     this.keyrings = [];
-    await this.#updateMemStoreKeyrings();
+    await this.updateMemStoreKeyrings();
     this.emit('lock');
     return this.#fullUpdate();
   }
@@ -429,6 +429,35 @@ class KeyringController extends EventEmitter {
     return this.#fullUpdate();
   }
 
+  /**
+   * Get Keyring Class For Type
+   *
+   * Searches the current `keyringBuilders` array
+   * for a Keyring builder whose unique `type` property
+   * matches the provided `type`,
+   * returning it if it exists.
+   *
+   * @param type - The type whose class to get.
+   * @returns The class, if it exists.
+   */
+  getKeyringBuilderForType(
+    type: string,
+  ): { (): Keyring<Json>; type: string } | undefined {
+    return this.keyringBuilders.find(
+      (keyringBuilder) => keyringBuilder.type === type,
+    );
+  }
+
+  /**
+   * Update memStore Keyrings
+   *
+   * Updates the in-memory keyrings, without persisting.
+   */
+  async updateMemStoreKeyrings(): Promise<Json> {
+    const keyrings = await Promise.all(this.keyrings.map(displayForKeyring));
+    return this.memStore.updateState({ keyrings });
+  }
+
   // ==============================
   // === Public Signing Methods ===
   // ==============================
@@ -639,7 +668,7 @@ class KeyringController extends EventEmitter {
   ): Promise<Keyring<Json> | undefined> {
     const keyring = await this.#restoreKeyring(serialized);
     if (keyring) {
-      await this.#updateMemStoreKeyrings();
+      await this.updateMemStoreKeyrings();
     }
     return keyring;
   }
@@ -722,9 +751,9 @@ class KeyringController extends EventEmitter {
 
     // The keyring updates need to be announced before updating the encryptionKey
     // so that the updated keyring gets propagated to the extension first.
-    // Not calling {@link #updateMemStoreKeyrings} results in the wrong account being selected
+    // Not calling {@link updateMemStoreKeyrings} results in the wrong account being selected
     // in the extension.
-    await this.#updateMemStoreKeyrings();
+    await this.updateMemStoreKeyrings();
     if (newEncryptionKey) {
       this.memStore.updateState({
         encryptionKey: newEncryptionKey,
@@ -804,7 +833,7 @@ class KeyringController extends EventEmitter {
     }
 
     await Promise.all(vault.map(this.#restoreKeyring.bind(this)));
-    await this.#updateMemStoreKeyrings();
+    await this.updateMemStoreKeyrings();
     return this.keyrings;
   }
 
@@ -875,16 +904,6 @@ class KeyringController extends EventEmitter {
   // =======================
 
   /**
-   * Update memStore Keyrings
-   *
-   * Updates the in-memory keyrings, without persisting.
-   */
-  async #updateMemStoreKeyrings(): Promise<Json> {
-    const keyrings = await Promise.all(this.keyrings.map(displayForKeyring));
-    return this.memStore.updateState({ keyrings });
-  }
-
-  /**
    * Create First Key Tree.
    *
    * - Clears the existing vault.
@@ -950,25 +969,6 @@ class KeyringController extends EventEmitter {
   }
 
   /**
-   * Get Keyring Class For Type
-   *
-   * Searches the current `keyringBuilders` array
-   * for a Keyring builder whose unique `type` property
-   * matches the provided `type`,
-   * returning it if it exists.
-   *
-   * @param type - The type whose class to get.
-   * @returns The class, if it exists.
-   */
-  #getKeyringBuilderForType(
-    type: string,
-  ): { (): Keyring<Json>; type: string } | undefined {
-    return this.keyringBuilders.find(
-      (keyringBuilder) => keyringBuilder.type === type,
-    );
-  }
-
-  /**
    * Clear Keyrings
    *
    * Deallocates all currently managed keyrings and accounts.
@@ -1004,7 +1004,7 @@ class KeyringController extends EventEmitter {
    * @returns The new keyring.
    */
   async #newKeyring(type: string, data: unknown): Promise<Keyring<Json>> {
-    const keyringBuilder = this.#getKeyringBuilderForType(type);
+    const keyringBuilder = this.getKeyringBuilderForType(type);
 
     if (!keyringBuilder) {
       throw new Error(
