@@ -577,7 +577,7 @@ describe('KeyringController', () => {
       );
     });
 
-    it('add serialized keyring to _unsupportedKeyrings array if keyring type is not known', async () => {
+    it('add serialized keyring to unsupportedKeyrings array if keyring type is not known', async () => {
       const unsupportedKeyrings = [{ type: 'Ledger Keyring', data: 'DUMMY' }];
       mockEncryptor.encrypt(PASSWORD, unsupportedKeyrings);
       await keyringController.setLocked();
