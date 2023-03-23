@@ -391,7 +391,7 @@ class KeyringController extends EventEmitter {
    * @param address - The address of the account to export.
    * @returns The private key of the account.
    */
-  async exportAccount(address: Hex): Promise<string> {
+  async exportAccount(address: string): Promise<string> {
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.exportAccount) {
       throw new Error(KeyringControllerError.UnsupportedExportAccount);
