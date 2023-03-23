@@ -619,10 +619,6 @@ class KeyringController extends EventEmitter {
   ): Promise<string> {
     const address = normalizeToHex(rawAddress);
     const keyring = await this.getKeyringForAccount(address);
-    // The "in" operator is typically restricted because it also checks inherited properties,
-    // which can be unexpected for plain objects. We're allowing it here because `keyring` is not
-    // a plain object, and we explicitly want to include inherited methods in this check.
-    // eslint-disable-next-line no-restricted-syntax
     if (!keyring.exportAccount) {
       throw new Error(KeyringControllerError.UnsupportedExportAppKeyForAddress);
     }
