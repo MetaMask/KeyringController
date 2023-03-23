@@ -413,12 +413,11 @@ class KeyringController extends EventEmitter {
     const keyring = await this.getKeyringForAccount(address);
 
     // Not all the keyrings support this, so we have to check
-    if (typeof keyring.removeAccount === 'function') {
-      keyring.removeAccount(address);
-      this.emit('removedAccount', address);
-    } else {
+    if (!keyring.removeAccount) {
       throw new Error(KeyringControllerError.UnsupportedRemoveAccount);
     }
+      keyring.removeAccount(address);
+      this.emit('removedAccount', address);
 
     const accounts = await keyring.getAccounts();
     // Check if this was the last/only account
