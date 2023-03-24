@@ -1,4 +1,5 @@
 import type { Json, Keyring } from '@metamask/utils';
+import ObservableStore from 'obs-store';
 
 export type KeyringControllerArgs = {
   keyringBuilders:
@@ -11,6 +12,12 @@ export type KeyringControllerArgs = {
 };
 
 export type KeyringControllerState = {
+  keyringBuilders?: { (): Keyring<Json>; type: string }[];
+
+  store?: typeof ObservableStore;
+
+  memStore?: typeof ObservableStore;
+
   keyrings?: Keyring<Json>[];
 
   vaultUnlock?: boolean;

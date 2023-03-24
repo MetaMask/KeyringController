@@ -92,9 +92,11 @@ class KeyringController extends EventEmitter {
     return this.memStore.getState();
   }
 
-  // ======================
-  // === Public Methods ===
-  // ======================
+  /**
+   * =======================================
+   * === Public Vault Management Methods ===
+   * =======================================
+   */
 
   /**
    * Create New Vault And Keychain
@@ -146,10 +148,6 @@ class KeyringController extends EventEmitter {
       numberOfAccounts: 1,
     });
 
-    if (!keyring) {
-      throw new Error(KeyringControllerError.NoKeyring);
-    }
-
     const [firstAccount] = await keyring.getAccounts();
 
     if (!firstAccount) {
@@ -160,7 +158,7 @@ class KeyringController extends EventEmitter {
   }
 
   /**
-   * Set Locked
+   * Set Locked.
    * This method deallocates all secrets, and effectively locks MetaMask.
    *
    * @fires KeyringController#lock
@@ -244,120 +242,10 @@ class KeyringController extends EventEmitter {
   }
 
   /**
-   * Add New Keyring
-   *
-   * Adds a new Keyring of the given `type` to the vault
-   * and the current decrypted Keyrings array.
-   *
-   * All Keyring classes implement a unique `type` string,
-   * and this is used to retrieve them from the keyringBuilders array.
-   *
-   * @param type - The type of keyring to add.
-   * @param opts - The constructor options for the keyring.
-   * @returns The new keyring.
+   * =========================================
+   * === Public Account Management Methods ===
+   * =========================================
    */
-  async addNewKeyring(
-    type: string,
-    opts: Record<string, unknown> = {},
-  ): Promise<Keyring<Json>> {
-    let keyring: Keyring<Json>;
-    switch (type) {
-      case KeyringType.Simple:
-        keyring = await this.#newKeyring(type, opts.privateKeys);
-        break;
-      default:
-        keyring = await this.#newKeyring(type, opts);
-        break;
-    }
-
-    if (!keyring) {
-      throw new Error(KeyringControllerError.NoKeyring);
-    }
-
-    if (!opts.mnemonic && type === KeyringType.HD) {
-      if (!keyring.generateRandomMnemonic) {
-        throw new Error(
-          KeyringControllerError.UnsupportedGenerateRandomMnemonic,
-        );
-      }
-
-      keyring.generateRandomMnemonic();
-      await keyring.addAccounts(1);
-    }
-
-    const accounts = await keyring.getAccounts();
-    await this.checkForDuplicate(type, accounts);
-
-    this.keyrings.push(keyring);
-    await this.persistAllKeyrings();
-
-    this.#fullUpdate();
-
-    return keyring;
-  }
-
-  /**
-   * Remove empty keyrings.
-   *
-   * Loops through the keyrings and removes the ones with empty accounts
-   * (usually after removing the last / only account) from a keyring.
-   */
-  async removeEmptyKeyrings(): Promise<void> {
-    const validKeyrings: Keyring<Json>[] = [];
-
-    // Since getAccounts returns a Promise
-    // We need to wait to hear back form each keyring
-    // in order to decide which ones are now valid (accounts.length > 0)
-
-    await Promise.all(
-      this.keyrings.map(async (keyring: Keyring<Json>) => {
-        const accounts = await keyring.getAccounts();
-        if (accounts.length > 0) {
-          validKeyrings.push(keyring);
-        }
-      }),
-    );
-    this.keyrings = validKeyrings;
-  }
-
-  /**
-   * Checks for duplicate keypairs, using the the first account in the given
-   * array. Rejects if a duplicate is found.
-   *
-   * Only supports 'Simple Key Pair'.
-   *
-   * @param type - The key pair type to check for.
-   * @param newAccountArray - Array of new accounts.
-   * @returns The account, if no duplicate is found.
-   */
-  async checkForDuplicate(
-    type: string,
-    newAccountArray: string[],
-  ): Promise<string[]> {
-    const accounts = await this.getAccounts();
-
-    switch (type) {
-      case KeyringType.Simple: {
-        const isIncluded = Boolean(
-          accounts.find(
-            (key) =>
-              newAccountArray[0] &&
-              (key === newAccountArray[0] ||
-                key === remove0x(newAccountArray[0])),
-          ),
-        );
-
-        if (isIncluded) {
-          throw new Error(KeyringControllerError.DuplicatedAccount);
-        }
-        return newAccountArray;
-      }
-
-      default: {
-        return newAccountArray;
-      }
-    }
-  }
 
   /**
    * Add New Account.
@@ -430,6 +318,27 @@ class KeyringController extends EventEmitter {
   }
 
   /**
+   * Get Accounts
+   *
+   * Returns the public addresses of all current accounts
+   * managed by all currently unlocked keyrings.
+   *
+   * @returns The array of accounts.
+   */
+  async getAccounts(): Promise<string[]> {
+    const keyrings = this.keyrings || [];
+
+    const keyringArrays = await Promise.all(
+      keyrings.map(async (keyring) => keyring.getAccounts()),
+    );
+    const addresses = keyringArrays.reduce((res, arr) => {
+      return res.concat(arr);
+    }, []);
+
+    return addresses.map(normalizeToHex);
+  }
+
+  /**
    * Get Keyring Class For Type
    *
    * Searches the current `keyringBuilders` array
@@ -458,9 +367,11 @@ class KeyringController extends EventEmitter {
     return this.memStore.updateState({ keyrings });
   }
 
-  // ==============================
-  // === Public Signing Methods ===
-  // ==============================
+  /**
+   * ===========================================
+   * === Public RPC Requests Routing Methods ===
+   * ===========================================
+   */
 
   /**
    * Sign Ethereum Transaction
@@ -603,7 +514,7 @@ class KeyringController extends EventEmitter {
       from: string;
       data: Record<string, unknown>[];
     },
-    opts = { version: 'V1' },
+    opts: Record<string, unknown> = { version: 'V1' },
   ): Promise<Bytes> {
     const address = normalizeToHex(msgParams.from);
     const keyring = await this.getKeyringForAccount(address);
@@ -651,6 +562,169 @@ class KeyringController extends EventEmitter {
       throw new Error(KeyringControllerError.UnsupportedExportAppKeyForAddress);
     }
     return keyring.exportAccount(address, { withAppKeyOrigin: origin });
+  }
+
+  /**
+   * =========================================
+   * === Public Keyring Management Methods ===
+   * =========================================
+   */
+
+  /**
+   * Add New Keyring
+   *
+   * Adds a new Keyring of the given `type` to the vault
+   * and the current decrypted Keyrings array.
+   *
+   * All Keyring classes implement a unique `type` string,
+   * and this is used to retrieve them from the keyringBuilders array.
+   *
+   * @param type - The type of keyring to add.
+   * @param opts - The constructor options for the keyring.
+   * @returns The new keyring.
+   */
+  async addNewKeyring(
+    type: string,
+    opts: Record<string, unknown> = {},
+  ): Promise<Keyring<Json>> {
+    let keyring: Keyring<Json>;
+    switch (type) {
+      case KeyringType.Simple:
+        keyring = await this.#newKeyring(type, opts.privateKeys);
+        break;
+      default:
+        keyring = await this.#newKeyring(type, opts);
+        break;
+    }
+
+    if (!keyring) {
+      throw new Error(KeyringControllerError.NoKeyring);
+    }
+
+    if (!opts.mnemonic && type === KeyringType.HD) {
+      if (!keyring.generateRandomMnemonic) {
+        throw new Error(
+          KeyringControllerError.UnsupportedGenerateRandomMnemonic,
+        );
+      }
+
+      keyring.generateRandomMnemonic();
+      await keyring.addAccounts(1);
+    }
+
+    const accounts = await keyring.getAccounts();
+    await this.checkForDuplicate(type, accounts);
+
+    this.keyrings.push(keyring);
+    await this.persistAllKeyrings();
+
+    this.#fullUpdate();
+
+    return keyring;
+  }
+
+  /**
+   * Remove empty keyrings.
+   *
+   * Loops through the keyrings and removes the ones with empty accounts
+   * (usually after removing the last / only account) from a keyring.
+   */
+  async removeEmptyKeyrings(): Promise<void> {
+    const validKeyrings: Keyring<Json>[] = [];
+
+    // Since getAccounts returns a Promise
+    // We need to wait to hear back form each keyring
+    // in order to decide which ones are now valid (accounts.length > 0)
+
+    await Promise.all(
+      this.keyrings.map(async (keyring: Keyring<Json>) => {
+        const accounts = await keyring.getAccounts();
+        if (accounts.length > 0) {
+          validKeyrings.push(keyring);
+        }
+      }),
+    );
+    this.keyrings = validKeyrings;
+  }
+
+  /**
+   * Checks for duplicate keypairs, using the the first account in the given
+   * array. Rejects if a duplicate is found.
+   *
+   * Only supports 'Simple Key Pair'.
+   *
+   * @param type - The key pair type to check for.
+   * @param newAccountArray - Array of new accounts.
+   * @returns The account, if no duplicate is found.
+   */
+  async checkForDuplicate(
+    type: string,
+    newAccountArray: string[],
+  ): Promise<string[]> {
+    const accounts = await this.getAccounts();
+
+    switch (type) {
+      case KeyringType.Simple: {
+        const isIncluded = Boolean(
+          accounts.find(
+            (key) =>
+              newAccountArray[0] &&
+              (key === newAccountArray[0] ||
+                key === remove0x(newAccountArray[0])),
+          ),
+        );
+
+        if (isIncluded) {
+          throw new Error(KeyringControllerError.DuplicatedAccount);
+        }
+        return newAccountArray;
+      }
+
+      default: {
+        return newAccountArray;
+      }
+    }
+  }
+
+  /**
+   * Get Keyring For Account
+   *
+   * Returns the currently initialized keyring that manages
+   * the specified `address` if one exists.
+   *
+   * @param address - An account address.
+   * @returns The keyring of the account, if it exists.
+   */
+  async getKeyringForAccount(address: string): Promise<Keyring<Json>> {
+    const hexed = normalizeToHex(address);
+
+    const candidates = await Promise.all(
+      this.keyrings.map(async (keyring) => {
+        return Promise.all([keyring, keyring.getAccounts()]);
+      }),
+    );
+
+    const winners = candidates.filter((candidate) => {
+      const accounts = candidate[1].map(normalizeToHex);
+      return accounts.includes(hexed);
+    });
+
+    if (winners.length && winners[0]?.length) {
+      return winners[0][0];
+    }
+
+    // Adding more info to the error
+    let errorInfo = '';
+    if (!address) {
+      errorInfo = 'The address passed in is invalid/empty';
+    } else if (!candidates.length) {
+      errorInfo = 'There are no keyrings';
+    } else if (!winners.length) {
+      errorInfo = 'There are keyrings, but none match the address';
+    }
+    throw new Error(
+      `${KeyringControllerError.NoKeyring}. Error info: ${errorInfo}`,
+    );
   }
 
   /**
@@ -835,68 +909,6 @@ class KeyringController extends EventEmitter {
     await Promise.all(vault.map(this.#restoreKeyring.bind(this)));
     await this.updateMemStoreKeyrings();
     return this.keyrings;
-  }
-
-  /**
-   * Get Accounts
-   *
-   * Returns the public addresses of all current accounts
-   * managed by all currently unlocked keyrings.
-   *
-   * @returns The array of accounts.
-   */
-  async getAccounts(): Promise<string[]> {
-    const keyrings = this.keyrings || [];
-
-    const keyringArrays = await Promise.all(
-      keyrings.map(async (keyring) => keyring.getAccounts()),
-    );
-    const addresses = keyringArrays.reduce((res, arr) => {
-      return res.concat(arr);
-    }, []);
-
-    return addresses.map(normalizeToHex);
-  }
-
-  /**
-   * Get Keyring For Account
-   *
-   * Returns the currently initialized keyring that manages
-   * the specified `address` if one exists.
-   *
-   * @param address - An account address.
-   * @returns The keyring of the account, if it exists.
-   */
-  async getKeyringForAccount(address: string): Promise<Keyring<Json>> {
-    const hexed = normalizeToHex(address);
-
-    const candidates = await Promise.all(
-      this.keyrings.map(async (keyring) => {
-        return Promise.all([keyring, keyring.getAccounts()]);
-      }),
-    );
-
-    const winners = candidates.filter((candidate) => {
-      const accounts = candidate[1].map(normalizeToHex);
-      return accounts.includes(hexed);
-    });
-
-    if (winners.length && winners[0]?.length) {
-      return winners[0][0];
-    }
-
-    // Adding more info to the error
-    let errorInfo = '';
-    if (!address) {
-      errorInfo = 'The address passed in is invalid/empty';
-    } else if (!candidates.length) {
-      errorInfo = 'There are no keyrings';
-    } else if (!winners.length) {
-      errorInfo = 'There are keyrings, but none match the address';
-    }
-    throw new Error(
-      `${KeyringControllerError.NoKeyring}. Error info: ${errorInfo}`,
-    );
   }
 
   // =======================
