@@ -756,7 +756,11 @@ class KeyringController extends EventEmitter {
    * @returns Keyrings matching the specified type.
    */
   getKeyringsByType(type: string): Keyring<Json>[] {
-    return this.keyrings.filter((keyring) => keyring.type === type);
+    const keyrings = this.keyrings.filter((keyring) => keyring.type === type);
+    if (!keyrings.length) {
+      throw new Error(KeyringControllerError.NoKeyring);
+    }
+    return keyrings;
   }
 
   /**
@@ -1045,13 +1049,13 @@ class KeyringController extends EventEmitter {
  *
  * Returns a builder function for `Keyring` with a `type` property.
  *
- * @param Keyring - The Keyring class for the builder.
+ * @param KeyringConstructor - The Keyring class for the builder.
  * @returns A builder function for the given Keyring.
  */
-function keyringBuilderFactory(Keyring: KeyringClass<Json>) {
-  const builder = () => new Keyring();
+function keyringBuilderFactory(KeyringConstructor: KeyringClass<Json>) {
+  const builder = () => new KeyringConstructor();
 
-  builder.type = Keyring.type;
+  builder.type = KeyringConstructor.type;
 
   return builder;
 }

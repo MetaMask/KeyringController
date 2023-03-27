@@ -1,6 +1,6 @@
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
-import type { Hex, Json, Keyring, KeyringClass } from '@metamask/utils';
+import type { Hex } from '@metamask/utils';
 import { strict as assert } from 'assert';
 import Wallet from 'ethereumjs-wallet';
 import * as sinon from 'sinon';
@@ -44,11 +44,7 @@ describe('KeyringController', () => {
     keyringController = new KeyringController({
       encryptor: mockEncryptor,
       cacheEncryptionKey: false,
-      keyringBuilders: [
-        keyringBuilderFactory(
-          KeyringMockWithInit as unknown as KeyringClass<any>,
-        ),
-      ],
+      keyringBuilders: [keyringBuilderFactory(KeyringMockWithInit)],
     });
 
     await keyringController.createNewVaultAndKeychain(PASSWORD);
@@ -454,7 +450,8 @@ describe('KeyringController', () => {
 
       const keyring = await keyringController.restoreKeyring(mockSerialized);
       // eslint-disable-next-line no-unsafe-optional-chaining
-      const { numberOfAccounts } = (await keyring?.serialize()) as any;
+      // @ts-expect-error this value should never be undefined in this specific context.
+      const { numberOfAccounts } = await keyring.serialize();
       expect(numberOfAccounts).toBe(1);
 
       const accounts = await keyring?.getAccounts();
@@ -474,15 +471,17 @@ describe('KeyringController', () => {
     it('returns the result of getAccounts for each keyring', async () => {
       keyringController.keyrings = [
         {
+          // @ts-expect-error there's only a need to mock the getAccounts method for this test.
           async getAccounts() {
             return Promise.resolve([1, 2, 3]);
           },
-        } as unknown as Keyring<Json>,
+        },
         {
+          // @ts-expect-error there's only a need to mock the getAccounts method for this test.
           async getAccounts() {
             return Promise.resolve([4, 5, 6]);
           },
-        } as unknown as Keyring<Json>,
+        },
       ];
 
       const result = await keyringController.getAccounts();
@@ -499,7 +498,7 @@ describe('KeyringController', () => {
 
   describe('removeAccount', () => {
     it('removes an account from the corresponding keyring', async () => {
-      const account = {
+      const account: { privateKey: string; publicKey: Hex } = {
         privateKey:
           'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
         publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
@@ -514,7 +513,7 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(2);
 
       // remove that account that we just added
-      await keyringController.removeAccount(account.publicKey as Hex);
+      await keyringController.removeAccount(account.publicKey);
 
       expect(keyringController.keyrings).toHaveLength(1);
       // fetch accounts after removal
@@ -523,7 +522,7 @@ describe('KeyringController', () => {
     });
 
     it('removes the keyring if there are no accounts after removal', async () => {
-      const account = {
+      const account: { privateKey: string; publicKey: Hex } = {
         privateKey:
           'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
         publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
@@ -538,7 +537,7 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(2);
 
       // remove that account that we just added
-      await keyringController.removeAccount(account.publicKey as Hex);
+      await keyringController.removeAccount(account.publicKey);
 
       // Check that the previous keyring with only one account
       // was also removed after removing the account
@@ -556,7 +555,8 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(2);
 
       // remove one account from the keyring we just added
-      await keyringController.removeAccount(walletTwoAddresses[0] as Hex);
+      // @ts-expect-error this value should never be undefied
+      await keyringController.removeAccount(walletTwoAddresses[0]);
 
       // Check that the newly added keyring was not removed after
       // removing the account since it still has an account left
@@ -571,7 +571,8 @@ describe('KeyringController', () => {
       expect(keyrings).toHaveLength(1);
       await Promise.all(
         keyrings.map(async (keyring) => {
-          const { numberOfAccounts } = (await keyring.serialize()) as any;
+          // @ts-expect-error numberOfAccounts mising in Json specification.
+          const { numberOfAccounts } = await keyring.serialize();
           expect(numberOfAccounts).toBe(1);
         }),
       );
@@ -592,11 +593,7 @@ describe('KeyringController', () => {
   describe('verifyPassword', () => {
     beforeEach(() => {
       keyringController = new KeyringController({
-        keyringBuilders: [
-          keyringBuilderFactory(
-            KeyringMockWithInit as unknown as KeyringClass<any>,
-          ),
-        ],
+        keyringBuilders: [keyringBuilderFactory(KeyringMockWithInit)],
         encryptor: mockEncryptor,
         cacheEncryptionKey: false,
       });
@@ -626,7 +623,8 @@ describe('KeyringController', () => {
       const initialAccounts = await HDKeyring?.getAccounts();
       expect(initialAccounts).toHaveLength(1);
 
-      await keyringController.addNewAccount(HDKeyring as Keyring<Json>);
+      // @ts-expect-error this value should never be undefined in this specific context.
+      await keyringController.addNewAccount(HDKeyring);
       const accountsAfterAdd = await HDKeyring?.getAccounts();
       expect(accountsAfterAdd).toHaveLength(2);
     });
@@ -718,10 +716,11 @@ describe('KeyringController', () => {
     it('throws error when there are no matching keyrings', async () => {
       keyringController.keyrings = [
         {
+          // @ts-expect-error there's only a need to mock the getAccounts method for this test.
           async getAccounts() {
             return Promise.resolve([1, 2, 3]);
           },
-        } as unknown as Keyring<Json>,
+        },
       ];
 
       await expect(
@@ -808,13 +807,15 @@ describe('KeyringController', () => {
 
       const [firstKeyring] = keyringController.keyrings;
 
-      await keyringController.addNewAccount(firstKeyring as Keyring<Json>);
+      // @ts-expect-error this value should never be undefined in this specific context.
+      await keyringController.addNewAccount(firstKeyring);
       expect(await keyringController.getAccounts()).toHaveLength(2);
 
-      await keyringController.addNewAccount(firstKeyring as Keyring<Json>);
+      // @ts-expect-error this value should never be undefined in this specific context.
+      await keyringController.addNewAccount(firstKeyring);
       expect(await keyringController.getAccounts()).toHaveLength(3);
 
-      const account = {
+      const account: { privateKey: string; publicKey: Hex } = {
         privateKey:
           'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3',
         publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
@@ -827,7 +828,7 @@ describe('KeyringController', () => {
       expect(await keyringController.getAccounts()).toHaveLength(4);
 
       // remove that account that we just added
-      await keyringController.removeAccount(account.publicKey as Hex);
+      await keyringController.removeAccount(account.publicKey);
       expect(await keyringController.getAccounts()).toHaveLength(3);
     });
 
@@ -865,7 +866,8 @@ describe('KeyringController', () => {
         walletOneSeedWords,
       );
       const privateKey = await keyringController.exportAccount(
-        walletOneAddresses[0] as Hex,
+        // @ts-expect-error this value should never be undefined in this specific context.
+        walletOneAddresses[0],
       );
       expect(privateKey).toStrictEqual(walletOnePrivateKey[0]);
     });
@@ -881,10 +883,11 @@ describe('KeyringController', () => {
 
     it('signMessage', async () => {
       const inputParams = {
-        from: walletOneAddresses[0] as Hex,
+        from: walletOneAddresses[0],
         data: '0x879a053d4800c6354e76c7985a865d2922c82fb5b3f4577b2fe08b998954f2e0',
         origin: 'https://metamask.github.io',
       };
+      // @ts-expect-error this value should never be undefined in this specific context.
       const result = await keyringController.signMessage(inputParams);
       expect(result).toMatchInlineSnapshot(
         `"0x93e0035090e8144debae03f45c5339a78d24c41e38e810a82dd3387e48353db645bd77716f3b7c4fb1f07f3b97bdbd33b0d7c55f7e7eedf3a678a2081948b67f1c"`,
@@ -893,10 +896,11 @@ describe('KeyringController', () => {
 
     it('signPersonalMessage', async () => {
       const inputParams = {
-        from: walletOneAddresses[0] as Hex,
+        from: walletOneAddresses[0],
         data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
         origin: 'https://metamask.github.io',
       };
+      // @ts-expect-error this value should never be undefined in this specific context.
       const result = await keyringController.signPersonalMessage(inputParams);
       expect(result).toBe(
         '0xfa2e5989b483e1f40a41b306f275b0009bcc07bfe5322c87682145e7d4889a3247182b4bd8138a965a7e37dea9d9b492b6f9f6d01185412f2d80466237b2805e1b',
@@ -905,7 +909,8 @@ describe('KeyringController', () => {
 
     it('getEncryptionPublicKey', async () => {
       const result = await keyringController.getEncryptionPublicKey(
-        walletOneAddresses[0] as Hex,
+        // @ts-expect-error this value should never be undefined in this specific context.
+        walletOneAddresses[0],
       );
       expect(result).toBe('SR6bQ1m3OTHvI1FLwcGzm+Uk6hffoFPxsQ0DTOeKMEc=');
     });
