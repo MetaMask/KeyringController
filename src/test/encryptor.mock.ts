@@ -1,10 +1,12 @@
-const sinon = require('sinon');
+import { Json } from '@metamask/utils';
+import { stub } from 'sinon';
 
 const PASSWORD = 'password123';
 const MOCK_ENCRYPTION_KEY = JSON.stringify({
   alg: 'A256GCM',
   ext: true,
   k: 'wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   key_ops: ['encrypt', 'decrypt'],
   kty: 'oct',
 });
@@ -16,17 +18,18 @@ const INVALID_PASSWORD_ERROR = 'Incorrect password.';
 const MOCK_HARDCODED_KEY = 'key';
 const MOCK_HEX = '0xabcdef0123456789';
 const MOCK_SALT = 'SALT';
+// eslint-disable-next-line no-restricted-globals
 const MOCK_KEY = Buffer.alloc(32);
-let cacheVal;
+let cacheVal: Json;
 
 const mockEncryptor = {
-  encrypt: sinon.stub().callsFake(function (_password, dataObj) {
+  encrypt: stub().callsFake(async (_password, dataObj) => {
     cacheVal = dataObj;
 
     return Promise.resolve(MOCK_HEX);
   }),
 
-  encryptWithDetail: sinon.stub().callsFake(function (_password, dataObj) {
+  encryptWithDetail: stub().callsFake(async (_password, dataObj) => {
     cacheVal = dataObj;
 
     return Promise.resolve({
@@ -35,20 +38,20 @@ const mockEncryptor = {
     });
   }),
 
-  async decrypt(_password, _text) {
+  async decrypt(_password: string, _text: string) {
     if (_password && _password !== PASSWORD) {
       throw new Error(INVALID_PASSWORD_ERROR);
     }
 
-    return Promise.resolve(cacheVal || {});
+    return Promise.resolve(cacheVal ?? {});
   },
 
-  async decryptWithEncryptedKeyString(_keyStr) {
-    const { vault } = await this.decryptWithDetail();
+  async decryptWithEncryptedKeyString(_keyStr: string) {
+    const { vault } = await this.decryptWithDetail(_keyStr, 'mock vault');
     return vault;
   },
 
-  decryptWithDetail(_password, _text) {
+  async decryptWithDetail(_password: string, _text: string) {
     if (_password && _password !== PASSWORD) {
       throw new Error(INVALID_PASSWORD_ERROR);
     }
@@ -63,7 +66,7 @@ const mockEncryptor = {
     return Promise.resolve(result);
   },
 
-  importKey(keyString) {
+  importKey(keyString: string) {
     if (keyString === '{}') {
       throw new TypeError(
         `Failed to execute 'importKey' on 'SubtleCrypto': The provided value is not of type '(ArrayBuffer or ArrayBufferView or JsonWebKey)'.`,
@@ -79,11 +82,11 @@ const mockEncryptor = {
     return data;
   },
 
-  decryptWithKey(key, text) {
+  async decryptWithKey(key: string, text: string) {
     return this.decrypt(key, text);
   },
 
-  keyFromPassword(_password) {
+  async keyFromPassword(_password: string) {
     return Promise.resolve(MOCK_KEY);
   },
 
@@ -92,7 +95,7 @@ const mockEncryptor = {
   },
 };
 
-module.exports = {
+export {
   mockEncryptor,
   PASSWORD,
   MOCK_HARDCODED_KEY,
