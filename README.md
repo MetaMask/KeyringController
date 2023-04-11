@@ -19,7 +19,7 @@ This library uses the Node.js `events` API. If you are using this library outsid
 ## Usage
 
 ```javascript
-const KeyringController = require('@metamask/eth-keyring-controller');
+const { KeyringController } = require('@metamask/eth-keyring-controller');
 const SimpleKeyring = require('@metamask/eth-simple-keyring');
 
 const keyringController = new KeyringController({
