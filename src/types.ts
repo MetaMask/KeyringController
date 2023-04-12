@@ -7,11 +7,11 @@ export type KeyringControllerArgs = {
     | ConcatArray<{ (): Keyring<Json>; type: string }>;
 
   cacheEncryptionKey: boolean;
-  initState?: KeyringControllerState;
+  initState?: State;
   encryptor?: any;
 };
 
-export type KeyringControllerState = {
+export type State = {
   keyringBuilders?: { (): Keyring<Json>; type: string }[];
 
   store?: typeof ObservableStore;
@@ -32,4 +32,9 @@ export type KeyringControllerState = {
 export type SerializedKeyring = {
   type: string;
   data: Json;
+};
+
+export type Account = {
+  address: string;
+  keyring: string;
 };

@@ -1,4 +1,8 @@
 import type { TypedTransaction, TxData } from '@ethereumjs/tx';
+import {
+  BaseControllerV2,
+  RestrictedControllerMessenger,
+} from '@metamask/base-controller';
 import * as encryptorUtils from '@metamask/browser-passworder';
 import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
@@ -14,14 +18,14 @@ import type {
 } from '@metamask/utils';
 // TODO: Stop using `events`, and remove the notice about this from the README
 // eslint-disable-next-line import/no-nodejs-modules
-import { EventEmitter } from 'events';
 import ObservableStore from 'obs-store';
 
 import { KeyringType, KeyringControllerError } from './constants';
 import {
   SerializedKeyring,
   KeyringControllerArgs,
-  KeyringControllerState,
+  State,
+  Account,
 } from './types';
 
 const defaultKeyringBuilders = [
@@ -29,7 +33,110 @@ const defaultKeyringBuilders = [
   keyringBuilderFactory(HDKeyring),
 ];
 
-class KeyringController extends EventEmitter {
+export type KeyringControllerState = {
+  vault: { iv: string; cipher: string };
+  isUnlocked: boolean;
+  accounts: Record<string, Account>;
+  keyrings: Record<string, Keyring<Json>>;
+};
+
+export type AccountRegistered = {
+  type: `${typeof controllerName}:accountRegistered`;
+  payload: [];
+};
+
+export type AccountRemoved = {
+  type: `${typeof controllerName}:accountRemoved`;
+  payload: [];
+};
+
+export type KeyringRegistered = {
+  type: `${typeof controllerName}:keyringRegistered`;
+  payload: [];
+};
+
+export type KeyringRemoved = {
+  type: `${typeof controllerName}:keyringRemoved`;
+  payload: [];
+};
+
+export type VaultLocked = {
+  type: `${typeof controllerName}:vaultLocked`;
+  payload: [];
+};
+
+export type VaultUnlocked = {
+  type: `${typeof controllerName}:vaultUnlocked`;
+  payload: [];
+};
+
+export type VaultCreated = {
+  type: `${typeof controllerName}:vaultCreated`;
+  payload: [];
+};
+
+export type KeyringControllerEvents =
+  | AccountRegistered
+  | AccountRemoved
+  | KeyringRegistered
+  | KeyringRemoved
+  | VaultLocked
+  | VaultUnlocked
+  | VaultCreated;
+
+export type AddAccount = {
+  type: `${typeof controllerName}:addAccount`;
+  handler: KeyringController[''];
+};
+
+export type GetAccount = {
+  type: `${typeof controllerName}:getAccount`;
+  handler: KeyringController[''];
+};
+
+export type RemoveAccount = {
+  type: `${typeof controllerName}:removeAccount`;
+  handler: KeyringController[''];
+};
+
+export type AddKeyring = {
+  type: `${typeof controllerName}:addKeyring`;
+  handler: KeyringController[''];
+};
+
+export type GetKeyring = {
+  type: `${typeof controllerName}:getKeyring`;
+  handler: KeyringController[''];
+};
+
+export type RemoveKeyring = {
+  type: `${typeof controllerName}:removeKeyring`;
+  handler: KeyringController[''];
+};
+
+export type KeyringControllerActions =
+  | AddAccount
+  | GetAccount
+  | RemoveAccount
+  | AddKeyring
+  | GetKeyring
+  | RemoveKeyring;
+
+export type KeyringControllerMessenger = RestrictedControllerMessenger<
+  typeof controllerName,
+  KeyringControllerActions,
+  KeyringControllerEvents,
+  never,
+  never
+>;
+
+const controllerName = 'KeyringController';
+
+class KeyringController extends BaseControllerV2<
+  typeof controllerName,
+  KeyringControllerState,
+  KeyringControllerMessenger
+> {
   keyringBuilders: { (): Keyring<Json>; type: string }[];
 
   public store: typeof ObservableStore;
@@ -52,7 +159,12 @@ class KeyringController extends EventEmitter {
     initState = {},
     encryptor = encryptorUtils,
   }: KeyringControllerArgs) {
-    super();
+    super({
+      messenger: null,
+      metadata: StateMetadata<KeyringControllerState>,
+      name: 'KeyringController',
+      state: KeyringControllerState,
+    });
     this.keyringBuilders = keyringBuilders
       ? defaultKeyringBuilders.concat(keyringBuilders)
       : defaultKeyringBuilders;
@@ -110,9 +222,7 @@ class KeyringController extends EventEmitter {
    * @param password - The password to encrypt the vault with.
    * @returns A promise that resolves to the state.
    */
-  async createNewVaultAndKeychain(
-    password: string,
-  ): Promise<KeyringControllerState> {
+  async createNewVaultAndKeychain(password: string): Promise<State> {
     this.password = password;
 
     await this.#createFirstKeyTree();
@@ -136,7 +246,7 @@ class KeyringController extends EventEmitter {
   async createNewVaultAndRestore(
     password: string,
     seedPhrase: Uint8Array | string | number[],
-  ): Promise<KeyringControllerState> {
+  ): Promise<State> {
     if (typeof password !== 'string') {
       throw new TypeError(KeyringControllerError.WrongPasswordType);
     }
@@ -164,7 +274,7 @@ class KeyringController extends EventEmitter {
    * @fires KeyringController#lock
    * @returns A promise that resolves to the state.
    */
-  async setLocked(): Promise<KeyringControllerState> {
+  async setLocked(): Promise<State> {
     delete this.password;
 
     // set locked
@@ -194,7 +304,7 @@ class KeyringController extends EventEmitter {
    * @param password - The keyring controller password.
    * @returns A promise that resolves to the state.
    */
-  async submitPassword(password: string): Promise<KeyringControllerState> {
+  async submitPassword(password: string): Promise<State> {
     this.keyrings = await this.unlockKeyrings(password);
 
     this.#setUnlocked();
@@ -215,7 +325,7 @@ class KeyringController extends EventEmitter {
   async submitEncryptionKey(
     encryptionKey: string,
     encryptionSalt: string,
-  ): Promise<KeyringControllerState> {
+  ): Promise<State> {
     this.keyrings = await this.unlockKeyrings(
       undefined,
       encryptionKey,
@@ -256,9 +366,7 @@ class KeyringController extends EventEmitter {
    * @param selectedKeyring - The currently selected keyring.
    * @returns A Promise that resolves to the state.
    */
-  async addNewAccount(
-    selectedKeyring: Keyring<Json>,
-  ): Promise<KeyringControllerState> {
+  async addNewAccount(selectedKeyring: Keyring<Json>): Promise<State> {
     const accounts = await selectedKeyring.addAccounts(1);
     accounts.forEach((hexAccount) => {
       this.emit('newAccount', hexAccount);
@@ -297,7 +405,7 @@ class KeyringController extends EventEmitter {
    * @param address - The address of the account to remove.
    * @returns A promise that resolves if the operation was successful.
    */
-  async removeAccount(address: Hex): Promise<KeyringControllerState> {
+  async removeAccount(address: Hex): Promise<State> {
     const keyring = await this.getKeyringForAccount(address);
 
     // Not all the keyrings support this, so we have to check
@@ -1079,4 +1187,4 @@ async function displayForKeyring(
   };
 }
 
-export { KeyringController, keyringBuilderFactory };
+export { KeyringController, keyringBuilderFactory, controllerName };
