@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "@ethereumjs/tx": "^4.1.1",
+    "@metamask/base-controller": "^2.0.0",
     "@metamask/browser-passworder": "^4.1.0",
     "@metamask/eth-hd-keyring": "^6.0.0",
     "@metamask/eth-sig-util": "5.0.2",
