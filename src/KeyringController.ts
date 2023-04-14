@@ -417,11 +417,11 @@ class KeyringController extends BaseControllerV2<
   }
 
   getAccount() {
-    console.log('method addAccount');
+    console.log('method getAccount');
   }
 
   updateAccount() {
-    console.log('method addAccount');
+    console.log('method updateAccount');
   }
 
   /**
