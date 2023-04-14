@@ -21,12 +21,7 @@ import type {
 import ObservableStore from 'obs-store';
 
 import { KeyringType, KeyringControllerError } from './constants';
-import {
-  SerializedKeyring,
-  KeyringControllerArgs,
-  State,
-  Account,
-} from './types';
+import { SerializedKeyring, State, Account } from './types';
 
 const defaultKeyringBuilders = [
   keyringBuilderFactory(SimpleKeyring),
@@ -34,20 +29,20 @@ const defaultKeyringBuilders = [
 ];
 
 export type KeyringControllerState = {
-  vault: { iv: string; cipher: string };
-  isUnlocked: boolean;
+  vault?: { iv: string; cipher: string };
+  isUnlocked?: boolean;
   accounts: Record<string, Account>;
   keyrings: Record<string, Keyring<Json>>;
 };
 
 export type AccountRegistered = {
   type: `${typeof controllerName}:accountRegistered`;
-  payload: [];
+  payload: [account: string];
 };
 
 export type AccountRemoved = {
   type: `${typeof controllerName}:accountRemoved`;
-  payload: [];
+  payload: [address: string];
 };
 
 export type KeyringRegistered = {
@@ -72,7 +67,12 @@ export type VaultUnlocked = {
 
 export type VaultCreated = {
   type: `${typeof controllerName}:vaultCreated`;
-  payload: [];
+  payload: [account: string];
+};
+
+export type StateUpdated = {
+  type: `${typeof controllerName}:stateUpdated`;
+  payload: [state: any];
 };
 
 export type KeyringControllerEvents =
@@ -82,45 +82,34 @@ export type KeyringControllerEvents =
   | KeyringRemoved
   | VaultLocked
   | VaultUnlocked
-  | VaultCreated;
+  | VaultCreated
+  | StateUpdated;
 
 export type AddAccount = {
   type: `${typeof controllerName}:addAccount`;
-  handler: KeyringController[''];
+  handler: KeyringController['addAccount'];
 };
 
 export type GetAccount = {
   type: `${typeof controllerName}:getAccount`;
-  handler: KeyringController[''];
+  handler: KeyringController['getAccount'];
+};
+
+export type UpdateAccount = {
+  type: `${typeof controllerName}:updateAccount`;
+  handler: KeyringController['updateAccount'];
 };
 
 export type RemoveAccount = {
   type: `${typeof controllerName}:removeAccount`;
-  handler: KeyringController[''];
-};
-
-export type AddKeyring = {
-  type: `${typeof controllerName}:addKeyring`;
-  handler: KeyringController[''];
-};
-
-export type GetKeyring = {
-  type: `${typeof controllerName}:getKeyring`;
-  handler: KeyringController[''];
-};
-
-export type RemoveKeyring = {
-  type: `${typeof controllerName}:removeKeyring`;
-  handler: KeyringController[''];
+  handler: KeyringController['removeAccount'];
 };
 
 export type KeyringControllerActions =
   | AddAccount
   | GetAccount
-  | RemoveAccount
-  | AddKeyring
-  | GetKeyring
-  | RemoveKeyring;
+  | UpdateAccount
+  | RemoveAccount;
 
 export type KeyringControllerMessenger = RestrictedControllerMessenger<
   typeof controllerName,
@@ -130,7 +119,25 @@ export type KeyringControllerMessenger = RestrictedControllerMessenger<
   never
 >;
 
+export type KeyringControllerArgs = {
+  messenger: KeyringControllerMessenger;
+  keyringBuilders:
+    | { (): Keyring<Json>; type: string }
+    | ConcatArray<{ (): Keyring<Json>; type: string }>;
+
+  cacheEncryptionKey: boolean;
+  initState?: State;
+  encryptor?: any;
+};
+
 const controllerName = 'KeyringController';
+
+const stateMetadata = {
+  vault: { persist: true, anonymous: false },
+  isUnlocked: { persist: false, anonymous: false },
+  accounts: { persist: false, anonymous: false },
+  keyrings: { persist: false, anonymous: false },
+};
 
 class KeyringController extends BaseControllerV2<
   typeof controllerName,
@@ -154,16 +161,20 @@ class KeyringController extends BaseControllerV2<
   public password?: string;
 
   constructor({
+    messenger,
     keyringBuilders,
     cacheEncryptionKey,
-    initState = {},
+    initState = {
+      accounts: {},
+      keyrings: [],
+    },
     encryptor = encryptorUtils,
   }: KeyringControllerArgs) {
     super({
-      messenger: null,
-      metadata: StateMetadata<KeyringControllerState>,
+      messenger,
+      metadata: stateMetadata,
       name: 'KeyringController',
-      state: KeyringControllerState,
+      state: initState,
     });
     this.keyringBuilders = keyringBuilders
       ? defaultKeyringBuilders.concat(keyringBuilders)
@@ -200,8 +211,34 @@ class KeyringController extends BaseControllerV2<
    * @returns The controller state.
    */
   #fullUpdate() {
-    this.emit('update', this.memStore.getState());
+    this.messagingSystem.publish(
+      `${controllerName}:stateUpdated`,
+      this.memStore.getState(),
+    );
     return this.memStore.getState();
+  }
+
+  /**
+   * ========================================
+   * ========== Messenger Handlers ==========
+   * ========================================
+   */
+
+  #registerMessageHandlers(): void {
+    this.messagingSystem.registerActionHandler(
+      `${controllerName}:addAccount` as const,
+      this.addAccount.bind(this),
+    );
+
+    this.messagingSystem.registerActionHandler(
+      `${controllerName}:getAccount` as const,
+      this.getAccount.bind(this),
+    );
+
+    this.messagingSystem.registerActionHandler(
+      `${controllerName}:removeAccount` as const,
+      this.removeAccount.bind(this),
+    );
   }
 
   /**
@@ -253,7 +290,7 @@ class KeyringController extends BaseControllerV2<
     this.password = password;
 
     await this.#clearKeyrings();
-    const keyring = await this.addNewKeyring(KeyringType.HD, {
+    const keyring = await this.addKeyring(KeyringType.HD, {
       mnemonic: seedPhrase,
       numberOfAccounts: 1,
     });
@@ -287,7 +324,7 @@ class KeyringController extends BaseControllerV2<
     // remove keyrings
     this.keyrings = [];
     await this.updateMemStoreKeyrings();
-    this.emit('lock');
+    this.messagingSystem.publish(`${controllerName}:vaultLocked`);
     return this.#fullUpdate();
   }
 
@@ -358,7 +395,7 @@ class KeyringController extends BaseControllerV2<
    */
 
   /**
-   * Add New Account.
+   * Add or register a new Account.
    *
    * Calls the `addAccounts` method on the given keyring,
    * and then saves those changes.
@@ -366,11 +403,51 @@ class KeyringController extends BaseControllerV2<
    * @param selectedKeyring - The currently selected keyring.
    * @returns A Promise that resolves to the state.
    */
-  async addNewAccount(selectedKeyring: Keyring<Json>): Promise<State> {
+  async addAccount(selectedKeyring: Keyring<Json>): Promise<State> {
     const accounts = await selectedKeyring.addAccounts(1);
-    accounts.forEach((hexAccount) => {
-      this.emit('newAccount', hexAccount);
+    accounts.forEach((account) => {
+      this.messagingSystem.publish(
+        `${controllerName}:accountRegistered`,
+        account,
+      );
     });
+
+    await this.persistAllKeyrings();
+    return this.#fullUpdate();
+  }
+
+  getAccount() {
+    console.log('method addAccount');
+  }
+
+  updateAccount() {
+    console.log('method addAccount');
+  }
+
+  /**
+   * Remove Account.
+   *
+   * Removes a specific account from a keyring
+   * If the account is the last/only one then it also removes the keyring.
+   *
+   * @param address - The address of the account to remove.
+   * @returns A promise that resolves if the operation was successful.
+   */
+  async removeAccount(address: Hex): Promise<State> {
+    const keyring = await this.getKeyringForAccount(address);
+
+    // Not all the keyrings support this, so we have to check
+    if (!keyring.removeAccount) {
+      throw new Error(KeyringControllerError.UnsupportedRemoveAccount);
+    }
+    keyring.removeAccount(address);
+    this.messagingSystem.publish(`${controllerName}:accountRemoved`, address);
+
+    const accounts = await keyring.getAccounts();
+    // Check if this was the last/only account
+    if (accounts.length === 0) {
+      await this.removeEmptyKeyrings();
+    }
 
     await this.persistAllKeyrings();
     return this.#fullUpdate();
@@ -394,35 +471,6 @@ class KeyringController extends BaseControllerV2<
     }
 
     return await keyring.exportAccount(normalizeToHex(address));
-  }
-
-  /**
-   * Remove Account.
-   *
-   * Removes a specific account from a keyring
-   * If the account is the last/only one then it also removes the keyring.
-   *
-   * @param address - The address of the account to remove.
-   * @returns A promise that resolves if the operation was successful.
-   */
-  async removeAccount(address: Hex): Promise<State> {
-    const keyring = await this.getKeyringForAccount(address);
-
-    // Not all the keyrings support this, so we have to check
-    if (!keyring.removeAccount) {
-      throw new Error(KeyringControllerError.UnsupportedRemoveAccount);
-    }
-    keyring.removeAccount(address);
-    this.emit('removedAccount', address);
-
-    const accounts = await keyring.getAccounts();
-    // Check if this was the last/only account
-    if (accounts.length === 0) {
-      await this.removeEmptyKeyrings();
-    }
-
-    await this.persistAllKeyrings();
-    return this.#fullUpdate();
   }
 
   /**
@@ -691,7 +739,7 @@ class KeyringController extends BaseControllerV2<
    * @param opts - The constructor options for the keyring.
    * @returns The new keyring.
    */
-  async addNewKeyring(
+  async addKeyring(
     type: string,
     opts: Record<string, unknown> = {},
   ): Promise<Keyring<Json>> {
@@ -1052,8 +1100,8 @@ class KeyringController extends BaseControllerV2<
       throw new Error(KeyringControllerError.NoAccountOnKeychain);
     }
 
-    const hexAccount = normalizeToHex(firstAccount);
-    this.emit('newVault', hexAccount);
+    const account = normalizeToHex(firstAccount);
+    this.messagingSystem.publish(`${controllerName}:vaultCreated`, account);
     return null;
   }
 
@@ -1115,7 +1163,7 @@ class KeyringController extends BaseControllerV2<
    */
   #setUnlocked(): void {
     this.memStore.updateState({ isUnlocked: true });
-    this.emit('unlock');
+    this.messagingSystem.publish(`${controllerName}:vaultUnlocked`);
   }
 
   /**
