@@ -20,7 +20,7 @@ export type State = {
 
   keyrings?: Keyring<Json>[];
 
-  vaultUnlock?: boolean;
+  isUnlocked?: boolean;
 
   encryptionKey?: string;
 
