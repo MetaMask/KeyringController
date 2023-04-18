@@ -20,7 +20,7 @@ export type KeyringControllerState = {
 
   keyrings?: Keyring<Json>[];
 
-  vaultUnlock?: boolean;
+  isUnlocked?: boolean;
 
   encryptionKey?: string;
 
