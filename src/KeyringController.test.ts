@@ -63,6 +63,8 @@ describe('KeyringController', () => {
         'keyrings should not be empty',
       );
 
+      throw new Error('test');
+
       await keyringController.setLocked();
 
       expect(keyringController.password).toBeUndefined();
