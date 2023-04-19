@@ -1,4 +1,4 @@
-// import { Vault } from '.';
+/* eslint-disable no-restricted-globals */
 import { exportedForTesting } from './Vault';
 
 const {
@@ -7,6 +7,7 @@ const {
   jsonToBytes,
   randomBytes,
   ensureNotNull,
+  deriveWrappingKey,
 } = exportedForTesting;
 
 describe('stringToBytes', () => {
@@ -118,5 +119,49 @@ describe('ensureNotNull', () => {
     const value = null;
     const errorMessage = 'Error message';
     expect(() => ensureNotNull(value, errorMessage)).toThrow(errorMessage);
+  });
+});
+
+describe('deriveWrappingKey', () => {
+  it('should derive a wrapping key and do an encryption and obtain the expected ciphertext', async () => {
+    const pt = new Uint8Array([
+      0xb3, 0x4e, 0x75, 0x12, 0x9f, 0x2b, 0x15, 0x35, 0xa2, 0x95, 0x8c, 0xf3,
+      0x83, 0xe2, 0xe2, 0x08,
+    ]);
+
+    const iv = new Uint8Array([
+      0xd1, 0x37, 0x31, 0x96, 0x41, 0x9b, 0x0d, 0x80, 0x98, 0x7d, 0x57, 0x25,
+      0x52, 0x31, 0x0e, 0xd2,
+    ]);
+
+    const additionalData = stringToBytes('additionalData');
+
+    // key: 669cfe52482116fda1aa2cbe409b2f56c8e4563752b7a28f6eaab614ee005178
+    // source: https://gchq.github.io/CyberChef/#recipe=Derive_PBKDF2_key(%7B'option':'UTF8','string':'password'%7D,256,600000,'SHA256',%7B'option':'UTF8','string':'salt'%7D)
+    const wrappingKey = await deriveWrappingKey(
+      'password',
+      stringToBytes('salt'),
+    );
+
+    // source: https://gchq.github.io/CyberChef/#recipe=AES_Encrypt(%7B'option':'Hex','string':'669cfe52482116fda1aa2cbe409b2f56c8e4563752b7a28f6eaab614ee005178'%7D,%7B'option':'Hex','string':'d1373196419b0d80987d572552310ed2'%7D,'GCM','Hex','Hex',%7B'option':'UTF8','string':'additionalData'%7D)&input=YjM0ZTc1MTI5ZjJiMTUzNWEyOTU4Y2YzODNlMmUyMDg
+    const expected = new Uint8Array([
+      0x5e, 0x82, 0x04, 0x4f, 0xb7, 0x3e, 0xd3, 0xc7, 0xcb, 0x2a, 0xa7, 0xef,
+      0xc2, 0xe2, 0x34, 0xa4, 0x9b, 0x75, 0x0e, 0xf2, 0x59, 0x25, 0x80, 0x43,
+      0x47, 0x7f, 0xe2, 0x3f, 0x03, 0x37, 0xfe, 0xfd,
+    ]);
+
+    const ct = new Uint8Array(
+      await crypto.subtle.encrypt(
+        {
+          name: 'AES-GCM',
+          iv,
+          additionalData,
+        },
+        wrappingKey,
+        pt,
+      ),
+    );
+
+    expect(ct).toStrictEqual(expected);
   });
 });
