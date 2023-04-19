@@ -39,7 +39,7 @@
     "@metamask/eth-hd-keyring": "^6.0.0",
     "@metamask/eth-sig-util": "5.0.2",
     "@metamask/eth-simple-keyring": "^5.0.0",
-    "@metamask/utils": "^5.0.0",
+    "@metamask/utils": "^5.0.1",
     "@types/uuid": "^9.0.1",
     "obs-store": "^4.0.3",
     "uuid": "^9.0.0"
