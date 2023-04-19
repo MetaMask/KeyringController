@@ -1179,9 +1179,9 @@ export class KeyringController extends BaseControllerV2<
 
     await keyring.deserialize(data);
 
-    // @ts-expect-error Expectable error regarding teh Keyring type not having init
+    // @ts-expect-error The method 'init' is not part of the current Keyring type
     if (keyring.init) {
-      // @ts-expect-error Expectable error regarding teh Keyring type not having init
+      // @ts-expect-error The method 'init' is not part of the current Keyring type
       await keyring.init();
     }
 
