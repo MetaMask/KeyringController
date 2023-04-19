@@ -1036,7 +1036,9 @@ class KeyringController extends EventEmitter {
 
     await keyring.deserialize(data);
 
+    // @ts-expect-error The method 'init' is not part of the current Keyring type
     if (keyring.init) {
+      // @ts-expect-error The method 'init' is not part of the current Keyring type
       await keyring.init();
     }
 
