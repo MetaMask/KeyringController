@@ -13,7 +13,6 @@ type EncryptedData = {
 type VaultEntry = {
   id: string;
   lastUpdatedAt: Date;
-  lastAccessedAt: Date;
   createdAt: Date;
   value: EncryptedData;
 };
@@ -30,6 +29,17 @@ type VaultEntry = {
 function stringToBytes(text: string): Uint8Array {
   const encoder = new TextEncoder();
   return encoder.encode(text.normalize('NFC'));
+}
+
+/**
+ * Decodes a byte array into a string.
+ *
+ * @param data - Bytes to decode.
+ * @returns A string from the bytes.
+ */
+function bytesToString(data: Uint8Array): string {
+  const decoder = new TextDecoder();
+  return decoder.decode(data);
 }
 
 /**
@@ -51,6 +61,20 @@ function jsonToBytes(data: Json): Uint8Array {
 function randomBytes(length: number): Uint8Array {
   const array = new Uint8Array(length);
   return crypto.getRandomValues(array);
+}
+
+/**
+ * Ensure that a value is not null.
+ *
+ * @param value - Value to check.
+ * @param message - Error message in case value is null.
+ * @returns The value if it is not null.
+ */
+function ensureNotNull<T>(value: T | null, message: string): T {
+  if (value === null) {
+    throw new Error(message);
+  }
+  return value;
 }
 
 /**
@@ -111,7 +135,7 @@ async function deriveWrappingKey(
  */
 async function generateMasterKey(
   wrappingKey: CryptoKey,
-  additionalData: Uint8Array,
+  additionalData?: Uint8Array,
 ): Promise<{
   wrapped: EncryptedData;
   handler: CryptoKey;
@@ -237,63 +261,45 @@ export class Vault {
       await generateMasterKey(wrappingKey, additionalData));
   }
 
+  // TODO: add a static method to create a vault from a serialized state.
+
   /**
    * Check if the vault is unlocked.
    *
    * @returns True if the vault is unlocked, false otherwise.
    */
-  get isLocked(): boolean {
-    return this.#cachedMasterKey === null;
-  }
-
-  #assertUnlocked() {
-    if (this.isLocked) {
-      throw new Error('Vault is locked');
-    }
+  get isUnlocked(): boolean {
+    return this.#cachedMasterKey !== null;
   }
 
   /**
-   * Store a new value in the vault.
+   * Check if the vault was initialized.
    *
-   * @param key - The key to store the value under.
-   * @param value - The value to store.
+   * @returns True if the vault was initialized, false otherwise.
    */
-  async store(key: string, value: Json): Promise<void> {
-    this.#assertUnlocked();
+  get isInitialized(): boolean {
+    return this.#wrappedMasterKey !== null;
+  }
 
+  /**
+   * Add a new value to the vault.
+   *
+   * @param key - Key to store the value under.
+   * @param value - Value to be encrypted and added to the vault.
+   */
+  async set(key: string, value: Json): Promise<void> {
     const now = new Date();
-    const encryptionKey = await this.#deriveMasterKey(['test']);
-    const additionalData = jsonToBytes(['vaultId', this.id]);
-
-    this.#entries.set(key, {
-      id: uuidv4(),
-      value: await encryptData(
-        encryptionKey,
-        jsonToBytes(value),
-        additionalData,
-      ),
-      createdAt: now,
-      lastAccessedAt: now,
-      lastUpdatedAt: now,
-    });
-  }
-
-  /**
-   * Update an existing value in the vault.
-   *
-   * @param key - The key to update.
-   * @param value - The new value.
-   */
-  async update(key: string, value: Json): Promise<void> {
     const current = this.#entries.get(key);
-    if (current === undefined) {
-      throw new Error('Key does not exist');
-    }
+    const entryId = current?.id ?? uuidv4();
+    const encryptionKey = await this.#deriveMasterKey(
+      `metamask/vault/${this.id}/entry/${entryId}/key/${key}`,
+    );
 
     this.#entries.set(key, {
-      ...current,
-      value, // FIXME: encrypt value
-      lastUpdatedAt: new Date(),
+      id: entryId,
+      value: await encryptData(encryptionKey, jsonToBytes(value)),
+      createdAt: current?.createdAt ?? now,
+      lastUpdatedAt: now,
     });
   }
 
@@ -301,28 +307,43 @@ export class Vault {
    * Get the value associated with a key.
    *
    * @param key - The key to get the value of.
-   * @returns The value associated with the key.
+   * @returns The value associated with the key or undefined if the key does
+   * not exist.
    */
-  async get(key: string): Promise<Json> {
+  async get(key: string): Promise<Json | undefined> {
+    // Return undefined if the key does not exist.
     const entry = this.#entries.get(key);
     if (entry === undefined) {
-      throw new Error('Key does not exist');
+      return undefined;
     }
 
-    return entry.value; // FIXME: decrypt value
+    const decryptionKey = await this.#deriveMasterKey(
+      `metamask/vault/${this.id}/entry/${entry.id}/key/${key}`,
+    );
+
+    // Decrypt and parse the value back to JSON.
+    const data = await decryptData(decryptionKey, entry.value);
+    return JSON.parse(bytesToString(data));
+  }
+
+  /**
+   * Check if a key is present in the vault.
+   *
+   * @param key - Key to be checked.
+   * @returns True if the key is present, false otherwise.
+   */
+  has(key: string): boolean {
+    return this.#entries.has(key);
   }
 
   /**
    * Delete a vault entry.
    *
    * @param key - The key to delete.
+   * @returns True if the entry existed, false otherwise.
    */
-  async delete(key: string): Promise<void> {
-    if (!this.#entries.has(key)) {
-      throw new Error('Key does not exist');
-    }
-
-    this.#entries.delete(key);
+  delete(key: string): boolean {
+    return this.#entries.delete(key);
   }
 
   /**
@@ -338,114 +359,51 @@ export class Vault {
    * @param password - Password to unlock the vault.
    */
   async unlock(password: string): Promise<void> {
-    if (this.#wrappedMasterKey === null) {
-      throw new Error('Vault is not initialized');
-    }
-
     const wrappingKey = await deriveWrappingKey(password, this.#passwordSalt);
+
+    // Unwrap the master key and cache it.
     this.#cachedMasterKey = await unwrapMasterKey(
       wrappingKey,
-      this.#wrappedMasterKey,
+      ensureNotNull(this.#wrappedMasterKey, 'Vault is not initialized'),
       jsonToBytes(['vaultId', this.id]),
     );
   }
 
   /**
-   * Derive the Master Key given a list of infos.
+   * Derive the Master Key given a derivation information.
    *
-   * @param infos - Derivation infos.
+   * @param info - Derivation information.
    * @returns The handler to the derived key.
    */
-  async #deriveMasterKey(infos: string[]): Promise<CryptoKey> {
-    // Make sure that at least one info is provided.
-    if (infos.length === 0) {
-      throw new Error('No infos provided');
+  async #deriveMasterKey(info: string): Promise<CryptoKey> {
+    // Make sure that info is provided.
+    if (info === '') {
+      throw new Error('Missing derivation information');
     }
 
-    // TypeScript isn't happy if we use `isLocked` here, it will say that
-    // `#masterKey` can be null when we try to await on it.
-    if (this.#cachedMasterKey === null) {
-      throw new Error('Vault is locked');
-    }
-
-    let derivedKey = this.#cachedMasterKey;
-    for (const [i, info] of infos.entries()) {
-      let usages: KeyUsage[];
-      let params: HmacKeyGenParams | AesKeyGenParams;
-
-      // Only the last node in the derivation chain can be used to encrypt or
-      // decrypt data, all intermediate nodes can only be used to derive keys.
-      if (i === infos.length - 1) {
-        usages = ['encrypt', 'decrypt'];
-        params = {
-          name: 'AES-GCM',
-          length: 256,
-        };
-      } else {
-        usages = ['deriveKey'];
-        params = {
-          name: 'HMAC',
-          hash: 'SHA-256',
-          length: 256,
-        };
-      }
-
-      // Derive the next key from the previous one.
-      derivedKey = await crypto.subtle.deriveKey(
-        {
-          name: 'HKDF',
-          hash: 'SHA-256',
-          info: Buffer.from(`metamask:vault:${i}:${info}`),
-        },
-        derivedKey,
-        params,
-        false,
-        usages,
-      );
-    }
-
-    return derivedKey;
-  }
-
-  /**
-   * Derive the Wrapping Key given a password.
-   *
-   * @param password - The password to derive the wrapping key from.
-   * @returns The handler to the Wrapping Key.
-   */
-  async #getWrappingKey(password: string): Promise<CryptoKey> {
-    const rawKey = await crypto.subtle.importKey(
-      'raw',
-      stringToBytes(password),
-      'PBKDF2',
-      false,
-      ['deriveKey'],
-    );
-
-    const wrappingKey = await crypto.subtle.deriveKey(
+    return crypto.subtle.deriveKey(
       {
-        name: 'PBKDF2',
+        name: 'HKDF',
         hash: 'SHA-256',
-        salt: this.#passwordSalt,
-        iterations: 600_000,
+        info: stringToBytes(info),
       },
-      rawKey,
+      ensureNotNull(this.#cachedMasterKey, 'Vault is locked'),
       {
         name: 'AES-GCM',
         length: 256,
       },
-      true,
-      ['deriveKey'],
+      false,
+      ['encrypt', 'decrypt'],
     );
-
-    return wrappingKey;
   }
 }
 
 export const exportedForTesting = {
   stringToBytes,
+  bytesToString,
   jsonToBytes,
   randomBytes,
+  ensureNotNull,
   generateMasterKey,
   importPassword,
   deriveWrappingKey,
