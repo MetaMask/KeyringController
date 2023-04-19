@@ -1036,11 +1036,7 @@ class KeyringController extends EventEmitter {
 
     await keyring.deserialize(data);
 
-<<<<<<< Updated upstream
-    if (keyring.init) {
-=======
     if (hasProperty(keyring, 'init') && typeof keyring.init === 'function') {
->>>>>>> Stashed changes
       await keyring.init();
     }
 
