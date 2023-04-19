@@ -40,7 +40,9 @@
     "@metamask/eth-sig-util": "5.0.2",
     "@metamask/eth-simple-keyring": "^5.0.0",
     "@metamask/utils": "^5.0.0",
-    "obs-store": "^4.0.3"
+    "@types/uuid": "^9.0.1",
+    "obs-store": "^4.0.3",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@lavamoat/allow-scripts": "^2.1.0",
