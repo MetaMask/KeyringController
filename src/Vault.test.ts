@@ -117,6 +117,6 @@ describe('ensureNotNull', () => {
   it('should throw an error with the specified message if the value is null', () => {
     const value = null;
     const errorMessage = 'Error message';
-    expect(() => ensureNotNull(value, errorMessage)).toThrowError(errorMessage);
+    expect(() => ensureNotNull(value, errorMessage)).toThrow(errorMessage);
   });
 });
