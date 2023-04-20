@@ -369,4 +369,34 @@ describe('Vault', () => {
       'Invalid vault password',
     );
   });
+
+  it('should fail to verify the password on an uninitialized vault', async () => {
+    expect(await vault.verifyPassword('foo')).toBe(false);
+  });
+
+  it('should successful verify the password if it is correct', async () => {
+    await vault.init('foo');
+    expect(await vault.verifyPassword('foo')).toBe(true);
+  });
+
+  it('should fail to verify the password if it is incorrect', async () => {
+    await vault.init('foo');
+    expect(await vault.verifyPassword('bar')).toBe(false);
+  });
+
+  it('should unlock the vault after the correct password is presented', async () => {
+    await vault.init('foo');
+    vault.lock();
+    expect(vault.isUnlocked).toBe(false);
+    await vault.verifyPassword('foo');
+    expect(vault.isUnlocked).toBe(false);
+  });
+
+  it('should unlock the vault after a incorrect password is presented', async () => {
+    await vault.init('foo');
+    vault.lock();
+    expect(vault.isUnlocked).toBe(false);
+    await vault.verifyPassword('bar');
+    expect(vault.isUnlocked).toBe(false);
+  });
 });

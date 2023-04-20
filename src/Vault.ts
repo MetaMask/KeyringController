@@ -311,7 +311,7 @@ export class Vault {
 
   // TODO: add a static method to create a vault from a serialized state.
   // TODO: serialize vault for storage.
-  // TODO: add method to verify password.
+  // TODO: make it thread-safe.
 
   /**
    * Check if the vault is unlocked.
@@ -442,8 +442,9 @@ export class Vault {
    * Unlock the vault and cache the Master Key.
    *
    * @param password - Password to unlock the vault.
+   * @param testOnly - Try to unlock the vault but don't cache the master key.
    */
-  async unlock(password: string): Promise<void> {
+  async unlock(password: string, testOnly = false): Promise<void> {
     const wrappingKey = await deriveWrappingKey(password, this.#passwordSalt);
     const wrappedMasterKey = ensureNotNull(
       this.#wrappedMasterKey,
@@ -451,13 +452,32 @@ export class Vault {
     );
 
     try {
-      this.#cachedMasterKey = await unwrapMasterKey(
+      const masterKey = await unwrapMasterKey(
         wrappingKey,
         wrappedMasterKey,
         jsonToBytes(['vaultId', this.id]),
       );
+
+      if (!testOnly) {
+        this.#cachedMasterKey = masterKey;
+      }
     } catch (error) {
       throw new VaultError('Invalid vault password');
+    }
+  }
+
+  /**
+   * Check if the provided password is correct.
+   *
+   * @param password - Password to verify.
+   * @returns True if the password is correct, false otherwise.
+   */
+  async verifyPassword(password: string): Promise<boolean> {
+    try {
+      await this.unlock(password, true);
+      return true;
+    } catch (error) {
+      return false;
     }
   }
 
