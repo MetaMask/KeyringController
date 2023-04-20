@@ -2,6 +2,8 @@
 import { Vault, exportedForTesting } from './Vault';
 
 const {
+  b64Encode,
+  b64Decode,
   stringToBytes,
   bytesToString,
   jsonToBytes,
@@ -15,6 +17,48 @@ const {
   encryptData,
   decryptData,
 } = exportedForTesting;
+
+describe('b64Encode', () => {
+  it('should encode an empty Uint8Array', () => {
+    const input = new Uint8Array([]);
+    const result = b64Encode(input);
+    expect(result).toBe('');
+  });
+
+  it('should encode a simple input', () => {
+    const input = new Uint8Array([0x68, 0x65, 0x6c, 0x6c, 0x6f]);
+    const result = b64Encode(input);
+    expect(result).toBe('aGVsbG8=');
+  });
+
+  it('should encode an input with special characters', () => {
+    const input = new Uint8Array([0xe2, 0x9c, 0x93]);
+    const result = b64Encode(input);
+    expect(result).toBe('4pyT');
+  });
+});
+
+describe('b64Decode', () => {
+  it('should decode an empty string', () => {
+    const input = '';
+    const result = b64Decode(input);
+    expect(result).toStrictEqual(new Uint8Array([]));
+  });
+
+  it('should decode a simple input', () => {
+    const input = 'aGVsbG8=';
+    const result = b64Decode(input);
+    expect(result).toStrictEqual(
+      new Uint8Array([0x68, 0x65, 0x6c, 0x6c, 0x6f]),
+    );
+  });
+
+  it('should decode an input with special characters', () => {
+    const input = '4pyT';
+    const result = b64Decode(input);
+    expect(result).toStrictEqual(new Uint8Array([0xe2, 0x9c, 0x93]));
+  });
+});
 
 describe('stringToBytes', () => {
   it('should return an empty Uint8Array for an empty string', () => {

@@ -12,7 +12,7 @@ type EncryptedData = {
 
 type VaultEntry = {
   id: string;
-  lastUpdatedAt: Date;
+  modifiedAt: Date;
   createdAt: Date;
   value: EncryptedData;
 };
@@ -21,6 +21,27 @@ export class VaultError extends Error {}
 
 // ----------------------------------------------------------------------------
 // Private functions
+
+/**
+ * Encode binary data in base64.
+ *
+ * @param data - Data to encode.
+ * @returns The encoded data.
+ */
+function b64Encode(data: Uint8Array): string {
+  return btoa(String.fromCharCode(...data));
+}
+
+/**
+ * Decode binary data from a base64 string.
+ *
+ * @param data - Encoded data.
+ * @returns The decoded data.
+ */
+function b64Decode(data: string): Uint8Array {
+  // eslint-disable-next-line id-length
+  return new Uint8Array([...atob(data)].map((c) => c.charCodeAt(0)));
+}
 
 /**
  * Convert a string to bytes.
@@ -55,17 +76,6 @@ function jsonToBytes(data: Json): Uint8Array {
 }
 
 /**
- * Generate cryptographically secure random bytes.
- *
- * @param length - Number of bytes to generate.
- * @returns Cryptographically secure random bytes.
- */
-function randomBytes(length: number): Uint8Array {
-  const array = new Uint8Array(length);
-  return crypto.getRandomValues(array);
-}
-
-/**
  * Ensure that a value is not null.
  *
  * @param value - Value to check.
@@ -93,6 +103,17 @@ function ensureBytes(value: string | Uint8Array): Uint8Array {
     return stringToBytes(value);
   }
   return value;
+}
+
+/**
+ * Generate cryptographically secure random bytes.
+ *
+ * @param length - Number of bytes to generate.
+ * @returns Cryptographically secure random bytes.
+ */
+function randomBytes(length: number): Uint8Array {
+  const array = new Uint8Array(length);
+  return crypto.getRandomValues(array);
 }
 
 /**
@@ -272,7 +293,7 @@ async function decryptData(
 }
 
 // ----------------------------------------------------------------------------
-// Main class
+// Main classes
 
 export class Vault {
   readonly id: string;
@@ -311,7 +332,6 @@ export class Vault {
 
   // TODO: add a static method to create a vault from a serialized state.
   // TODO: serialize vault for storage.
-  // TODO: make it thread-safe.
 
   /**
    * Check if the vault is unlocked.
@@ -375,7 +395,7 @@ export class Vault {
       id: entryId,
       value: await encryptData(encryptionKey, jsonToBytes(value)),
       createdAt: current?.createdAt ?? now,
-      lastUpdatedAt: now,
+      modifiedAt: now,
     });
   }
 
@@ -497,6 +517,8 @@ export class Vault {
 }
 
 export const exportedForTesting = {
+  b64Encode,
+  b64Decode,
   stringToBytes,
   bytesToString,
   jsonToBytes,
