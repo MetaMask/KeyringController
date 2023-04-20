@@ -17,6 +17,8 @@ type VaultEntry = {
   value: EncryptedData;
 };
 
+export class VaultError extends Error {}
+
 // ----------------------------------------------------------------------------
 // Private functions
 
@@ -67,12 +69,28 @@ function randomBytes(length: number): Uint8Array {
  * Ensure that a value is not null.
  *
  * @param value - Value to check.
- * @param message - Error message in case value is null.
+ * @param cause - Error cause in case value is null.
  * @returns The value if it is not null.
  */
-function ensureNotNull<T>(value: T | null, message: string): T {
+function ensureNotNull<T>(value: T | null, cause: string | Error): T {
   if (value === null) {
-    throw new Error(message);
+    if (typeof cause === 'string') {
+      throw new VaultError(cause);
+    }
+    throw cause;
+  }
+  return value;
+}
+
+/**
+ * Ensure that a value is a Uint8Array.
+ *
+ * @param value - Value to check or convert.
+ * @returns A value whose type is Uint8Array.
+ */
+function ensureBytes(value: string | Uint8Array): Uint8Array {
+  if (typeof value === 'string') {
+    return stringToBytes(value);
   }
   return value;
 }
@@ -169,6 +187,36 @@ async function unwrapMasterKey(
 }
 
 /**
+ * Derive the Master Key given a derivation information.
+ *
+ * @param masterKey - Master Key to be derived.
+ * @param info - Derivation information.
+ * @param salt - Optional salt to be used in the derivation.
+ * @returns The handler to the derived key.
+ */
+async function deriveMasterKey(
+  masterKey: CryptoKey,
+  info: string | Uint8Array,
+  salt?: Uint8Array,
+): Promise<CryptoKey> {
+  return crypto.subtle.deriveKey(
+    {
+      name: 'HKDF',
+      hash: 'SHA-256',
+      info: ensureBytes(info),
+      salt: salt ?? new Uint8Array(),
+    },
+    masterKey,
+    {
+      name: 'AES-GCM',
+      length: 256,
+    },
+    false,
+    ['encrypt', 'decrypt'],
+  );
+}
+
+/**
  * Encrypt data with additional data.
  *
  * @param key - Encryption key handler.
@@ -224,7 +272,7 @@ async function decryptData(
 }
 
 // ----------------------------------------------------------------------------
-// Public types
+// Main class
 
 export class Vault {
   readonly id: string;
@@ -262,6 +310,8 @@ export class Vault {
   }
 
   // TODO: add a static method to create a vault from a serialized state.
+  // TODO: serialize vault for storage.
+  // TODO: add method to verify password.
 
   /**
    * Check if the vault is unlocked.
@@ -282,18 +332,44 @@ export class Vault {
   }
 
   /**
+   * Assert that the vault is initialized.
+   */
+  #assertIsInitialized(): void {
+    if (!this.isInitialized) {
+      throw new Error('Vault is not initialized');
+    }
+  }
+
+  /**
+   * Assert that the vault is unlocked.
+   */
+  #assertIsUnlocked(): void {
+    if (!this.isUnlocked) {
+      throw new Error('Vault is locked');
+    }
+  }
+
+  /**
+   * Assert that the vault is initialized and unlocked.
+   */
+  #assertIsOperational(): void {
+    this.#assertIsInitialized();
+    this.#assertIsUnlocked();
+  }
+
+  /**
    * Add a new value to the vault.
    *
    * @param key - Key to store the value under.
    * @param value - Value to be encrypted and added to the vault.
    */
   async set(key: string, value: Json): Promise<void> {
+    this.#assertIsOperational();
+
     const now = new Date();
     const current = this.#entries.get(key);
     const entryId = current?.id ?? uuidv4();
-    const encryptionKey = await this.#deriveMasterKey(
-      `metamask/vault/${this.id}/entry/${entryId}/key/${key}`,
-    );
+    const encryptionKey = await this.#deriveMasterKey(entryId, key);
 
     this.#entries.set(key, {
       id: entryId,
@@ -311,17 +387,16 @@ export class Vault {
    * not exist.
    */
   async get(key: string): Promise<Json | undefined> {
+    this.#assertIsOperational();
+
     // Return undefined if the key does not exist.
     const entry = this.#entries.get(key);
     if (entry === undefined) {
       return undefined;
     }
 
-    const decryptionKey = await this.#deriveMasterKey(
-      `metamask/vault/${this.id}/entry/${entry.id}/key/${key}`,
-    );
-
     // Decrypt and parse the value back to JSON.
+    const decryptionKey = await this.#deriveMasterKey(entry.id, key);
     const data = await decryptData(decryptionKey, entry.value);
     return JSON.parse(bytesToString(data));
   }
@@ -333,6 +408,7 @@ export class Vault {
    * @returns True if the key is present, false otherwise.
    */
   has(key: string): boolean {
+    this.#assertIsOperational();
     return this.#entries.has(key);
   }
 
@@ -343,57 +419,59 @@ export class Vault {
    * @returns True if the entry existed, false otherwise.
    */
   delete(key: string): boolean {
+    this.#assertIsOperational();
     return this.#entries.delete(key);
   }
 
   /**
    * Lock the vault.
+   *
+   * Note from the Web Crypto API specification:
+   *
+   * > This specification places no normative requirements on how
+   * > implementations handle key material once all references to it go away.
+   * > That is, conforming user agents are not required to zeroize key
+   * > material, and it may still be accessible on device storage or device
+   * > memory, even after all references to the CryptoKey have gone away.
    */
   lock(): void {
     this.#cachedMasterKey = null;
   }
 
   /**
-   * Unlock the vault.
+   * Unlock the vault and cache the Master Key.
    *
    * @param password - Password to unlock the vault.
    */
   async unlock(password: string): Promise<void> {
     const wrappingKey = await deriveWrappingKey(password, this.#passwordSalt);
-
-    // Unwrap the master key and cache it.
-    this.#cachedMasterKey = await unwrapMasterKey(
-      wrappingKey,
-      ensureNotNull(this.#wrappedMasterKey, 'Vault is not initialized'),
-      jsonToBytes(['vaultId', this.id]),
+    const wrappedMasterKey = ensureNotNull(
+      this.#wrappedMasterKey,
+      'Vault is not initialized',
     );
+
+    try {
+      this.#cachedMasterKey = await unwrapMasterKey(
+        wrappingKey,
+        wrappedMasterKey,
+        jsonToBytes(['vaultId', this.id]),
+      );
+    } catch (error) {
+      throw new VaultError('Invalid vault password');
+    }
   }
 
   /**
    * Derive the Master Key given a derivation information.
    *
-   * @param info - Derivation information.
+   * @param entryId - ID of the vault entry.
+   * @param key - Key of the vault entry.
    * @returns The handler to the derived key.
    */
-  async #deriveMasterKey(info: string): Promise<CryptoKey> {
-    // Make sure that info is provided.
-    if (info === '') {
-      throw new Error('Missing derivation information');
-    }
-
-    return crypto.subtle.deriveKey(
-      {
-        name: 'HKDF',
-        hash: 'SHA-256',
-        info: stringToBytes(info),
-      },
+  async #deriveMasterKey(entryId: string, key: string): Promise<CryptoKey> {
+    return deriveMasterKey(
       ensureNotNull(this.#cachedMasterKey, 'Vault is locked'),
-      {
-        name: 'AES-GCM',
-        length: 256,
-      },
-      false,
-      ['encrypt', 'decrypt'],
+      `metamask/vault/${this.id}/entry/${entryId}/key/${key}`,
     );
   }
 }
@@ -404,10 +482,12 @@ export const exportedForTesting = {
   jsonToBytes,
   randomBytes,
   ensureNotNull,
+  ensureBytes,
   generateMasterKey,
   importPassword,
   deriveWrappingKey,
   unwrapMasterKey,
   encryptData,
   decryptData,
+  deriveMasterKey,
 };
