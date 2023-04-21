@@ -20,7 +20,7 @@ type VaultEntry = {
 export class VaultError extends Error {}
 
 // ----------------------------------------------------------------------------
-// Private functions
+// Util functions
 
 /**
  * Encode binary data in base64.
@@ -104,6 +104,9 @@ function ensureBytes(value: string | Uint8Array): Uint8Array {
   }
   return value;
 }
+
+// ----------------------------------------------------------------------------
+// Crypto functions
 
 /**
  * Generate cryptographically secure random bytes.
@@ -293,14 +296,14 @@ async function decryptData(
 }
 
 // ----------------------------------------------------------------------------
-// Main classes
+// Main class
 
 export class Vault {
-  readonly id: string;
+  public readonly id: string;
 
-  #entries: Map<string, VaultEntry>;
+  readonly #entries: Map<string, VaultEntry>;
 
-  #passwordSalt: Uint8Array;
+  readonly #passwordSalt: Uint8Array;
 
   #wrappedMasterKey: EncryptedData | null;
 
@@ -309,9 +312,11 @@ export class Vault {
   constructor() {
     this.id = uuidv4();
     this.#entries = new Map<string, VaultEntry>();
+    this.#passwordSalt = randomBytes(32);
+
+    // The following attributes must be initialized asynchronously.
     this.#cachedMasterKey = null;
     this.#wrappedMasterKey = null;
-    this.#passwordSalt = randomBytes(32);
   }
 
   /**
@@ -525,7 +530,7 @@ export class Vault {
   async #deriveMasterKey(entryId: string, key: string): Promise<CryptoKey> {
     return deriveMasterKey(
       this.#getCachedMasterKey(),
-      `metamask/vault/${this.id}/entry/${entryId}/key/${key}`,
+      `metamask:vault:${this.id}:entry:${entryId}:key:${key}`,
     );
   }
 }
