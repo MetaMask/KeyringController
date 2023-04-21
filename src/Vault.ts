@@ -330,9 +330,6 @@ export class Vault {
       await generateMasterKey(wrappingKey, additionalData));
   }
 
-  // TODO: add a static method to create a vault from a serialized state.
-  // TODO: serialize vault for storage.
-
   /**
    * Check if the vault is unlocked.
    *
