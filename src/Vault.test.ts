@@ -296,6 +296,25 @@ describe('unwrapMasterKey', () => {
     const pt = await decryptData(encKey2, ct, stringToBytes('additional'));
     expect(pt).toStrictEqual(data);
   });
+
+  it('should fail if we try to unwrap the master key with the wrong password', async () => {
+    const wrappingKey1 = await deriveWrappingKey('foo', stringToBytes('salt'));
+    const wrappingKey2 = await deriveWrappingKey('bar', stringToBytes('salt'));
+    const { wrapped } = await generateMasterKey(wrappingKey1);
+
+    await expect(unwrapMasterKey(wrappingKey2, wrapped)).rejects.toThrow(
+      'The operation failed for an operation-specific reason',
+    );
+  });
+
+  it('should succeed to unwrap the master key with the correct password', async () => {
+    const wrappingKey = await deriveWrappingKey('foo', stringToBytes('salt'));
+    const { wrapped } = await generateMasterKey(wrappingKey);
+
+    expect(async () => {
+      await unwrapMasterKey(wrappingKey, wrapped);
+    }).not.toThrow();
+  });
 });
 
 describe('Vault', () => {
