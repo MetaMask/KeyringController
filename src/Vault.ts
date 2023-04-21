@@ -352,21 +352,39 @@ export class Vault {
   }
 
   /**
+   * Get the wrapped master key.
+   *
+   * This method will throw an error if the vault wasn't initialized.
+   *
+   * @returns The wrapped master key.
+   */
+  #getWrappedMasterKey(): EncryptedData {
+    return ensureNotNull(this.#wrappedMasterKey, 'Vault is not initialized');
+  }
+
+  /**
+   * Get the master key handler.
+   *
+   * This method will throw an error if the vault is locked.
+   *
+   * @returns The master key handler.
+   */
+  #getCachedMasterKey(): CryptoKey {
+    return ensureNotNull(this.#cachedMasterKey, 'Vault is locked');
+  }
+
+  /**
    * Assert that the vault is initialized.
    */
   #assertIsInitialized(): void {
-    if (!this.isInitialized) {
-      throw new Error('Vault is not initialized');
-    }
+    this.#getWrappedMasterKey();
   }
 
   /**
    * Assert that the vault is unlocked.
    */
   #assertIsUnlocked(): void {
-    if (!this.isUnlocked) {
-      throw new Error('Vault is locked');
-    }
+    this.#getCachedMasterKey();
   }
 
   /**
@@ -465,11 +483,10 @@ export class Vault {
    * @param testOnly - Try to unlock the vault but don't cache the master key.
    */
   async unlock(password: string, testOnly = false): Promise<void> {
+    // We must get the wrapped master key _outside_ the try-catch block below
+    // to distinguish an uninitialized vault from a wrong password.
+    const wrappedMasterKey = this.#getWrappedMasterKey();
     const wrappingKey = await deriveWrappingKey(password, this.#passwordSalt);
-    const wrappedMasterKey = ensureNotNull(
-      this.#wrappedMasterKey,
-      'Vault is not initialized',
-    );
 
     try {
       const masterKey = await unwrapMasterKey(
@@ -510,7 +527,7 @@ export class Vault {
    */
   async #deriveMasterKey(entryId: string, key: string): Promise<CryptoKey> {
     return deriveMasterKey(
-      ensureNotNull(this.#cachedMasterKey, 'Vault is locked'),
+      this.#getCachedMasterKey(),
       `metamask/vault/${this.id}/entry/${entryId}/key/${key}`,
     );
   }
