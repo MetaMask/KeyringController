@@ -136,7 +136,7 @@ export type KeyringControllerArgs = {
   encryptor?: any;
 };
 
-const controllerName = 'KeyringController';
+export const controllerName = 'KeyringController';
 
 const stateMetadata = {
   vault: { persist: true, anonymous: false },
@@ -1218,7 +1218,7 @@ class KeyringController extends BaseControllerV2<
  * @param KeyringConstructor - The Keyring class for the builder.
  * @returns A builder function for the given Keyring.
  */
-function keyringBuilderFactory(KeyringConstructor: KeyringClass<Json>) {
+export function keyringBuilderFactory(KeyringConstructor: KeyringClass<Json>) {
   const builder = () => new KeyringConstructor();
 
   builder.type = KeyringConstructor.type;
@@ -1244,5 +1244,3 @@ async function displayForKeyring(
     accounts: accounts.map(normalizeToHex),
   };
 }
-
-export { KeyringController, keyringBuilderFactory, controllerName };
