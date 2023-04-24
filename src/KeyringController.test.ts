@@ -1,3 +1,4 @@
+import { ControllerMessenger } from '@metamask/base-controller';
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
 import type { Hex } from '@metamask/utils';
@@ -5,7 +6,8 @@ import { strict as assert } from 'assert';
 import Wallet from 'ethereumjs-wallet';
 import * as sinon from 'sinon';
 
-import { KeyringController, keyringBuilderFactory } from '.';
+import { controllerName, KeyringController, keyringBuilderFactory } from '.';
+import type { KeyringControllerActions, KeyringControllerEvents } from '.';
 import { KeyringType, KeyringControllerError } from './constants';
 import {
   mockEncryptor,
@@ -37,11 +39,25 @@ const walletTwoAddresses = [
   '0x49dd2653f38f75d40fdbd51e83b9c9724c87f7eb',
 ];
 
+const getKeyringControllerMessenger = () => {
+  const controllerMessenger = new ControllerMessenger<
+    KeyringControllerActions,
+    KeyringControllerEvents
+  >();
+
+  return controllerMessenger.getRestricted<typeof controllerName, never, never>(
+    { name: 'KeyringController' },
+  );
+};
+
 describe('KeyringController', () => {
   let keyringController: KeyringController;
+  let messenger: any;
 
   beforeEach(async () => {
+    messenger = getKeyringControllerMessenger();
     keyringController = new KeyringController({
+      messenger,
       encryptor: mockEncryptor,
       cacheEncryptionKey: false,
       keyringBuilders: [keyringBuilderFactory(KeyringMockWithInit)],
@@ -70,13 +86,16 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(0);
     });
 
-    it('emits "lock" event', async () => {
-      const lockSpy = sinon.spy();
-      keyringController.on('lock', lockSpy);
+    it('publish "vaultLocked" event', async () => {
+      const publishActionSpy = jest.spyOn(messenger, 'publish');
 
       await keyringController.setLocked();
 
-      expect(lockSpy.calledOnce).toBe(true);
+      expect(publishActionSpy).toHaveBeenCalledTimes(2);
+      expect(publishActionSpy).toHaveBeenNthCalledWith(
+        1,
+        'KeyringController:vaultLocked',
+      );
     });
   });
 
@@ -95,14 +114,17 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(0);
     });
 
-    it('emits "unlock" event', async () => {
+    it('publish "vaultUnlocked" event', async () => {
       await keyringController.setLocked();
 
-      const unlockSpy = sinon.spy();
-      keyringController.on('unlock', unlockSpy);
-
+      const publishActionSpy = jest.spyOn(messenger, 'publish');
       await keyringController.submitPassword(PASSWORD);
-      expect(unlockSpy.calledOnce).toBe(true);
+
+      expect(publishActionSpy).toHaveBeenCalledTimes(2);
+      expect(publishActionSpy).toHaveBeenNthCalledWith(
+        1,
+        'KeyringController:vaultUnlocked',
+      );
     });
   });
 
@@ -259,7 +281,7 @@ describe('KeyringController', () => {
       const initialAccounts = await keyringController.getAccounts();
       expect(initialAccounts).toHaveLength(1);
 
-      await keyringController.addNewKeyring(KeyringType.HD);
+      await keyringController.addKeyring(KeyringType.HD);
       const allAccounts = await keyringController.getAccounts();
       expect(allAccounts).toHaveLength(2);
 
@@ -352,10 +374,9 @@ describe('KeyringController', () => {
       const privateKey =
         'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3';
       const previousAccounts = await keyringController.getAccounts();
-      const keyring = await keyringController.addNewKeyring(
-        KeyringType.Simple,
-        { privateKeys: [privateKey] },
-      );
+      const keyring = await keyringController.addKeyring(KeyringType.Simple, {
+        privateKeys: [privateKey],
+      });
 
       const keyringAccounts = await keyring?.getAccounts();
       const expectedKeyringAccounts = [
@@ -373,7 +394,7 @@ describe('KeyringController', () => {
     it('should add HD Key Tree without mnemonic passed as an argument', async () => {
       const previousAllAccounts = await keyringController.getAccounts();
       expect(previousAllAccounts).toHaveLength(1);
-      const keyring = await keyringController.addNewKeyring(KeyringType.HD);
+      const keyring = await keyringController.addKeyring(KeyringType.HD);
       const keyringAccounts = await keyring?.getAccounts();
       expect(keyringAccounts).toHaveLength(1);
       const allAccounts = await keyringController.getAccounts();
@@ -383,7 +404,7 @@ describe('KeyringController', () => {
     it('should add HD Key Tree with mnemonic passed as an argument', async () => {
       const previousAllAccounts = await keyringController.getAccounts();
       expect(previousAllAccounts).toHaveLength(1);
-      const keyring = await keyringController.addNewKeyring(KeyringType.HD, {
+      const keyring = await keyringController.addKeyring(KeyringType.HD, {
         numberOfAccounts: 2,
         mnemonic: walletTwoSeedWords,
       });
@@ -398,7 +419,7 @@ describe('KeyringController', () => {
     it('should call init method if available', async () => {
       const initSpy = sinon.spy(KeyringMockWithInit.prototype, 'init');
 
-      const keyring = await keyringController.addNewKeyring(
+      const keyring = await keyringController.addKeyring(
         'Keyring Mock With Init',
       );
 
@@ -429,7 +450,7 @@ describe('KeyringController', () => {
         .stub(HdKeyring.prototype, 'getAccounts')
         .callsFake(() => ['mock account']);
 
-      const keyring = await keyringController.addNewKeyring(KeyringType.HD, {
+      const keyring = await keyringController.addKeyring(KeyringType.HD, {
         mnemonic: 'mock mnemonic',
       });
 
@@ -507,7 +528,7 @@ describe('KeyringController', () => {
       const accountsBeforeAdding = await keyringController.getAccounts();
 
       // Add a new keyring with one account
-      await keyringController.addNewKeyring(KeyringType.Simple, {
+      await keyringController.addKeyring(KeyringType.Simple, {
         privateKeys: [account.privateKey],
       });
       expect(keyringController.keyrings).toHaveLength(2);
@@ -529,7 +550,7 @@ describe('KeyringController', () => {
       };
 
       // Add a new keyring with one account
-      await keyringController.addNewKeyring(KeyringType.Simple, {
+      await keyringController.addKeyring(KeyringType.Simple, {
         privateKeys: [account.privateKey],
       });
 
@@ -546,7 +567,7 @@ describe('KeyringController', () => {
 
     it('does not remove the keyring if there are accounts remaining after removing one from the keyring', async () => {
       // Add a new keyring with two accounts
-      await keyringController.addNewKeyring(KeyringType.HD, {
+      await keyringController.addKeyring(KeyringType.HD, {
         mnemonic: walletTwoSeedWords,
         numberOfAccounts: 2,
       });
@@ -593,6 +614,7 @@ describe('KeyringController', () => {
   describe('verifyPassword', () => {
     beforeEach(() => {
       keyringController = new KeyringController({
+        messenger: getKeyringControllerMessenger(),
         keyringBuilders: [keyringBuilderFactory(KeyringMockWithInit)],
         encryptor: mockEncryptor,
         cacheEncryptionKey: false,
@@ -617,14 +639,14 @@ describe('KeyringController', () => {
     });
   });
 
-  describe('addNewAccount', () => {
+  describe('addAccount', () => {
     it('adds a new account to the keyring it receives as an argument', async () => {
       const [HDKeyring] = keyringController.getKeyringsByType(KeyringType.HD);
       const initialAccounts = await HDKeyring?.getAccounts();
       expect(initialAccounts).toHaveLength(1);
 
       // @ts-expect-error this value should never be undefined in this specific context.
-      await keyringController.addNewAccount(HDKeyring);
+      await keyringController.addAccount(HDKeyring);
       const accountsAfterAdd = await HDKeyring?.getAccounts();
       expect(accountsAfterAdd).toHaveLength(2);
     });
@@ -636,10 +658,9 @@ describe('KeyringController', () => {
       const privateKey =
         '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952';
 
-      const keyring = await keyringController.addNewKeyring(
-        KeyringType.Simple,
-        { privateKeys: [privateKey] },
-      );
+      const keyring = await keyringController.addKeyring(KeyringType.Simple, {
+        privateKeys: [privateKey],
+      });
 
       const getAppKeyAddressSpy = sinon.spy(
         keyringController,
@@ -669,7 +690,7 @@ describe('KeyringController', () => {
       const address = '0x01560cd3bac62cc6d7e6380600d9317363400896';
       const privateKey =
         '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952';
-      await keyringController.addNewKeyring(KeyringType.Simple, {
+      await keyringController.addKeyring(KeyringType.Simple, {
         privateKeys: [privateKey],
       });
       const appKeyAddress = await keyringController.getAppKeyAddress(
@@ -808,11 +829,11 @@ describe('KeyringController', () => {
       const [firstKeyring] = keyringController.keyrings;
 
       // @ts-expect-error this value should never be undefined in this specific context.
-      await keyringController.addNewAccount(firstKeyring);
+      await keyringController.addAccount(firstKeyring);
       expect(await keyringController.getAccounts()).toHaveLength(2);
 
       // @ts-expect-error this value should never be undefined in this specific context.
-      await keyringController.addNewAccount(firstKeyring);
+      await keyringController.addAccount(firstKeyring);
       expect(await keyringController.getAccounts()).toHaveLength(3);
 
       const account: { privateKey: string; publicKey: Hex } = {
@@ -822,7 +843,7 @@ describe('KeyringController', () => {
       };
 
       // Add a new keyring with one account
-      await keyringController.addNewKeyring(KeyringType.Simple, {
+      await keyringController.addKeyring(KeyringType.Simple, {
         privateKeys: [account.privateKey],
       });
       expect(await keyringController.getAccounts()).toHaveLength(4);
