@@ -100,6 +100,11 @@ export type UpdateAccount = {
   handler: KeyringController['updateAccount'];
 };
 
+export type ListAccounts = {
+  type: `${typeof controllerName}:listAccounts`;
+  handler: KeyringController['listAccounts'];
+};
+
 export type RemoveAccount = {
   type: `${typeof controllerName}:removeAccount`;
   handler: KeyringController['removeAccount'];
@@ -109,6 +114,7 @@ export type KeyringControllerActions =
   | AddAccount
   | GetAccount
   | UpdateAccount
+  | ListAccounts
   | RemoveAccount;
 
 export type KeyringControllerMessenger = RestrictedControllerMessenger<
@@ -422,6 +428,10 @@ class KeyringController extends BaseControllerV2<
 
   updateAccount() {
     console.log('method updateAccount');
+  }
+
+  listAccounts() {
+    console.log('method listAccounts');
   }
 
   /**
