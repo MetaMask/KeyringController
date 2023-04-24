@@ -1,4 +1,7 @@
-import { ControllerMessenger } from '@metamask/base-controller';
+import {
+  ControllerMessenger,
+  RestrictedControllerMessenger,
+} from '@metamask/base-controller';
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
 import type { Hex } from '@metamask/utils';
@@ -52,7 +55,13 @@ const getKeyringControllerMessenger = () => {
 
 describe('KeyringController', () => {
   let keyringController: KeyringController;
-  let messenger: any;
+  let messenger: RestrictedControllerMessenger<
+    typeof controllerName,
+    KeyringControllerActions,
+    KeyringControllerEvents,
+    never,
+    never
+  >;
 
   beforeEach(async () => {
     messenger = getKeyringControllerMessenger();
