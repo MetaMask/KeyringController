@@ -21,7 +21,7 @@ import type {
 import ObservableStore from 'obs-store';
 
 import { KeyringType, KeyringControllerError } from './constants';
-import { SerializedKeyring, State, Account } from './types';
+import { SerializedKeyring, State } from './types';
 
 const defaultKeyringBuilders = [
   keyringBuilderFactory(SimpleKeyring),
@@ -31,7 +31,6 @@ const defaultKeyringBuilders = [
 export type KeyringControllerState = {
   vault?: { iv: string; cipher: string };
   isUnlocked?: boolean;
-  accounts: Record<string, Account>;
   keyrings: Record<string, Keyring<Json>>;
 };
 
@@ -160,7 +159,6 @@ export class KeyringController extends BaseControllerV2<
     keyringBuilders,
     cacheEncryptionKey,
     initState = {
-      accounts: {},
       keyrings: [],
     },
     encryptor = encryptorUtils,
