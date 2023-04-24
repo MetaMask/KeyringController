@@ -1102,7 +1102,7 @@ export class KeyringController extends BaseControllerV2<
   async #createFirstKeyTree(): Promise<null> {
     await this.#clearKeyrings();
 
-    const keyring = await this.addNewKeyring(KeyringType.HD);
+    const keyring = await this.addKeyring(KeyringType.HD);
     if (!keyring) {
       throw new Error(KeyringControllerError.NoKeyring);
     }
