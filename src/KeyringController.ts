@@ -90,16 +90,6 @@ export type AddAccount = {
   handler: KeyringController['addAccount'];
 };
 
-export type GetAccount = {
-  type: `${typeof controllerName}:getAccount`;
-  handler: KeyringController['getAccount'];
-};
-
-export type UpdateAccount = {
-  type: `${typeof controllerName}:updateAccount`;
-  handler: KeyringController['updateAccount'];
-};
-
 export type ListAccounts = {
   type: `${typeof controllerName}:listAccounts`;
   handler: KeyringController['listAccounts'];
@@ -112,8 +102,6 @@ export type RemoveAccount = {
 
 export type KeyringControllerActions =
   | AddAccount
-  | GetAccount
-  | UpdateAccount
   | ListAccounts
   | RemoveAccount;
 
@@ -239,8 +227,8 @@ export class KeyringController extends BaseControllerV2<
     );
 
     this.messagingSystem.registerActionHandler(
-      `${controllerName}:getAccount` as const,
-      this.getAccount.bind(this),
+      `${controllerName}:listAccounts` as const,
+      this.listAccounts.bind(this),
     );
 
     this.messagingSystem.registerActionHandler(
@@ -424,16 +412,25 @@ export class KeyringController extends BaseControllerV2<
     return this.#fullUpdate();
   }
 
-  getAccount() {
-    console.log('method getAccount');
-  }
+  /**
+   * List Accounts
+   *
+   * Returns the public addresses of all current accounts
+   * managed by all currently unlocked keyrings.
+   *
+   * @returns The array of accounts.
+   */
+  async listAccounts(): Promise<string[]> {
+    const keyrings = this.keyrings || [];
 
-  updateAccount() {
-    console.log('method updateAccount');
-  }
+    const keyringArrays = await Promise.all(
+      keyrings.map(async (keyring) => keyring.getAccounts()),
+    );
+    const addresses = keyringArrays.reduce((res, arr) => {
+      return res.concat(arr);
+    }, []);
 
-  listAccounts() {
-    console.log('method listAccounts');
+    return addresses.map(normalizeToHex);
   }
 
   /**
@@ -483,27 +480,6 @@ export class KeyringController extends BaseControllerV2<
     }
 
     return await keyring.exportAccount(normalizeToHex(address));
-  }
-
-  /**
-   * Get Accounts
-   *
-   * Returns the public addresses of all current accounts
-   * managed by all currently unlocked keyrings.
-   *
-   * @returns The array of accounts.
-   */
-  async getAccounts(): Promise<string[]> {
-    const keyrings = this.keyrings || [];
-
-    const keyringArrays = await Promise.all(
-      keyrings.map(async (keyring) => keyring.getAccounts()),
-    );
-    const addresses = keyringArrays.reduce((res, arr) => {
-      return res.concat(arr);
-    }, []);
-
-    return addresses.map(normalizeToHex);
   }
 
   /**
@@ -816,7 +792,7 @@ export class KeyringController extends BaseControllerV2<
   }
 
   /**
-   * Checks for duplicate keypairs, using the the first account in the given
+   * Checks for duplicate key pairs, using the the first account in the given
    * array. Rejects if a duplicate is found.
    *
    * Only supports 'Simple Key Pair'.
@@ -829,7 +805,7 @@ export class KeyringController extends BaseControllerV2<
     type: string,
     newAccountArray: string[],
   ): Promise<string[]> {
-    const accounts = await this.getAccounts();
+    const accounts = await this.listAccounts();
 
     switch (type) {
       case KeyringType.Simple: {

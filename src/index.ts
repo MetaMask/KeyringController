@@ -21,8 +21,6 @@ export type {
   StateUpdated,
   // Actions
   AddAccount,
-  GetAccount,
-  UpdateAccount,
   ListAccounts,
   RemoveAccount,
 } from './KeyringController';
