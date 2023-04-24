@@ -13,10 +13,24 @@ const {
   deriveWrappingKey,
   generateMasterKey,
   unwrapMasterKey,
-  deriveMasterKey,
+  deriveEncryptionKey,
   encryptData,
   decryptData,
+  reEncryptData,
 } = exportedForTesting;
+
+/**
+ * Generate a random encryption key.
+ *
+ * @returns A Promise to a key handler.
+ */
+async function generateKey(): Promise<CryptoKey> {
+  return await crypto.subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt'],
+  );
+}
 
 describe('b64Encode', () => {
   it('should encode an empty Uint8Array', () => {
@@ -286,14 +300,15 @@ describe('unwrapMasterKey', () => {
     // Derive keys from the unwrapped and from the generated master key, both
     // derived keys should have the same value.
     const salt = stringToBytes('salt');
-    const encKey1 = await deriveMasterKey(handler, 'info', salt);
-    const encKey2 = await deriveMasterKey(unwrappedKey, 'info', salt);
+    const encKey1 = await deriveEncryptionKey(handler, 'info', salt);
+    const encKey2 = await deriveEncryptionKey(unwrappedKey, 'info', salt);
 
     // To check if encKey1 and encKey2 have the same value, we encrypt a text
     // using encKey1 and try to decrypt it using encKey2.
     const data = stringToBytes('hello world');
     const ct = await encryptData(encKey1, data, stringToBytes('additional'));
     const pt = await decryptData(encKey2, ct, stringToBytes('additional'));
+    expect(ct.nonce?.length).toBe(12);
     expect(pt).toStrictEqual(data);
   });
 
@@ -314,6 +329,42 @@ describe('unwrapMasterKey', () => {
     expect(async () => {
       await unwrapMasterKey(wrappingKey, wrapped);
     }).not.toThrow();
+  });
+});
+
+describe('reEncryptData', () => {
+  it('should re-encrypt data', async () => {
+    const decryptionKey = await generateKey();
+    const encryptionKey = await generateKey();
+    const data = stringToBytes('test');
+    const encrypted = await encryptData(decryptionKey, data);
+    const reEncrypted = await reEncryptData(
+      decryptionKey,
+      encryptionKey,
+      encrypted,
+    );
+    const decrypted = await decryptData(encryptionKey, reEncrypted);
+    expect(decrypted).toStrictEqual(data);
+  });
+
+  it('should re-encrypt data with additional data', async () => {
+    const decryptionKey = await generateKey();
+    const encryptionKey = await generateKey();
+    const data = stringToBytes('test');
+    const additionalData = stringToBytes('metadata');
+    const encrypted = await encryptData(decryptionKey, data, additionalData);
+    const reEncrypted = await reEncryptData(
+      decryptionKey,
+      encryptionKey,
+      encrypted,
+      additionalData,
+    );
+    const decrypted = await decryptData(
+      encryptionKey,
+      reEncrypted,
+      additionalData,
+    );
+    expect(decrypted).toStrictEqual(data);
   });
 });
 
@@ -461,5 +512,36 @@ describe('Vault', () => {
     expect(vault.isUnlocked).toBe(false);
     await vault.verifyPassword('bar');
     expect(vault.isUnlocked).toBe(false);
+  });
+
+  it('should change the vault password', async () => {
+    await vault.init('foo');
+    await vault.changePassword('foo', 'bar');
+    expect(await vault.verifyPassword('foo')).toBe(false);
+    expect(await vault.verifyPassword('bar')).toBe(true);
+  });
+
+  it('should change the password of a locked vault', async () => {
+    await vault.init('foo');
+    vault.lock();
+    await vault.changePassword('foo', 'bar');
+    expect(await vault.verifyPassword('foo')).toBe(false);
+    expect(await vault.verifyPassword('bar')).toBe(true);
+  });
+
+  it('should be possible to get a value after a password change', async () => {
+    await vault.init('foo');
+    const value = { example: 123 };
+    await vault.set('test', value);
+    await vault.changePassword('foo', 'bar');
+    expect(await vault.get('test')).toStrictEqual(value);
+  });
+
+  it('should be possible to get a value after rekeying the vault', async () => {
+    await vault.init('foo');
+    const value = { example: 123 };
+    await vault.set('test', value);
+    await vault.rekey('foo');
+    expect(await vault.get('test')).toStrictEqual(value);
   });
 });

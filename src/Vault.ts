@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Types
 
 type EncryptedData = {
-  nonce: Uint8Array;
+  nonce?: Uint8Array;
   data: Uint8Array;
 };
 
@@ -211,14 +211,33 @@ async function unwrapMasterKey(
 }
 
 /**
- * Derive the Master Key given a derivation information.
+ * Unwrap and re-wrap a key.
  *
- * @param masterKey - Master Key to be derived.
+ * @param unwrappingKey - Unwrapping key.
+ * @param wrappingKey - Wrapping key.
+ * @param wrappedKey - Key to re-wrap.
+ * @param additionalData - Additional data.
+ * @returns The re-wrapped key.
+ */
+async function reWrapMasterKey(
+  unwrappingKey: CryptoKey,
+  wrappingKey: CryptoKey,
+  wrappedKey: EncryptedData,
+  additionalData?: Uint8Array,
+): Promise<EncryptedData> {
+  const rawKey = await decryptData(unwrappingKey, wrappedKey, additionalData);
+  return encryptData(wrappingKey, rawKey, additionalData);
+}
+
+/**
+ * Derive an encryption key from the master key.
+ *
+ * @param masterKey - Master key to derived from.
  * @param info - Derivation information.
  * @param salt - Optional salt to be used in the derivation.
  * @returns The handler to the derived key.
  */
-async function deriveMasterKey(
+async function deriveEncryptionKey(
   masterKey: CryptoKey,
   info: string | Uint8Array,
   salt?: Uint8Array,
@@ -295,15 +314,34 @@ async function decryptData(
   );
 }
 
+/**
+ * Decrypt and re-encrypt data.
+ *
+ * @param decryptionKey - Decryption key.
+ * @param encryptionKey - Encryption key.
+ * @param ciphertext - Encrypted data.
+ * @param additionalData - Additional data.
+ * @returns The re-encrypted data.
+ */
+async function reEncryptData(
+  decryptionKey: CryptoKey,
+  encryptionKey: CryptoKey,
+  ciphertext: EncryptedData,
+  additionalData?: Uint8Array,
+): Promise<EncryptedData> {
+  const data = await decryptData(decryptionKey, ciphertext, additionalData);
+  return encryptData(encryptionKey, data, additionalData);
+}
+
 // ----------------------------------------------------------------------------
 // Main class
 
 export class Vault {
   public readonly id: string;
 
-  readonly #entries: Map<string, VaultEntry>;
+  #entries: Map<string, VaultEntry>;
 
-  readonly #passwordSalt: Uint8Array;
+  #passwordSalt: Uint8Array;
 
   #wrappedMasterKey: EncryptedData | null;
 
@@ -409,7 +447,7 @@ export class Vault {
     const now = new Date();
     const current = this.#entries.get(key);
     const entryId = current?.id ?? uuidv4();
-    const encryptionKey = await this.#deriveMasterKey(entryId, key);
+    const encryptionKey = await this.#deriveEncryptionKey(entryId, key);
 
     this.#entries.set(key, {
       id: entryId,
@@ -436,7 +474,7 @@ export class Vault {
     }
 
     // Decrypt and parse the value back to JSON.
-    const decryptionKey = await this.#deriveMasterKey(entry.id, key);
+    const decryptionKey = await this.#deriveEncryptionKey(entry.id, key);
     const data = await decryptData(decryptionKey, entry.value);
     return JSON.parse(bytesToString(data));
   }
@@ -461,6 +499,67 @@ export class Vault {
   delete(key: string): boolean {
     this.#assertIsOperational();
     return this.#entries.delete(key);
+  }
+
+  /**
+   * Change the vault master key.
+   *
+   * @param password - Vault password.
+   */
+  async rekey(password: string): Promise<void> {
+    const wrappingKey = await deriveWrappingKey(password, this.#passwordSalt);
+    const { wrapped: mkWrapped, handler: mkHandler } = await generateMasterKey(
+      wrappingKey,
+      jsonToBytes(['vaultId', this.id]),
+    );
+
+    const newEntries = new Map<string, VaultEntry>();
+    for (const [key, entry] of this.#entries.entries()) {
+      newEntries.set(key, {
+        ...entry,
+        value: await reEncryptData(
+          await this.#deriveEncryptionKey(entry.id, key),
+          await this.#deriveEncryptionKey(entry.id, key, mkHandler),
+          entry.value,
+        ),
+      });
+    }
+
+    // Update all fields "at once".
+    this.#cachedMasterKey = mkHandler;
+    this.#wrappedMasterKey = mkWrapped;
+    this.#entries = newEntries;
+  }
+
+  /**
+   * Change the vault password and salt.
+   *
+   * @param oldPassword - Current password.
+   * @param newPassword - New password.
+   */
+  async changePassword(
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const oldWrappingKey = await deriveWrappingKey(
+      oldPassword,
+      this.#passwordSalt,
+    );
+
+    const newPasswordSalt = randomBytes(32);
+    const newWrappingKey = await deriveWrappingKey(
+      newPassword,
+      newPasswordSalt,
+    );
+
+    // Update the password salt _after_ setting the wrapped master key.
+    this.#wrappedMasterKey = await reWrapMasterKey(
+      oldWrappingKey,
+      newWrappingKey,
+      this.#getWrappedMasterKey(),
+      jsonToBytes(['vaultId', this.id]),
+    );
+    this.#passwordSalt = newPasswordSalt;
   }
 
   /**
@@ -523,13 +622,21 @@ export class Vault {
   /**
    * Derive the Master Key given a derivation information.
    *
+   * If a master key is provided, it will be used instead of the cached master
+   * key.
+   *
    * @param entryId - ID of the vault entry.
    * @param key - Key of the vault entry.
+   * @param masterKey - Optional master key.
    * @returns The handler to the derived key.
    */
-  async #deriveMasterKey(entryId: string, key: string): Promise<CryptoKey> {
-    return deriveMasterKey(
-      this.#getCachedMasterKey(),
+  async #deriveEncryptionKey(
+    entryId: string,
+    key: string,
+    masterKey?: CryptoKey,
+  ): Promise<CryptoKey> {
+    return deriveEncryptionKey(
+      masterKey ?? this.#getCachedMasterKey(),
       `metamask:vault:${this.id}:entry:${entryId}:key:${key}`,
     );
   }
@@ -550,5 +657,7 @@ export const exportedForTesting = {
   unwrapMasterKey,
   encryptData,
   decryptData,
-  deriveMasterKey,
+  deriveEncryptionKey,
+  reEncryptData,
+  reWrapMasterKey,
 };
