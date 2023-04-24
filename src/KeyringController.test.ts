@@ -278,11 +278,11 @@ describe('KeyringController', () => {
 
   describe('createNewVaultAndRestore', () => {
     it('clears old keyrings and creates a one', async () => {
-      const initialAccounts = await keyringController.getAccounts();
+      const initialAccounts = await keyringController.listAccounts();
       expect(initialAccounts).toHaveLength(1);
 
       await keyringController.addKeyring(KeyringType.HD);
-      const allAccounts = await keyringController.getAccounts();
+      const allAccounts = await keyringController.listAccounts();
       expect(allAccounts).toHaveLength(2);
 
       await keyringController.createNewVaultAndRestore(
@@ -290,7 +290,7 @@ describe('KeyringController', () => {
         walletOneSeedWords,
       );
 
-      const allAccountsAfter = await keyringController.getAccounts();
+      const allAccountsAfter = await keyringController.listAccounts();
       expect(allAccountsAfter).toHaveLength(1);
       expect(allAccountsAfter[0]).toBe(walletOneAddresses[0]);
     });
@@ -320,7 +320,7 @@ describe('KeyringController', () => {
     });
 
     it('accepts mnemonic passed as type array of numbers', async () => {
-      const allAccountsBefore = await keyringController.getAccounts();
+      const allAccountsBefore = await keyringController.listAccounts();
       expect(allAccountsBefore[0]).not.toBe(walletTwoAddresses[0]);
       const mnemonicAsArrayOfNumbers = Array.from(
         Buffer.from(walletTwoSeedWords).values(),
@@ -331,7 +331,7 @@ describe('KeyringController', () => {
         mnemonicAsArrayOfNumbers,
       );
 
-      const allAccountsAfter = await keyringController.getAccounts();
+      const allAccountsAfter = await keyringController.listAccounts();
       expect(allAccountsAfter).toHaveLength(1);
       expect(allAccountsAfter[0]).toBe(walletTwoAddresses[0]);
     });
@@ -373,7 +373,7 @@ describe('KeyringController', () => {
     it('should add simple key pair', async () => {
       const privateKey =
         'c87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3';
-      const previousAccounts = await keyringController.getAccounts();
+      const previousAccounts = await keyringController.listAccounts();
       const keyring = await keyringController.addKeyring(KeyringType.Simple, {
         privateKeys: [privateKey],
       });
@@ -384,7 +384,7 @@ describe('KeyringController', () => {
       ];
       expect(keyringAccounts).toStrictEqual(expectedKeyringAccounts);
 
-      const allAccounts = await keyringController.getAccounts();
+      const allAccounts = await keyringController.listAccounts();
       const expectedAllAccounts = previousAccounts.concat(
         expectedKeyringAccounts,
       );
@@ -392,17 +392,17 @@ describe('KeyringController', () => {
     });
 
     it('should add HD Key Tree without mnemonic passed as an argument', async () => {
-      const previousAllAccounts = await keyringController.getAccounts();
+      const previousAllAccounts = await keyringController.listAccounts();
       expect(previousAllAccounts).toHaveLength(1);
       const keyring = await keyringController.addKeyring(KeyringType.HD);
       const keyringAccounts = await keyring?.getAccounts();
       expect(keyringAccounts).toHaveLength(1);
-      const allAccounts = await keyringController.getAccounts();
+      const allAccounts = await keyringController.listAccounts();
       expect(allAccounts).toHaveLength(2);
     });
 
     it('should add HD Key Tree with mnemonic passed as an argument', async () => {
-      const previousAllAccounts = await keyringController.getAccounts();
+      const previousAllAccounts = await keyringController.listAccounts();
       expect(previousAllAccounts).toHaveLength(1);
       const keyring = await keyringController.addKeyring(KeyringType.HD, {
         numberOfAccounts: 2,
@@ -412,7 +412,7 @@ describe('KeyringController', () => {
       expect(keyringAccounts).toHaveLength(2);
       expect(keyringAccounts?.[0]).toStrictEqual(walletTwoAddresses[0]);
       expect(keyringAccounts?.[1]).toStrictEqual(walletTwoAddresses[1]);
-      const allAccounts = await keyringController.getAccounts();
+      const allAccounts = await keyringController.listAccounts();
       expect(allAccounts).toHaveLength(3);
     });
 
@@ -488,7 +488,7 @@ describe('KeyringController', () => {
     });
   });
 
-  describe('getAccounts', () => {
+  describe('listAccounts', () => {
     it('returns the result of getAccounts for each keyring', async () => {
       keyringController.keyrings = [
         {
@@ -505,7 +505,7 @@ describe('KeyringController', () => {
         },
       ];
 
-      const result = await keyringController.getAccounts();
+      const result = await keyringController.listAccounts();
       expect(result).toStrictEqual([
         '0x01',
         '0x02',
@@ -525,7 +525,7 @@ describe('KeyringController', () => {
         publicKey: '0x627306090abab3a6e1400e9345bc60c78a8bef57',
       };
 
-      const accountsBeforeAdding = await keyringController.getAccounts();
+      const accountsBeforeAdding = await keyringController.listAccounts();
 
       // Add a new keyring with one account
       await keyringController.addKeyring(KeyringType.Simple, {
@@ -538,7 +538,7 @@ describe('KeyringController', () => {
 
       expect(keyringController.keyrings).toHaveLength(1);
       // fetch accounts after removal
-      const result = await keyringController.getAccounts();
+      const result = await keyringController.listAccounts();
       expect(result).toStrictEqual(accountsBeforeAdding);
     });
 
@@ -830,11 +830,11 @@ describe('KeyringController', () => {
 
       // @ts-expect-error this value should never be undefined in this specific context.
       await keyringController.addAccount(firstKeyring);
-      expect(await keyringController.getAccounts()).toHaveLength(2);
+      expect(await keyringController.listAccounts()).toHaveLength(2);
 
       // @ts-expect-error this value should never be undefined in this specific context.
       await keyringController.addAccount(firstKeyring);
-      expect(await keyringController.getAccounts()).toHaveLength(3);
+      expect(await keyringController.listAccounts()).toHaveLength(3);
 
       const account: { privateKey: string; publicKey: Hex } = {
         privateKey:
@@ -846,11 +846,11 @@ describe('KeyringController', () => {
       await keyringController.addKeyring(KeyringType.Simple, {
         privateKeys: [account.privateKey],
       });
-      expect(await keyringController.getAccounts()).toHaveLength(4);
+      expect(await keyringController.listAccounts()).toHaveLength(4);
 
       // remove that account that we just added
       await keyringController.removeAccount(account.publicKey);
-      expect(await keyringController.getAccounts()).toHaveLength(3);
+      expect(await keyringController.listAccounts()).toHaveLength(3);
     });
 
     it('triggers an error when trying to persist without password or encryption key', async () => {
