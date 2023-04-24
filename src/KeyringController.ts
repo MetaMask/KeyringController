@@ -132,7 +132,7 @@ export type KeyringControllerArgs = {
     | ConcatArray<{ (): Keyring<Json>; type: string }>;
 
   cacheEncryptionKey: boolean;
-  initState?: State;
+  initState?: State | KeyringControllerState;
   encryptor?: any;
 };
 
@@ -145,8 +145,9 @@ const stateMetadata = {
   keyrings: { persist: false, anonymous: false },
 };
 
-class KeyringController extends BaseControllerV2<
+export class KeyringController extends BaseControllerV2<
   typeof controllerName,
+  // @ts-expect-error Type 'Record<string, Keyring<Json>>' is not assignable to type 'Json'
   KeyringControllerState,
   KeyringControllerMessenger
 > {
@@ -180,6 +181,7 @@ class KeyringController extends BaseControllerV2<
       messenger,
       metadata: stateMetadata,
       name: 'KeyringController',
+      // @ts-expect-error TO DO: Fix
       state: initState,
     });
     this.keyringBuilders = keyringBuilders
@@ -1202,7 +1204,9 @@ class KeyringController extends BaseControllerV2<
 
     await keyring.deserialize(data);
 
+    // @ts-expect-error Expectable error regarding teh Keyring type not having init
     if (keyring.init) {
+      // @ts-expect-error Expectable error regarding teh Keyring type not having init
       await keyring.init();
     }
 
