@@ -114,6 +114,18 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(0);
     });
 
+    it('publish "vaultCreated" event', async () => {
+      const publishActionSpy = jest.spyOn(messenger, 'publish');
+      await keyringController.createNewVaultAndKeychain(PASSWORD);
+      const accounts = await keyringController.listAccounts();
+      expect(publishActionSpy).toHaveBeenCalledTimes(4);
+      expect(publishActionSpy).toHaveBeenNthCalledWith(
+        2,
+        'KeyringController:vaultCreated',
+        accounts[0],
+      );
+    });
+
     it('publish "vaultUnlocked" event', async () => {
       await keyringController.setLocked();
 
