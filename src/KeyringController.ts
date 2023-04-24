@@ -190,6 +190,7 @@ export class KeyringController extends BaseControllerV2<
     // This option allows the controller to cache an exported key
     // for use in decrypting and encrypting data without password
     this.cacheEncryptionKey = Boolean(cacheEncryptionKey);
+    this.#registerMessageHandlers();
   }
 
   /**
