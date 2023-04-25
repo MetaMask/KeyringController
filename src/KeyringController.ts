@@ -34,41 +34,49 @@ export type KeyringControllerState = {
   keyrings: Record<string, Keyring<Json>>;
 };
 
+/**
+ * Emitted when a new account registered.
+ */
 export type AccountRegistered = {
   type: `${typeof controllerName}:accountRegistered`;
   payload: [account: string];
 };
 
+/**
+ * Emitted when an account is removed.
+ */
 export type AccountRemoved = {
   type: `${typeof controllerName}:accountRemoved`;
   payload: [address: string];
 };
 
-export type KeyringRegistered = {
-  type: `${typeof controllerName}:keyringRegistered`;
-  payload: [];
-};
-
-export type KeyringRemoved = {
-  type: `${typeof controllerName}:keyringRemoved`;
-  payload: [];
-};
-
-export type VaultLocked = {
-  type: `${typeof controllerName}:vaultLocked`;
-  payload: [];
-};
-
-export type VaultUnlocked = {
-  type: `${typeof controllerName}:vaultUnlocked`;
-  payload: [];
-};
-
+/**
+ * Emitted when a vault is created.
+ */
 export type VaultCreated = {
   type: `${typeof controllerName}:vaultCreated`;
   payload: [account: string];
 };
 
+/**
+ * Emitted when the vault is locked.
+ */
+export type VaultLocked = {
+  type: `${typeof controllerName}:vaultLocked`;
+  payload: [];
+};
+
+/**
+ * Emitted when the vault is unlocked.
+ */
+export type VaultUnlocked = {
+  type: `${typeof controllerName}:vaultUnlocked`;
+  payload: [];
+};
+
+/**
+ * Emitted when the controller has a state change.
+ */
 export type StateUpdated = {
   type: `${typeof controllerName}:stateUpdated`;
   payload: [state: any];
@@ -77,8 +85,6 @@ export type StateUpdated = {
 export type KeyringControllerEvents =
   | AccountRegistered
   | AccountRemoved
-  | KeyringRegistered
-  | KeyringRemoved
   | VaultLocked
   | VaultUnlocked
   | VaultCreated

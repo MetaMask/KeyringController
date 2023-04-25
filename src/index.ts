@@ -13,8 +13,6 @@ export type {
   // Events
   AccountRegistered,
   AccountRemoved,
-  KeyringRegistered,
-  KeyringRemoved,
   VaultLocked,
   VaultUnlocked,
   VaultCreated,
