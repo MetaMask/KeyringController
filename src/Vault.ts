@@ -402,6 +402,11 @@ export class Vault<Value extends Json> {
 
   #cachedMasterKey: CryptoKey | null;
 
+  /**
+   * Create a new vault.
+   *
+   * @param state - Existing serialized vault state.
+   */
   constructor(state?: VaultState) {
     this.#entries = new Map<string, VaultEntry>();
 
