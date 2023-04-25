@@ -224,11 +224,11 @@ async function deriveWrappingKey(
 }
 
 /**
- * Generate and wrap a random Master Key.
+ * Generate and wrap a random master key.
  *
  * @param wrappingKey - Wrapping key handler.
  * @param additionalData - Additional data.
- * @returns The wrapped Master Key and its handler.
+ * @returns The wrapped master key and its handler.
  */
 async function generateMasterKey(
   wrappingKey: CryptoKey,
@@ -249,12 +249,12 @@ async function generateMasterKey(
 }
 
 /**
- * Unwrap and import the Master Key.
+ * Unwrap and import the master key.
  *
  * @param unwrappingKey - Unwrapping key handler.
  * @param wrappedKey - Wrapped key data.
  * @param additionalData - Additional data.
- * @returns Handler to the Master Key.
+ * @returns Handler to the master key.
  */
 async function unwrapMasterKey(
   unwrappingKey: CryptoKey,
@@ -405,6 +405,9 @@ export class Vault<Value extends Json> {
   /**
    * Create a new vault.
    *
+   * If a state is given, the vault will be restored form it, otherwise, a new
+   * vault will be created.
+   *
    * @param state - Existing serialized vault state.
    */
   constructor(state?: VaultState) {
@@ -437,9 +440,11 @@ export class Vault<Value extends Json> {
    * This method MUST to be called after the vault creation, otherwise the
    * master key will not be generated.
    *
-   * @param password - Vault's password.
+   * @param password - Vault password.
    */
-  async init(password: string): Promise<void> {
+  async #init(password: string): Promise<void> {
+    // istanbul ignore next: This check should always be false, but we leave it
+    // as a fail safe to prevent the master key from being overwritten.
     if (this.isInitialized) {
       throw new VaultError('Vault is already initialized');
     }
@@ -656,12 +661,18 @@ export class Vault<Value extends Json> {
   }
 
   /**
-   * Unlock the vault and cache the Master Key.
+   * Unlock the vault and cache the master key.
+   *
+   * Note that unlocking will also initialize an uninitialized vault.
    *
    * @param password - Password to unlock the vault.
    * @param testOnly - Try to unlock the vault but don't cache the master key.
    */
   async unlock(password: string, testOnly = false): Promise<void> {
+    if (!this.isInitialized && !testOnly) {
+      await this.#init(password);
+    }
+
     // We must get the wrapped master key _outside_ the try-catch block below
     // to distinguish an uninitialized vault from a wrong password.
     const wrappedMasterKey = this.#getWrappedMasterKey();
@@ -698,7 +709,7 @@ export class Vault<Value extends Json> {
   }
 
   /**
-   * Derive the Master Key given a derivation information.
+   * Derive the master key given a derivation information.
    *
    * If a master key is provided, it will be used instead of the cached master
    * key.

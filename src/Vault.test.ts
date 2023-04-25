@@ -389,27 +389,19 @@ describe('Vault', () => {
     vault = new Vault();
   });
 
-  it('should throw an error if we try to initialize an already initialized vault', async () => {
-    await vault.init('foo');
-    await expect(vault.init('foo')).rejects.toThrow(
-      'Vault is already initialized',
-    );
-  });
-
   it('should check if the vault was created uninitialized', () => {
-    expect(vault).toBeDefined();
     expect(vault.isInitialized).toBe(false);
     expect(vault.isUnlocked).toBe(false);
   });
 
   it('should initialize the vault', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     expect(vault.isInitialized).toBe(true);
     expect(vault.isUnlocked).toBe(true);
   });
 
   it('should lock the vault', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     vault.lock();
     expect(vault.isInitialized).toBe(true);
     expect(vault.isUnlocked).toBe(false);
@@ -423,7 +415,7 @@ describe('Vault', () => {
   });
 
   it('should fail if we try to store a value in a locked vault', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     vault.lock();
 
     const value = { keyring: 'test' };
@@ -439,20 +431,20 @@ describe('Vault', () => {
   });
 
   it('should fail if we try to read a value from a locked vault', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     vault.lock();
     await expect(vault.get('keyring')).rejects.toThrow('Vault is locked');
   });
 
   it('should be possible to set and get a value', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     const value = { keyring: 'test' };
     await vault.set('keyring', value);
     expect(await vault.get('keyring')).toStrictEqual(value);
   });
 
   it('should be possible to set, lock, unlock, and get a value', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     const value = { keyring: 'test' };
     await vault.set('keyring', value);
     vault.lock();
@@ -460,30 +452,24 @@ describe('Vault', () => {
     expect(await vault.get('keyring')).toStrictEqual(value);
   });
 
-  it('should not be possible to unlock an uninitialized vault', async () => {
-    await expect(vault.unlock('password')).rejects.toThrow(
-      'Vault is not initialized',
-    );
-  });
-
   it('should return undefined if we try to get a key that does not exist', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     expect(await vault.get('foo')).toBeUndefined();
   });
 
   it('should have a key that was previouslly inserted', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     await vault.set('keyring', { keyring: 'test' });
     expect(vault.has('keyring')).toBe(true);
   });
 
   it('should not have a key that was not inserted', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     expect(vault.has('keyring')).toBe(false);
   });
 
   it('should not have a key after it is deleted', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     await vault.set('keyring', { keyring: 'test' });
     expect(vault.has('keyring')).toBe(true);
     vault.delete('keyring');
@@ -491,14 +477,14 @@ describe('Vault', () => {
   });
 
   it('should be possible to update an existing entry', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     await vault.set('keyring', { keyring: 'foo' });
     await vault.set('keyring', { keyring: 'bar' });
     expect(await vault.get('keyring')).toStrictEqual({ keyring: 'bar' });
   });
 
   it('should fail to unlock a vault using a wrong password', async () => {
-    await vault.init('password');
+    await vault.unlock('password');
     vault.lock();
     await expect(vault.unlock('foobar')).rejects.toThrow(
       'Invalid vault password',
@@ -510,17 +496,17 @@ describe('Vault', () => {
   });
 
   it('should successful verify the password if it is correct', async () => {
-    await vault.init('foo');
+    await vault.unlock('foo');
     expect(await vault.verifyPassword('foo')).toBe(true);
   });
 
   it('should fail to verify the password if it is incorrect', async () => {
-    await vault.init('foo');
+    await vault.unlock('foo');
     expect(await vault.verifyPassword('bar')).toBe(false);
   });
 
   it('should unlock the vault after the correct password is presented', async () => {
-    await vault.init('foo');
+    await vault.unlock('foo');
     vault.lock();
     expect(vault.isUnlocked).toBe(false);
     await vault.verifyPassword('foo');
@@ -528,7 +514,7 @@ describe('Vault', () => {
   });
 
   it('should unlock the vault after a incorrect password is presented', async () => {
-    await vault.init('foo');
+    await vault.unlock('foo');
     vault.lock();
     expect(vault.isUnlocked).toBe(false);
     await vault.verifyPassword('bar');
@@ -536,14 +522,14 @@ describe('Vault', () => {
   });
 
   it('should change the vault password', async () => {
-    await vault.init('foo');
+    await vault.unlock('foo');
     await vault.changePassword('foo', 'bar');
     expect(await vault.verifyPassword('foo')).toBe(false);
     expect(await vault.verifyPassword('bar')).toBe(true);
   });
 
   it('should change the password of a locked vault', async () => {
-    await vault.init('foo');
+    await vault.unlock('foo');
     vault.lock();
     await vault.changePassword('foo', 'bar');
     expect(await vault.verifyPassword('foo')).toBe(false);
@@ -551,7 +537,7 @@ describe('Vault', () => {
   });
 
   it('should be possible to get a value after a password change', async () => {
-    await vault.init('foo');
+    await vault.unlock('foo');
     const value = { example: 123 };
     await vault.set('test', value);
     await vault.changePassword('foo', 'bar');
@@ -559,7 +545,7 @@ describe('Vault', () => {
   });
 
   it('should be possible to get a value after rekeying the vault', async () => {
-    await vault.init('foo');
+    await vault.unlock('foo');
     const value = { example: 123 };
     await vault.set('test', value);
     await vault.rekey('foo');
@@ -567,7 +553,7 @@ describe('Vault', () => {
   });
 
   it('should serialize and deserialize a vault', async () => {
-    await vault.init('foo');
+    await vault.unlock('foo');
     const value1 = { answer: 42 };
     const value2 = { answer: 42, verified: true };
     await vault.set('test-1', value1);
