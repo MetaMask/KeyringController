@@ -1,4 +1,6 @@
 /* eslint-disable no-restricted-globals */
+import { Json } from '@metamask/utils';
+
 import { Vault, exportedForTesting } from './Vault';
 
 const {
@@ -8,6 +10,7 @@ const {
   bytesToString,
   jsonToBytes,
   randomBytes,
+  ensureLength,
   ensureNotNull,
   ensureBytes,
   deriveWrappingKey,
@@ -172,6 +175,21 @@ describe('randomBytes', () => {
   });
 });
 
+describe('ensureLength', () => {
+  it('returns input when length matches', () => {
+    const input = new Uint8Array([1, 2, 3]);
+    const result = ensureLength(input, 3);
+    expect(result).toStrictEqual(input);
+  });
+
+  it('throws an error when length does not match', () => {
+    const input = new Uint8Array([1, 2, 3]);
+    expect(() => {
+      ensureLength(input, 4);
+    }).toThrow('Invalid length: expected 4, got 3');
+  });
+});
+
 describe('ensureNotNull', () => {
   it('should return the value if it is not null', () => {
     const value = 'hello';
@@ -183,10 +201,6 @@ describe('ensureNotNull', () => {
     const value = null;
     const errorMessage = 'Error message';
     expect(() => ensureNotNull(value, errorMessage)).toThrow(errorMessage);
-  });
-
-  it('should throw the given error if null', () => {
-    expect(() => ensureNotNull(null, new Error('foo'))).toThrow('foo');
   });
 });
 
@@ -308,7 +322,7 @@ describe('unwrapMasterKey', () => {
     const data = stringToBytes('hello world');
     const ct = await encryptData(encKey1, data, stringToBytes('additional'));
     const pt = await decryptData(encKey2, ct, stringToBytes('additional'));
-    expect(ct.nonce?.length).toBe(12);
+    expect(ct.nonce).toHaveLength(12);
     expect(pt).toStrictEqual(data);
   });
 
@@ -369,7 +383,7 @@ describe('reEncryptData', () => {
 });
 
 describe('Vault', () => {
-  let vault: Vault;
+  let vault: Vault<Json>;
 
   beforeEach(() => {
     vault = new Vault();
@@ -543,5 +557,20 @@ describe('Vault', () => {
     await vault.set('test', value);
     await vault.rekey('foo');
     expect(await vault.get('test')).toStrictEqual(value);
+  });
+
+  it('should serialize and deserialize a vault', async () => {
+    await vault.init('foo');
+    const value1 = { answer: 42 };
+    const value2 = { answer: 42, verified: true };
+    await vault.set('test-1', value1);
+    await vault.set('test-2', value2);
+
+    const serialized = vault.getState();
+    const newVault = new Vault(serialized);
+    await newVault.unlock('foo');
+    expect(await newVault.get('test-1')).toStrictEqual(value1);
+    expect(await newVault.get('test-2')).toStrictEqual(value2);
+    expect(newVault.getState()).toStrictEqual(serialized);
   });
 });

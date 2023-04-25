@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Types
 
 type EncryptedData = {
-  nonce?: Uint8Array;
+  nonce: Uint8Array;
   data: Uint8Array;
 };
 
@@ -82,14 +82,27 @@ function jsonToBytes(data: Json): Uint8Array {
  * @param cause - Error cause in case value is null.
  * @returns The value if it is not null.
  */
-function ensureNotNull<T>(value: T | null, cause: string | Error): T {
+function ensureNotNull<T>(value: T | null, cause: string): T {
   if (value === null) {
-    if (typeof cause === 'string') {
-      throw new VaultError(cause);
-    }
-    throw cause;
+    throw new VaultError(cause);
   }
   return value;
+}
+
+/**
+ * Ensure that a Uint8Array has the expected length.
+ *
+ * @param data - Data array.
+ * @param length - Expected length.
+ * @returns The same data array.
+ */
+function ensureLength(data: Uint8Array, length: number): Uint8Array {
+  if (data.length !== length) {
+    throw new VaultError(
+      `Invalid length: expected ${length}, got ${data.length}`,
+    );
+  }
+  return data;
 }
 
 /**
@@ -336,7 +349,23 @@ async function reEncryptData(
 // ----------------------------------------------------------------------------
 // Main class
 
-export class Vault {
+type EncryptedDataState = { nonce: string; data: string };
+
+type VaultEntryState = {
+  id: string;
+  value: EncryptedDataState;
+  createdAt: string;
+  modifiedAt: string;
+};
+
+type VaultState = {
+  id: string;
+  salt: string;
+  key: EncryptedDataState;
+  entries: Record<string, VaultEntryState>;
+};
+
+export class Vault<Value extends Json> {
   public readonly id: string;
 
   #entries: Map<string, VaultEntry>;
@@ -347,14 +376,34 @@ export class Vault {
 
   #cachedMasterKey: CryptoKey | null;
 
-  constructor() {
-    this.id = uuidv4();
+  constructor(state?: VaultState) {
     this.#entries = new Map<string, VaultEntry>();
-    this.#passwordSalt = randomBytes(32);
 
-    // The following attributes must be initialized asynchronously.
+    if (state === undefined) {
+      this.id = uuidv4();
+      this.#passwordSalt = randomBytes(32);
+      this.#wrappedMasterKey = null;
+    } else {
+      this.id = state.id;
+      this.#passwordSalt = ensureLength(b64Decode(state.salt), 32);
+      this.#wrappedMasterKey = {
+        nonce: b64Decode(state.key.nonce),
+        data: b64Decode(state.key.data),
+      };
+      for (const [key, entry] of Object.entries(state.entries)) {
+        this.#entries.set(key, {
+          ...entry,
+          createdAt: new Date(entry.createdAt),
+          modifiedAt: new Date(entry.modifiedAt),
+          value: {
+            nonce: ensureLength(b64Decode(entry.value.nonce), 12),
+            data: b64Decode(entry.value.data),
+          },
+        });
+      }
+    }
+
     this.#cachedMasterKey = null;
-    this.#wrappedMasterKey = null;
   }
 
   /**
@@ -441,7 +490,7 @@ export class Vault {
    * @param key - Key to store the value under.
    * @param value - Value to be encrypted and added to the vault.
    */
-  async set(key: string, value: Json): Promise<void> {
+  async set(key: string, value: Value): Promise<void> {
     this.#assertIsOperational();
 
     const now = new Date();
@@ -464,7 +513,7 @@ export class Vault {
    * @returns The value associated with the key or undefined if the key does
    * not exist.
    */
-  async get(key: string): Promise<Json | undefined> {
+  async get(key: string): Promise<Value | undefined> {
     this.#assertIsOperational();
 
     // Return undefined if the key does not exist.
@@ -473,7 +522,7 @@ export class Vault {
       return undefined;
     }
 
-    // Decrypt and parse the value back to JSON.
+    // Decrypt and parse the value back to an object.
     const decryptionKey = await this.#deriveEncryptionKey(entry.id, key);
     const data = await decryptData(decryptionKey, entry.value);
     return JSON.parse(bytesToString(data));
@@ -640,6 +689,37 @@ export class Vault {
       `metamask:vault:${this.id}:entry:${entryId}:key:${key}`,
     );
   }
+
+  /**
+   * Get the vault's serialized state.
+   *
+   * @returns The vault's serialized state.
+   */
+  getState(): VaultState {
+    const encodeEncrypted = (encrypted: EncryptedData) => {
+      return {
+        nonce: b64Encode(encrypted.nonce),
+        data: b64Encode(encrypted.data),
+      };
+    };
+
+    const entries = new Map<string, VaultEntryState>();
+    for (const [key, value] of this.#entries.entries()) {
+      entries.set(key, {
+        ...value,
+        value: encodeEncrypted(value.value),
+        modifiedAt: value.modifiedAt.toISOString(),
+        createdAt: value.modifiedAt.toISOString(),
+      });
+    }
+
+    return {
+      id: this.id,
+      salt: b64Encode(this.#passwordSalt),
+      key: encodeEncrypted(this.#getWrappedMasterKey()),
+      entries: Object.fromEntries(entries),
+    };
+  }
 }
 
 export const exportedForTesting = {
@@ -649,6 +729,7 @@ export const exportedForTesting = {
   bytesToString,
   jsonToBytes,
   randomBytes,
+  ensureLength,
   ensureNotNull,
   ensureBytes,
   generateMasterKey,
