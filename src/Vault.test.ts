@@ -389,6 +389,13 @@ describe('Vault', () => {
     vault = new Vault();
   });
 
+  it('should throw an error if we try to initialize an already initialized vault', async () => {
+    await vault.init('foo');
+    await expect(vault.init('foo')).rejects.toThrow(
+      'Vault is already initialized',
+    );
+  });
+
   it('should check if the vault was created uninitialized', () => {
     expect(vault).toBeDefined();
     expect(vault.isInitialized).toBe(false);

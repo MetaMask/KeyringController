@@ -435,6 +435,10 @@ export class Vault<Value extends Json> {
    * @param password - Vault's password.
    */
   async init(password: string): Promise<void> {
+    if (this.isInitialized) {
+      throw new VaultError('Vault is already initialized');
+    }
+
     const wrappingKey = await deriveWrappingKey(password, this.#passwordSalt);
     const additionalData = jsonToBytes(['vaultId', this.id]);
 
