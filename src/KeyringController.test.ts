@@ -579,11 +579,18 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(2);
 
       // remove that account that we just added
+      const publishActionSpy = jest.spyOn(messenger, 'publish');
       await keyringController.removeAccount(account.publicKey);
 
       // Check that the previous keyring with only one account
       // was also removed after removing the account
       expect(keyringController.keyrings).toHaveLength(1);
+      expect(publishActionSpy).toHaveBeenCalledTimes(2);
+      expect(publishActionSpy).toHaveBeenNthCalledWith(
+        1,
+        'KeyringController:accountRemoved',
+        account.publicKey,
+      );
     });
 
     it('does not remove the keyring if there are accounts remaining after removing one from the keyring', async () => {
@@ -666,10 +673,22 @@ describe('KeyringController', () => {
       const initialAccounts = await HDKeyring?.getAccounts();
       expect(initialAccounts).toHaveLength(1);
 
+      const publishActionSpy = jest.spyOn(messenger, 'publish');
       // @ts-expect-error this value should never be undefined in this specific context.
       await keyringController.addAccount(HDKeyring);
       const accountsAfterAdd = await HDKeyring?.getAccounts();
+      const allAccounts = await keyringController.listAccounts();
+      const lastAddedAccount = allAccounts[allAccounts.length - 1];
+
       expect(accountsAfterAdd).toHaveLength(2);
+      expect(allAccounts).toHaveLength(2);
+
+      expect(publishActionSpy).toHaveBeenCalledTimes(2);
+      expect(publishActionSpy).toHaveBeenNthCalledWith(
+        1,
+        'KeyringController:accountRegistered',
+        lastAddedAccount,
+      );
     });
   });
 
