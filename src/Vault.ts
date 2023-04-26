@@ -27,6 +27,7 @@ type VaultEntryState = {
 };
 
 type VaultState = {
+  version: '2';
   id: string;
   salt: string;
   key: EncryptedDataState;
@@ -748,6 +749,7 @@ export class Vault<Value extends Json> {
     }
 
     return {
+      version: '2',
       id: this.id,
       salt: b64Encode(this.#passwordSalt),
       key: encodeEncryptedData(this.#getWrappedMasterKey()),
