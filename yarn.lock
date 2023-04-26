@@ -1446,6 +1446,7 @@ __metadata:
     "@metamask/eth-simple-keyring": ^5.0.0
     "@metamask/utils": ^5.0.1
     "@types/jest": ^29.4.0
+    "@types/node": ^18.16.1
     "@types/sinon": ^10.0.13
     "@types/uuid": ^9.0.1
     "@typescript-eslint/eslint-plugin": ^5.55.0
@@ -1885,6 +1886,13 @@ __metadata:
   version: 13.9.1
   resolution: "@types/node@npm:13.9.1"
   checksum: 5ac8fc3735a23a82226d24d06f6783bf626fcaedf31e6ceb76b08ac15a4ca15b7ea7f8043a5130282789d88cf71b709e9927cecb053a93ec5bd35b40e516572d
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^18.16.1":
+  version: 18.16.1
+  resolution: "@types/node@npm:18.16.1"
+  checksum: 799026b949a48993cba7c9b81b2eabfdfb34c880744cb44c1c990fbedc9e315f3634d126eb2cf9a6e0795577c01016e2326d98565bef695ada9d363fadeb6946
   languageName: node
   linkType: hard
 

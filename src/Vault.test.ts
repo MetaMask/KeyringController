@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-globals */
 import { Json } from '@metamask/utils';
+import { webcrypto as crypto } from 'crypto';
 
 import { Vault, exportedForTesting } from './Vault';
 

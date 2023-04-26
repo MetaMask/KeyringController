@@ -1,5 +1,7 @@
 /* eslint-disable no-restricted-globals */
 import { Json } from '@metamask/utils';
+// eslint-disable-next-line import/no-nodejs-modules
+import { webcrypto as crypto } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
 // ----------------------------------------------------------------------------
