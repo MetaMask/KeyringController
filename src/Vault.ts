@@ -1,11 +1,13 @@
 /* eslint-disable no-restricted-globals */
 import { Json } from '@metamask/utils';
 import Ajv, { JSONSchemaType } from 'ajv';
+import addFormats from 'ajv-formats';
 // eslint-disable-next-line import/no-nodejs-modules
 import { webcrypto as crypto } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
 const ajv = new Ajv();
+addFormats(ajv);
 
 // ----------------------------------------------------------------------------
 // Types
@@ -53,18 +55,22 @@ const vaultStateSchema: JSONSchemaType<VaultState> = {
     },
     id: {
       type: 'string',
+      format: 'uuid',
     },
     salt: {
       type: 'string',
+      format: 'byte',
     },
     key: {
       type: 'object',
       properties: {
         nonce: {
           type: 'string',
+          format: 'byte',
         },
         data: {
           type: 'string',
+          format: 'byte',
         },
       },
       required: ['nonce', 'data'],
@@ -78,24 +84,29 @@ const vaultStateSchema: JSONSchemaType<VaultState> = {
           properties: {
             id: {
               type: 'string',
+              format: 'uuid',
             },
             value: {
               type: 'object',
               properties: {
                 nonce: {
                   type: 'string',
+                  format: 'byte',
                 },
                 data: {
                   type: 'string',
+                  format: 'byte',
                 },
               },
               required: ['nonce', 'data'],
             },
             createdAt: {
               type: 'string',
+              format: 'date-time',
             },
             modifiedAt: {
               type: 'string',
+              format: 'date-time',
             },
           },
           required: ['id', 'value', 'createdAt', 'modifiedAt'],

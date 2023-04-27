@@ -571,18 +571,35 @@ describe('Vault', () => {
   it('should deserialize a vault from JSON', async () => {
     await vault.unlock('foo');
     await vault.set('test', { answer: 42 });
-
     const state = vault.getState();
     const newVault = new Vault(JSON.parse(JSON.stringify(state)));
     await newVault.unlock('foo');
     expect(await newVault.get('test')).toStrictEqual({ answer: 42 });
   });
 
-  it('should fail to import an invalid state', async () => {
+  it('should fail to import a state with an invalid version', async () => {
     await vault.unlock('foo');
     await vault.set('test', { answer: 42 });
-
     const state = { ...vault.getState(), version: 1 } as unknown as VaultState;
+    expect(() => new Vault(state)).toThrow('Invalid vault state');
+  });
+
+  it('should fail to import a state with an invalid base64 value', async () => {
+    await vault.unlock('foo');
+    await vault.set('test', { answer: 42 });
+    const state = vault.getState();
+    state.key.data = 'invalid-base64-value';
+    expect(() => new Vault(state)).toThrow('Invalid vault state');
+  });
+
+  it('should fail to import a state with an invalid date', async () => {
+    await vault.unlock('foo');
+    await vault.set('test', { answer: 42 });
+    const state = vault.getState();
+    expect(state.entries.test).toBeDefined();
+    if (state.entries.test !== undefined) {
+      state.entries.test.createdAt = 'invalid-date-time-value';
+    }
     expect(() => new Vault(state)).toThrow('Invalid vault state');
   });
 });
