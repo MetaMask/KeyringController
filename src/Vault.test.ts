@@ -2,7 +2,7 @@
 import { Json } from '@metamask/utils';
 import { webcrypto as crypto } from 'crypto';
 
-import { Vault, exportedForTesting } from './Vault';
+import { Vault, VaultState, exportedForTesting } from './Vault';
 
 const {
   b64Encode,
@@ -566,5 +566,23 @@ describe('Vault', () => {
     expect(await newVault.get('test-1')).toStrictEqual(value1);
     expect(await newVault.get('test-2')).toStrictEqual(value2);
     expect(newVault.getState()).toStrictEqual(serialized);
+  });
+
+  it('should deserialize a vault from JSON', async () => {
+    await vault.unlock('foo');
+    await vault.set('test', { answer: 42 });
+
+    const state = vault.getState();
+    const newVault = new Vault(JSON.parse(JSON.stringify(state)));
+    await newVault.unlock('foo');
+    expect(await newVault.get('test')).toStrictEqual({ answer: 42 });
+  });
+
+  it('should fail to import an invalid state', async () => {
+    await vault.unlock('foo');
+    await vault.set('test', { answer: 42 });
+
+    const state = { ...vault.getState(), version: 1 } as unknown as VaultState;
+    expect(() => new Vault(state)).toThrow('Invalid vault state');
   });
 });

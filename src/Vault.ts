@@ -1,8 +1,11 @@
 /* eslint-disable no-restricted-globals */
 import { Json } from '@metamask/utils';
+import Ajv, { JSONSchemaType } from 'ajv';
 // eslint-disable-next-line import/no-nodejs-modules
 import { webcrypto as crypto } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
+
+const ajv = new Ajv();
 
 // ----------------------------------------------------------------------------
 // Types
@@ -19,16 +22,16 @@ type VaultEntry = {
   value: EncryptedData;
 };
 
-type EncryptedDataState = { nonce: string; data: string };
+export type EncryptedDataState = { nonce: string; data: string };
 
-type VaultEntryState = {
+export type VaultEntryState = {
   id: string;
   value: EncryptedDataState;
   createdAt: string;
   modifiedAt: string;
 };
 
-type VaultState = {
+export type VaultState = {
   version: '2';
   id: string;
   salt: string;
@@ -37,6 +40,72 @@ type VaultState = {
 };
 
 export class VaultError extends Error {}
+
+// ----------------------------------------------------------------------------
+// Schemas
+
+const vaultStateSchema: JSONSchemaType<VaultState> = {
+  type: 'object',
+  properties: {
+    version: {
+      type: 'string',
+      enum: ['2'],
+    },
+    id: {
+      type: 'string',
+    },
+    salt: {
+      type: 'string',
+    },
+    key: {
+      type: 'object',
+      properties: {
+        nonce: {
+          type: 'string',
+        },
+        data: {
+          type: 'string',
+        },
+      },
+      required: ['nonce', 'data'],
+    },
+    entries: {
+      type: 'object',
+      patternProperties: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        '^[a-zA-Z0-9-_]{1,64}$': {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+            },
+            value: {
+              type: 'object',
+              properties: {
+                nonce: {
+                  type: 'string',
+                },
+                data: {
+                  type: 'string',
+                },
+              },
+              required: ['nonce', 'data'],
+            },
+            createdAt: {
+              type: 'string',
+            },
+            modifiedAt: {
+              type: 'string',
+            },
+          },
+          required: ['id', 'value', 'createdAt', 'modifiedAt'],
+        },
+      },
+      required: [],
+    },
+  },
+  required: ['version', 'id', 'salt', 'key', 'entries'],
+};
 
 // ----------------------------------------------------------------------------
 // Util functions
@@ -405,6 +474,8 @@ export class Vault<Value extends Json> {
 
   #cachedMasterKey: CryptoKey | null;
 
+  static readonly validate = ajv.compile(vaultStateSchema);
+
   /**
    * Create a new vault.
    *
@@ -421,6 +492,10 @@ export class Vault<Value extends Json> {
       this.#passwordSalt = randomBytes(32);
       this.#wrappedMasterKey = null;
     } else {
+      if (!Vault.validate(state)) {
+        throw new VaultError('Invalid vault state');
+      }
+
       this.id = state.id;
       this.#passwordSalt = ensureLength(b64Decode(state.salt), 32);
       this.#wrappedMasterKey = decodeEncryptedData(state.key);
@@ -453,10 +528,8 @@ export class Vault<Value extends Json> {
     }
 
     const wrappingKey = await deriveWrappingKey(password, this.#passwordSalt);
-    const additionalData = jsonToBytes(['vaultId', this.id]);
-
     ({ wrapped: this.#wrappedMasterKey, handler: this.#cachedMasterKey } =
-      await generateMasterKey(wrappingKey, additionalData));
+      await generateMasterKey(wrappingKey, this.#getAdditionalData()));
   }
 
   /**
@@ -596,7 +669,7 @@ export class Vault<Value extends Json> {
     const wrappingKey = await deriveWrappingKey(password, this.#passwordSalt);
     const { wrapped: mkWrapped, handler: mkHandler } = await generateMasterKey(
       wrappingKey,
-      jsonToBytes(['vaultId', this.id]),
+      this.#getAdditionalData(),
     );
 
     const newEntries = new Map<string, VaultEntry>();
@@ -643,7 +716,7 @@ export class Vault<Value extends Json> {
       oldWrappingKey,
       newWrappingKey,
       this.#getWrappedMasterKey(),
-      jsonToBytes(['vaultId', this.id]),
+      this.#getAdditionalData(),
     );
     this.#passwordSalt = newPasswordSalt;
   }
@@ -685,7 +758,7 @@ export class Vault<Value extends Json> {
       const masterKey = await unwrapMasterKey(
         wrappingKey,
         wrappedMasterKey,
-        jsonToBytes(['vaultId', this.id]),
+        this.#getAdditionalData(),
       );
 
       if (!testOnly) {
@@ -757,6 +830,10 @@ export class Vault<Value extends Json> {
       key: encodeEncryptedData(this.#getWrappedMasterKey()),
       entries: Object.fromEntries(entries),
     };
+  }
+
+  #getAdditionalData(): Uint8Array {
+    return jsonToBytes(['metamask', 'vault', 'version', 2, 'id', this.id]);
   }
 }
 
