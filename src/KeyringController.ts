@@ -87,7 +87,7 @@ class KeyringController extends EventEmitter {
    *
    * @returns The controller state.
    */
-  #fullUpdate() {
+  fullUpdate() {
     this.emit('update', this.memStore.getState());
     return this.memStore.getState();
   }
@@ -117,7 +117,7 @@ class KeyringController extends EventEmitter {
 
     await this.#createFirstKeyTree();
     this.#setUnlocked();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -154,7 +154,7 @@ class KeyringController extends EventEmitter {
       throw new Error(KeyringControllerError.NoFirstAccount);
     }
     this.#setUnlocked();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -178,7 +178,7 @@ class KeyringController extends EventEmitter {
     this.keyrings = [];
     await this.updateMemStoreKeyrings();
     this.emit('lock');
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -198,7 +198,7 @@ class KeyringController extends EventEmitter {
     this.keyrings = await this.unlockKeyrings(password);
 
     this.#setUnlocked();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -222,7 +222,7 @@ class KeyringController extends EventEmitter {
       encryptionSalt,
     );
     this.#setUnlocked();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -265,7 +265,7 @@ class KeyringController extends EventEmitter {
     });
 
     await this.persistAllKeyrings();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -314,7 +314,7 @@ class KeyringController extends EventEmitter {
     }
 
     await this.persistAllKeyrings();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -618,7 +618,7 @@ class KeyringController extends EventEmitter {
     this.keyrings.push(keyring);
     await this.persistAllKeyrings();
 
-    this.#fullUpdate();
+    this.fullUpdate();
 
     return keyring;
   }
