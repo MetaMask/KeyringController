@@ -19,6 +19,19 @@ declare class KeyringController extends EventEmitter {
     password?: string;
     constructor({ keyringBuilders, cacheEncryptionKey, initState, encryptor, }: KeyringControllerArgs);
     /**
+     * Full Update
+     *
+     * Emits the `update` event and @returns a Promise that resolves to
+     * the current state.
+     *
+     * Frequently used to end asynchronous chains in this class,
+     * indicating consumers can often either listen for updates,
+     * or accept a state-resolving promise to consume their results.
+     *
+     * @returns The controller state.
+     */
+    fullUpdate(): any;
+    /**
      * =======================================
      * === Public Vault Management Methods ===
      * =======================================

@@ -30,7 +30,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _KeyringController_instances, _KeyringController_fullUpdate, _KeyringController_createFirstKeyTree, _KeyringController_restoreKeyring, _KeyringController_clearKeyrings, _KeyringController_setUnlocked, _KeyringController_newKeyring;
+var _KeyringController_instances, _KeyringController_createFirstKeyTree, _KeyringController_restoreKeyring, _KeyringController_clearKeyrings, _KeyringController_setUnlocked, _KeyringController_newKeyring;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.keyringBuilderFactory = exports.KeyringController = void 0;
 const encryptorUtils = __importStar(require("@metamask/browser-passworder"));
@@ -69,6 +69,22 @@ class KeyringController extends events_1.EventEmitter {
         this.cacheEncryptionKey = Boolean(cacheEncryptionKey);
     }
     /**
+     * Full Update
+     *
+     * Emits the `update` event and @returns a Promise that resolves to
+     * the current state.
+     *
+     * Frequently used to end asynchronous chains in this class,
+     * indicating consumers can often either listen for updates,
+     * or accept a state-resolving promise to consume their results.
+     *
+     * @returns The controller state.
+     */
+    fullUpdate() {
+        this.emit('update', this.memStore.getState());
+        return this.memStore.getState();
+    }
+    /**
      * =======================================
      * === Public Vault Management Methods ===
      * =======================================
@@ -89,7 +105,7 @@ class KeyringController extends events_1.EventEmitter {
         this.password = password;
         await __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_createFirstKeyTree).call(this);
         __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_setUnlocked).call(this);
-        return __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_fullUpdate).call(this);
+        return this.fullUpdate();
     }
     /**
      * CreateNewVaultAndRestore
@@ -119,7 +135,7 @@ class KeyringController extends events_1.EventEmitter {
             throw new Error(constants_1.KeyringControllerError.NoFirstAccount);
         }
         __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_setUnlocked).call(this);
-        return __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_fullUpdate).call(this);
+        return this.fullUpdate();
     }
     /**
      * Set Locked.
@@ -140,7 +156,7 @@ class KeyringController extends events_1.EventEmitter {
         this.keyrings = [];
         await this.updateMemStoreKeyrings();
         this.emit('lock');
-        return __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_fullUpdate).call(this);
+        return this.fullUpdate();
     }
     /**
      * Submit password.
@@ -158,7 +174,7 @@ class KeyringController extends events_1.EventEmitter {
     async submitPassword(password) {
         this.keyrings = await this.unlockKeyrings(password);
         __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_setUnlocked).call(this);
-        return __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_fullUpdate).call(this);
+        return this.fullUpdate();
     }
     /**
      * Submit Encryption Key.
@@ -174,7 +190,7 @@ class KeyringController extends events_1.EventEmitter {
     async submitEncryptionKey(encryptionKey, encryptionSalt) {
         this.keyrings = await this.unlockKeyrings(undefined, encryptionKey, encryptionSalt);
         __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_setUnlocked).call(this);
-        return __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_fullUpdate).call(this);
+        return this.fullUpdate();
     }
     /**
      * Verify Password
@@ -211,7 +227,7 @@ class KeyringController extends events_1.EventEmitter {
             this.emit('newAccount', hexAccount);
         });
         await this.persistAllKeyrings();
-        return __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_fullUpdate).call(this);
+        return this.fullUpdate();
     }
     /**
      * Export Account
@@ -254,7 +270,7 @@ class KeyringController extends events_1.EventEmitter {
             await this.removeEmptyKeyrings();
         }
         await this.persistAllKeyrings();
-        return __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_fullUpdate).call(this);
+        return this.fullUpdate();
     }
     /**
      * Get Accounts
@@ -486,7 +502,7 @@ class KeyringController extends events_1.EventEmitter {
         await this.checkForDuplicate(type, accounts);
         this.keyrings.push(keyring);
         await this.persistAllKeyrings();
-        __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_fullUpdate).call(this);
+        this.fullUpdate();
         return keyring;
     }
     /**
@@ -722,10 +738,7 @@ class KeyringController extends events_1.EventEmitter {
     }
 }
 exports.KeyringController = KeyringController;
-_KeyringController_instances = new WeakSet(), _KeyringController_fullUpdate = function _KeyringController_fullUpdate() {
-    this.emit('update', this.memStore.getState());
-    return this.memStore.getState();
-}, _KeyringController_createFirstKeyTree = 
+_KeyringController_instances = new WeakSet(), _KeyringController_createFirstKeyTree = 
 // =======================
 // === Private Methods ===
 // =======================
