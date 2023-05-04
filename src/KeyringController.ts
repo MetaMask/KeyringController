@@ -285,7 +285,7 @@ class KeyringController extends EventEmitter {
       throw new Error(KeyringControllerError.UnsupportedExportAccount);
     }
 
-    return await keyring.exportAccount(normalizeToHex(address));
+    return await keyring.exportAccount(normalizeToHex(address) as Hex);
   }
 
   /**
@@ -388,7 +388,7 @@ class KeyringController extends EventEmitter {
     rawAddress: string,
     opts: Record<string, unknown> = {},
   ): Promise<TxData> {
-    const address = normalizeToHex(rawAddress);
+    const address = normalizeToHex(rawAddress) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signTransaction) {
       throw new Error(KeyringControllerError.UnsupportedSignTransaction);
@@ -415,7 +415,7 @@ class KeyringController extends EventEmitter {
     },
     opts: Record<string, unknown> = {},
   ): Promise<string> {
-    const address = normalizeToHex(msgParams.from);
+    const address = normalizeToHex(msgParams.from) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signMessage) {
       throw new Error(KeyringControllerError.UnsupportedSignMessage);
@@ -443,13 +443,13 @@ class KeyringController extends EventEmitter {
     },
     opts: Record<string, unknown> = {},
   ): Promise<string> {
-    const address = normalizeToHex(msgParams.from);
+    const address = normalizeToHex(msgParams.from) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signPersonalMessage) {
       throw new Error(KeyringControllerError.UnsupportedSignPersonalMessage);
     }
 
-    const normalizedData = normalizeToHex(msgParams.data);
+    const normalizedData = normalizeToHex(msgParams.data) as Hex;
 
     return await keyring.signPersonalMessage(address, normalizedData, opts);
   }
@@ -467,7 +467,7 @@ class KeyringController extends EventEmitter {
     address: string,
     opts: Record<string, unknown> = {},
   ): Promise<Bytes> {
-    const normalizedAddress = normalizeToHex(address);
+    const normalizedAddress = normalizeToHex(address) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.getEncryptionPublicKey) {
       throw new Error(KeyringControllerError.UnsupportedGetEncryptionPublicKey);
@@ -490,7 +490,7 @@ class KeyringController extends EventEmitter {
     from: string;
     data: Eip1024EncryptedData;
   }): Promise<Bytes> {
-    const address = normalizeToHex(msgParams.from);
+    const address = normalizeToHex(msgParams.from) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.decryptMessage) {
       throw new Error(KeyringControllerError.UnsupportedDecryptMessage);
@@ -536,7 +536,7 @@ class KeyringController extends EventEmitter {
    * @returns The app key address.
    */
   async getAppKeyAddress(rawAddress: string, origin: string): Promise<string> {
-    const address = normalizeToHex(rawAddress);
+    const address = normalizeToHex(rawAddress) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.getAppKeyAddress) {
       throw new Error(KeyringControllerError.UnsupportedGetAppKeyAddress);
@@ -556,7 +556,7 @@ class KeyringController extends EventEmitter {
     rawAddress: string,
     origin: string,
   ): Promise<string> {
-    const address = normalizeToHex(rawAddress);
+    const address = normalizeToHex(rawAddress) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.exportAccount) {
       throw new Error(KeyringControllerError.UnsupportedExportAppKeyForAddress);
