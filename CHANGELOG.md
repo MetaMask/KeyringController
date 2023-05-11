@@ -7,19 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [11.0.0]
-### Uncategorized
-- [FIX] Inconsistent data types and validations ([#228](https://github.com/MetaMask/KeyringController/pull/228))
-- Update module configuration ([#230](https://github.com/MetaMask/KeyringController/pull/230))
-- Revert "11.0.0 (#225)" ([#225](https://github.com/MetaMask/KeyringController/pull/225))
-- 11.0.0 ([#225](https://github.com/MetaMask/KeyringController/pull/225))
-- devDeps: @lavamoat/allow-scripts@2.1.0->2.3.1 ([#226](https://github.com/MetaMask/KeyringController/pull/226))
-- deps: @metamask/eth-sig-utils@5.0.2->^5.1.0 ([#224](https://github.com/MetaMask/KeyringController/pull/224))
-- Bump @metamask/utils from 5.0.0 to 5.0.2 ([#223](https://github.com/MetaMask/KeyringController/pull/223))
-- Improve `build-lint-test` workflow ([#221](https://github.com/MetaMask/KeyringController/pull/221))
-- Bump `ts-jest` ([#219](https://github.com/MetaMask/KeyringController/pull/219))
-- [FIX] Property name `isUnlocked` ([#217](https://github.com/MetaMask/KeyringController/pull/217))
-- docs: update README ([#209](https://github.com/MetaMask/KeyringController/pull/209))
-- BREAKING: TS Refactor ([#202](https://github.com/MetaMask/KeyringController/pull/202))
+### Changed
+- **BREAKING**: The addNewKeyring method now expects an object containing the property `privateKeys` of type `string[]` in case the supplied keyring is a "Simple Keyring". ([#202](https://github.com/MetaMask/KeyringController/pull/202)), ([#228](https://github.com/MetaMask/KeyringController/pull/228))
+- docs: Update README ([#209](https://github.com/MetaMask/KeyringController/pull/209))
+- deps: Unpin and bump @metamask/eth-sig-utils@5.0.2->^5.1.0 ([#224](https://github.com/MetaMask/KeyringController/pull/224))
 
 ## [10.0.1]
 ### Fixed
@@ -28,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [10.0.0]
 ### Changed
 - **BREAKING:** Update module name to use `@metamask` scope ([#187](https://github.com/MetaMask/KeyringController/pull/187))
-  - Consumers will now need to import this package as `@metamask/eth-keyring-controller` 
+  - Consumers will now need to import this package as `@metamask/eth-keyring-controller`
 - **BREAKING:**  @metamask/eth-hd-keyring to v6.0.0 ([#193](https://github.com/MetaMask/KeyringController/pull/193))
   - Reverts the serialization format of mnemonics on HDKeyrings from `Uint8Arrays` back to an untyped array of UTF8 encoded bytes, which was the format prior to v9.0.0 of this package.
 
