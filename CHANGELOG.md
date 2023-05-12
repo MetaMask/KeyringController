@@ -6,14 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [11.0.0]
-### Changed
-- **BREAKING**: The addNewKeyring method now expects an object containing the property `privateKeys` of type `string[]` in case the supplied keyring is a "Simple Keyring". ([#202](https://github.com/MetaMask/KeyringController/pull/202))
-- Migrate the project to TypeScript ([#202](https://github.com/MetaMask/KeyringController/pull/202))
-  - Methods that started with an underscore are now `#` private methods
-  - Additional validation has been added to most methods
-- deps: Unpin and bump @metamask/eth-sig-utils@5.0.2->^5.1.0 ([#224](https://github.com/MetaMask/KeyringController/pull/224))
-
 ## [10.0.1]
 ### Fixed
 - Save encryption salt when `persistAllKeyrings` yields a new encryption key ([#203](https://github.com/MetaMask/KeyringController/pull/203))
@@ -21,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [10.0.0]
 ### Changed
 - **BREAKING:** Update module name to use `@metamask` scope ([#187](https://github.com/MetaMask/KeyringController/pull/187))
-  - Consumers will now need to import this package as `@metamask/eth-keyring-controller`
+  - Consumers will now need to import this package as `@metamask/eth-keyring-controller` 
 - **BREAKING:**  @metamask/eth-hd-keyring to v6.0.0 ([#193](https://github.com/MetaMask/KeyringController/pull/193))
   - Reverts the serialization format of mnemonics on HDKeyrings from `Uint8Arrays` back to an untyped array of UTF8 encoded bytes, which was the format prior to v9.0.0 of this package.
 
@@ -106,8 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v11.0.0...HEAD
-[11.0.0]: https://github.com/MetaMask/KeyringController/compare/v10.0.1...v11.0.0
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v10.0.1...HEAD
 [10.0.1]: https://github.com/MetaMask/KeyringController/compare/v10.0.0...v10.0.1
 [10.0.0]: https://github.com/MetaMask/KeyringController/compare/v9.0.0...v10.0.0
 [9.0.0]: https://github.com/MetaMask/KeyringController/compare/v8.1.0...v9.0.0
