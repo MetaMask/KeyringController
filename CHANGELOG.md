@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [11.0.0]
 ### Changed
 - **BREAKING**: The addNewKeyring method now expects an object containing the property `privateKeys` of type `string[]` in case the supplied keyring is a "Simple Keyring". ([#202](https://github.com/MetaMask/KeyringController/pull/202))
+- Migrate the project to TypeScript ([#202](https://github.com/MetaMask/KeyringController/pull/202))
+  - Methods that started with an underscore are now `#` private methods
+  - Additional validation has been added to most methods
 - deps: Unpin and bump @metamask/eth-sig-utils@5.0.2->^5.1.0 ([#224](https://github.com/MetaMask/KeyringController/pull/224))
 
 ## [10.0.1]
