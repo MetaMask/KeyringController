@@ -43,7 +43,7 @@
     "obs-store": "^4.0.3"
   },
   "devDependencies": {
-    "@lavamoat/allow-scripts": "^2.1.0",
+    "@lavamoat/allow-scripts": "^2.3.1",
     "@metamask/auto-changelog": "^3.0.0",
     "@metamask/eslint-config": "^11.1.0",
     "@metamask/eslint-config-jest": "^11.1.0",
@@ -61,7 +61,7 @@
     "eslint-plugin-jsdoc": "^40.0.3",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "ethereumjs-wallet": "^1.0.1",
+    "ethereumjs-wallet": "^1.0.2",
     "jest": "^29.0.0",
     "prettier": "^2.8.1",
     "prettier-plugin-packagejson": "^2.3.0",
