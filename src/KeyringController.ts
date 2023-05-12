@@ -1030,10 +1030,7 @@ class KeyringController extends EventEmitter {
 
     const keyring = keyringBuilder();
 
-    if (!isValidJson(data)) {
-      throw new Error(KeyringControllerError.DataType);
-    }
-
+    // @ts-expect-error Enforce data type after updating clients
     await keyring.deserialize(data);
 
     // @ts-expect-error The method 'init' is not part of the current Keyring type
