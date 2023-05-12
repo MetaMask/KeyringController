@@ -3,7 +3,7 @@ import * as encryptorUtils from '@metamask/browser-passworder';
 import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
-import { remove0x, isValidJson } from '@metamask/utils';
+import { remove0x } from '@metamask/utils';
 import type {
   Hex,
   Json,
