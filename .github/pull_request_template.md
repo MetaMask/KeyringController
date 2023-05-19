@@ -5,7 +5,7 @@ Thanks for your contribution! Take a moment to answer these questions so that re
 
 * What is the current state of things and why does it need to change?
 * What is the solution your changes offer and how does it work?
-* Are you introducing a breaking change to a package (renaming or removing a part of a public interface)?
+* Are you introducing a breaking change  (renaming, removing, or changing a part of a public-facing interface)?
 -->
 
 ## Changes
