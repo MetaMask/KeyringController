@@ -756,11 +756,7 @@ class KeyringController extends EventEmitter {
    * @returns Keyrings matching the specified type.
    */
   getKeyringsByType(type: string): Keyring<Json>[] {
-    const keyrings = this.keyrings.filter((keyring) => keyring.type === type);
-    if (!keyrings.length) {
-      throw new Error(KeyringControllerError.NoKeyring);
-    }
-    return keyrings;
+    return this.keyrings.filter((keyring) => keyring.type === type);
   }
 
   /**
