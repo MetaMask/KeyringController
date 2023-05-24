@@ -3,7 +3,7 @@ import * as encryptorUtils from '@metamask/browser-passworder';
 import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
-import { remove0x, isValidJson } from '@metamask/utils';
+import { remove0x } from '@metamask/utils';
 import type {
   Hex,
   Json,
@@ -87,7 +87,7 @@ class KeyringController extends EventEmitter {
    *
    * @returns The controller state.
    */
-  #fullUpdate() {
+  fullUpdate() {
     this.emit('update', this.memStore.getState());
     return this.memStore.getState();
   }
@@ -117,7 +117,7 @@ class KeyringController extends EventEmitter {
 
     await this.#createFirstKeyTree();
     this.#setUnlocked();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -154,7 +154,7 @@ class KeyringController extends EventEmitter {
       throw new Error(KeyringControllerError.NoFirstAccount);
     }
     this.#setUnlocked();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -178,7 +178,7 @@ class KeyringController extends EventEmitter {
     this.keyrings = [];
     await this.updateMemStoreKeyrings();
     this.emit('lock');
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -198,7 +198,7 @@ class KeyringController extends EventEmitter {
     this.keyrings = await this.unlockKeyrings(password);
 
     this.#setUnlocked();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -222,7 +222,7 @@ class KeyringController extends EventEmitter {
       encryptionSalt,
     );
     this.#setUnlocked();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -265,7 +265,7 @@ class KeyringController extends EventEmitter {
     });
 
     await this.persistAllKeyrings();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -285,7 +285,7 @@ class KeyringController extends EventEmitter {
       throw new Error(KeyringControllerError.UnsupportedExportAccount);
     }
 
-    return await keyring.exportAccount(normalizeToHex(address));
+    return await keyring.exportAccount(normalizeToHex(address) as Hex);
   }
 
   /**
@@ -314,7 +314,7 @@ class KeyringController extends EventEmitter {
     }
 
     await this.persistAllKeyrings();
-    return this.#fullUpdate();
+    return this.fullUpdate();
   }
 
   /**
@@ -388,7 +388,7 @@ class KeyringController extends EventEmitter {
     rawAddress: string,
     opts: Record<string, unknown> = {},
   ): Promise<TxData> {
-    const address = normalizeToHex(rawAddress);
+    const address = normalizeToHex(rawAddress) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signTransaction) {
       throw new Error(KeyringControllerError.UnsupportedSignTransaction);
@@ -415,7 +415,7 @@ class KeyringController extends EventEmitter {
     },
     opts: Record<string, unknown> = {},
   ): Promise<string> {
-    const address = normalizeToHex(msgParams.from);
+    const address = normalizeToHex(msgParams.from) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signMessage) {
       throw new Error(KeyringControllerError.UnsupportedSignMessage);
@@ -443,13 +443,13 @@ class KeyringController extends EventEmitter {
     },
     opts: Record<string, unknown> = {},
   ): Promise<string> {
-    const address = normalizeToHex(msgParams.from);
+    const address = normalizeToHex(msgParams.from) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signPersonalMessage) {
       throw new Error(KeyringControllerError.UnsupportedSignPersonalMessage);
     }
 
-    const normalizedData = normalizeToHex(msgParams.data);
+    const normalizedData = normalizeToHex(msgParams.data) as Hex;
 
     return await keyring.signPersonalMessage(address, normalizedData, opts);
   }
@@ -467,7 +467,7 @@ class KeyringController extends EventEmitter {
     address: string,
     opts: Record<string, unknown> = {},
   ): Promise<Bytes> {
-    const normalizedAddress = normalizeToHex(address);
+    const normalizedAddress = normalizeToHex(address) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.getEncryptionPublicKey) {
       throw new Error(KeyringControllerError.UnsupportedGetEncryptionPublicKey);
@@ -490,7 +490,7 @@ class KeyringController extends EventEmitter {
     from: string;
     data: Eip1024EncryptedData;
   }): Promise<Bytes> {
-    const address = normalizeToHex(msgParams.from);
+    const address = normalizeToHex(msgParams.from) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.decryptMessage) {
       throw new Error(KeyringControllerError.UnsupportedDecryptMessage);
@@ -536,7 +536,7 @@ class KeyringController extends EventEmitter {
    * @returns The app key address.
    */
   async getAppKeyAddress(rawAddress: string, origin: string): Promise<string> {
-    const address = normalizeToHex(rawAddress);
+    const address = normalizeToHex(rawAddress) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.getAppKeyAddress) {
       throw new Error(KeyringControllerError.UnsupportedGetAppKeyAddress);
@@ -556,7 +556,7 @@ class KeyringController extends EventEmitter {
     rawAddress: string,
     origin: string,
   ): Promise<string> {
-    const address = normalizeToHex(rawAddress);
+    const address = normalizeToHex(rawAddress) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.exportAccount) {
       throw new Error(KeyringControllerError.UnsupportedExportAppKeyForAddress);
@@ -618,7 +618,7 @@ class KeyringController extends EventEmitter {
     this.keyrings.push(keyring);
     await this.persistAllKeyrings();
 
-    this.#fullUpdate();
+    this.fullUpdate();
 
     return keyring;
   }
@@ -756,11 +756,7 @@ class KeyringController extends EventEmitter {
    * @returns Keyrings matching the specified type.
    */
   getKeyringsByType(type: string): Keyring<Json>[] {
-    const keyrings = this.keyrings.filter((keyring) => keyring.type === type);
-    if (!keyrings.length) {
-      throw new Error(KeyringControllerError.NoKeyring);
-    }
-    return keyrings;
+    return this.keyrings.filter((keyring) => keyring.type === type);
   }
 
   /**
@@ -1030,10 +1026,7 @@ class KeyringController extends EventEmitter {
 
     const keyring = keyringBuilder();
 
-    if (!isValidJson(data)) {
-      throw new Error(KeyringControllerError.DataType);
-    }
-
+    // @ts-expect-error Enforce data type after updating clients
     await keyring.deserialize(data);
 
     if (keyring.init) {
