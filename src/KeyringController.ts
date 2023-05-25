@@ -970,7 +970,7 @@ class KeyringController extends EventEmitter {
       keyring = await this.#newKeyring(type, data);
     } catch (error) {
       // Ignore error.
-      console.error(error);
+      console.log(`Unable to restore '${type}' keyring`);
     }
 
     if (!keyring) {
