@@ -481,7 +481,7 @@ export class Vault<Value extends Json> {
 
   #wrappedMasterKey: EncryptedData | null;
 
-  #cachedMasterKey: CryptoKey | null;
+  #masterKeyHandler: CryptoKey | null;
 
   static readonly validate = ajv.compile(vaultStateSchema);
 
@@ -518,7 +518,7 @@ export class Vault<Value extends Json> {
       }
     }
 
-    this.#cachedMasterKey = null;
+    this.#masterKeyHandler = null;
   }
 
   /**
@@ -537,7 +537,7 @@ export class Vault<Value extends Json> {
     }
 
     const wrappingKey = await deriveWrappingKey(password, this.#passwordSalt);
-    ({ wrapped: this.#wrappedMasterKey, handler: this.#cachedMasterKey } =
+    ({ wrapped: this.#wrappedMasterKey, handler: this.#masterKeyHandler } =
       await generateMasterKey(wrappingKey, this.#getAdditionalData()));
   }
 
@@ -547,7 +547,7 @@ export class Vault<Value extends Json> {
    * @returns True if the vault is unlocked, false otherwise.
    */
   get isUnlocked(): boolean {
-    return this.#cachedMasterKey !== null;
+    return this.#masterKeyHandler !== null;
   }
 
   /**
@@ -578,7 +578,7 @@ export class Vault<Value extends Json> {
    * @returns The master key handler.
    */
   #getCachedMasterKey(): CryptoKey {
-    return ensureNotNull(this.#cachedMasterKey, 'Vault is locked');
+    return ensureNotNull(this.#masterKeyHandler, 'Vault is locked');
   }
 
   /**
@@ -694,7 +694,7 @@ export class Vault<Value extends Json> {
     }
 
     // Update all fields "at once".
-    this.#cachedMasterKey = mkHandler;
+    this.#masterKeyHandler = mkHandler;
     this.#wrappedMasterKey = mkWrapped;
     this.#entries = newEntries;
   }
@@ -742,7 +742,7 @@ export class Vault<Value extends Json> {
    * > memory, even after all references to the CryptoKey have gone away.
    */
   lock(): void {
-    this.#cachedMasterKey = null;
+    this.#masterKeyHandler = null;
   }
 
   /**
@@ -771,7 +771,7 @@ export class Vault<Value extends Json> {
       );
 
       if (!testOnly) {
-        this.#cachedMasterKey = masterKey;
+        this.#masterKeyHandler = masterKey;
       }
     } catch (error) {
       throw new VaultError('Invalid vault password');
