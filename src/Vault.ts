@@ -252,8 +252,7 @@ function decodeEncryptedData(state: EncryptedDataState): EncryptedData {
  * @returns Cryptographically secure random bytes.
  */
 function randomBytes(length: number): Uint8Array {
-  const array = new Uint8Array(length);
-  return crypto.getRandomValues(array);
+  return crypto.getRandomValues(new Uint8Array(length));
 }
 
 /**
