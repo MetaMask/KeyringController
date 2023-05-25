@@ -299,7 +299,7 @@ async function deriveWrappingKey(
       name: 'AES-GCM',
       length: 256,
     },
-    true,
+    false,
     ['encrypt', 'decrypt'],
   );
 }
