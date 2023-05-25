@@ -138,7 +138,6 @@ function b64Encode(data: Uint8Array): string {
  * @returns The decoded data.
  */
 function b64Decode(data: string): Uint8Array {
-  // eslint-disable-next-line id-length
   return Uint8Array.from(Buffer.from(data, 'base64'));
 }
 
