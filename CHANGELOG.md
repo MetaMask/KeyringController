@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.0]
+### Uncategorized
+- [FIX] Inconsistent data types and validations ([#228](https://github.com/MetaMask/KeyringController/pull/228))
+- Update module configuration ([#230](https://github.com/MetaMask/KeyringController/pull/230))
+- Revert "11.0.0 (#225)" ([#225](https://github.com/MetaMask/KeyringController/pull/225))
+- 11.0.0 ([#225](https://github.com/MetaMask/KeyringController/pull/225))
+- devDeps: @lavamoat/allow-scripts@2.1.0->2.3.1 ([#226](https://github.com/MetaMask/KeyringController/pull/226))
+- deps: @metamask/eth-sig-utils@5.0.2->^5.1.0 ([#224](https://github.com/MetaMask/KeyringController/pull/224))
+- Bump @metamask/utils from 5.0.0 to 5.0.2 ([#223](https://github.com/MetaMask/KeyringController/pull/223))
+- Improve `build-lint-test` workflow ([#221](https://github.com/MetaMask/KeyringController/pull/221))
+- Bump `ts-jest` ([#219](https://github.com/MetaMask/KeyringController/pull/219))
+- [FIX] Property name `isUnlocked` ([#217](https://github.com/MetaMask/KeyringController/pull/217))
+- docs: update README ([#209](https://github.com/MetaMask/KeyringController/pull/209))
+- BREAKING: TS Refactor ([#202](https://github.com/MetaMask/KeyringController/pull/202))
+
 ## [10.0.1]
 ### Fixed
 - Save encryption salt when `persistAllKeyrings` yields a new encryption key ([#203](https://github.com/MetaMask/KeyringController/pull/203))
@@ -98,7 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v10.0.1...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v11.0.0...HEAD
+[11.0.0]: https://github.com/MetaMask/KeyringController/compare/v10.0.1...v11.0.0
 [10.0.1]: https://github.com/MetaMask/KeyringController/compare/v10.0.0...v10.0.1
 [10.0.0]: https://github.com/MetaMask/KeyringController/compare/v9.0.0...v10.0.0
 [9.0.0]: https://github.com/MetaMask/KeyringController/compare/v8.1.0...v9.0.0
