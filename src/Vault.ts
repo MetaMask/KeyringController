@@ -4,7 +4,7 @@ import Ajv, { JSONSchemaType } from 'ajv';
 import addFormats from 'ajv-formats';
 // eslint-disable-next-line import/no-nodejs-modules
 import { webcrypto as crypto } from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuid } from 'uuid';
 
 const ajv = new Ajv();
 addFormats(ajv);
@@ -499,7 +499,7 @@ export class Vault<Value extends Json> {
     this.#entries = new Map<string, VaultEntry>();
 
     if (state === undefined) {
-      this.id = uuidv4();
+      this.id = uuid();
       this.#passwordSalt = randomBytes(32);
       this.#wrappedMasterKey = null;
     } else {
@@ -616,7 +616,7 @@ export class Vault<Value extends Json> {
 
     const now = new Date();
     const current = this.#entries.get(key);
-    const entryId = current?.id ?? uuidv4();
+    const entryId = current?.id ?? uuid();
     const encryptionKey = await this.#deriveEncryptionKey(entryId, key);
 
     this.#entries.set(key, {
