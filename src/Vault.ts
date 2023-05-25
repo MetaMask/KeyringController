@@ -128,7 +128,7 @@ const vaultStateSchema: JSONSchemaType<VaultState> = {
  * @returns The encoded data.
  */
 function b64Encode(data: Uint8Array): string {
-  return btoa(String.fromCharCode(...data));
+  return Buffer.from(data).toString('base64');
 }
 
 /**
@@ -139,7 +139,7 @@ function b64Encode(data: Uint8Array): string {
  */
 function b64Decode(data: string): Uint8Array {
   // eslint-disable-next-line id-length
-  return new Uint8Array([...atob(data)].map((c) => c.charCodeAt(0)));
+  return Uint8Array.from(Buffer.from(data, 'base64'));
 }
 
 /**
