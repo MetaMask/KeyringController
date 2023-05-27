@@ -54,10 +54,10 @@ jobs:
           key: ${{ github.sha }}
       - name: Dry Run Publish
         # omit npm-token token to perform dry run publish
-        uses: MetaMask/action-npm-publish@v3
+        uses: MetaMask/action-npm-publish@v4
         with:
           slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          target-name: metamask-npm-publishers
+          subteam: S042S7RE4AE # @metamask-npm-publishers
         env:
           SKIP_PREPACK: true
 
@@ -77,7 +77,7 @@ jobs:
             ./node_modules/.yarn-state.yml
           key: ${{ github.sha }}
       - name: Publish
-        uses: MetaMask/action-npm-publish@v2
+        uses: MetaMask/action-npm-publish@v3
         with:
           # This `NPM_TOKEN` needs to be manually set per-repository.
           # Look in the repository settings under "Environments", and set this token in the `npm-publish` environment.
