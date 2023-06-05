@@ -142,7 +142,7 @@ class KeyringController extends EventEmitter {
     }
     this.password = password;
 
-    await this.#clearKeyrings();
+    this.#clearKeyrings();
     const keyring = await this.addNewKeyring(KeyringType.HD, {
       mnemonic: seedPhrase,
       numberOfAccounts: 1,
@@ -175,8 +175,7 @@ class KeyringController extends EventEmitter {
     });
 
     // remove keyrings
-    this.keyrings = [];
-    await this.updateMemStoreKeyrings();
+    this.#clearKeyrings();
     this.emit('lock');
     return this.fullUpdate();
   }
@@ -641,6 +640,8 @@ class KeyringController extends EventEmitter {
         const accounts = await keyring.getAccounts();
         if (accounts.length > 0) {
           validKeyrings.push(keyring);
+        } else {
+          this.#disposeKeyring(keyring);
         }
       }),
     );
@@ -859,7 +860,7 @@ class KeyringController extends EventEmitter {
       throw new Error(KeyringControllerError.VaultError);
     }
 
-    await this.#clearKeyrings();
+    this.#clearKeyrings();
 
     let vault;
 
@@ -928,7 +929,7 @@ class KeyringController extends EventEmitter {
    * @returns A promise that resolves if the operation was successful.
    */
   async #createFirstKeyTree(): Promise<null> {
-    await this.#clearKeyrings();
+    this.#clearKeyrings();
 
     const keyring = await this.addNewKeyring(KeyringType.HD);
     if (!keyring) {
@@ -984,14 +985,40 @@ class KeyringController extends EventEmitter {
    * Clear Keyrings
    *
    * Deallocates all currently managed keyrings and accounts.
-   * Used before initializing a new vault.
+   * Used before initializing a new vault and after locking
+   * MetaMask.
    */
-  async #clearKeyrings(): Promise<void> {
+  #clearKeyrings() {
     // clear keyrings from memory
-    this.keyrings = [];
+    while (this.keyrings.length > 0) {
+      const keyring = this.keyrings.pop();
+      if (keyring) {
+        this.#disposeKeyring(keyring);
+      }
+    }
     this.memStore.updateState({
       keyrings: [],
     });
+  }
+
+  /**
+   * Dispose Keyring
+   *
+   * The Trezor Keyring has a method called `dispose` that removes the
+   * iframe from the DOM. The Ledger Keyring has a method called `destroy`
+   * that clears the keyring event listeners. This method checks if the provided
+   * keyring has either of these methods and calls them if they exist.
+   *
+   * @param keyring - The keyring to dispose or destroy.
+   */
+  #disposeKeyring(keyring: Keyring<Json>) {
+    if ('dispose' in keyring && typeof keyring.dispose === 'function') {
+      keyring.dispose();
+    }
+
+    if ('destroy' in keyring && typeof keyring.destroy === 'function') {
+      keyring.destroy();
+    }
   }
 
   /**
