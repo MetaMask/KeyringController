@@ -29,6 +29,8 @@ const defaultKeyringBuilders = [
   keyringBuilderFactory(HDKeyring),
 ];
 
+type RemoveAccountMethod = (address: string) => Promise<void>;
+
 class KeyringController extends EventEmitter {
   keyringBuilders: { (): Keyring<Json>; type: string }[];
 
@@ -304,7 +306,8 @@ class KeyringController extends EventEmitter {
     if (!keyring.removeAccount) {
       throw new Error(KeyringControllerError.UnsupportedRemoveAccount);
     }
-    keyring.removeAccount(address);
+
+    await (keyring.removeAccount as RemoveAccountMethod)(address);
     this.emit('removedAccount', address);
 
     const accounts = await keyring.getAccounts();
