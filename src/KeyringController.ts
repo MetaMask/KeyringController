@@ -990,11 +990,8 @@ class KeyringController extends EventEmitter {
    */
   #clearKeyrings() {
     // clear keyrings from memory
-    while (this.keyrings.length > 0) {
-      const keyring = this.keyrings.pop();
-      if (keyring) {
-        this.#disposeKeyring(keyring);
-      }
+    for (const keyring of this.keyrings) {
+      this.#disposeKeyring(keyring);
     }
     this.memStore.updateState({
       keyrings: [],
