@@ -562,10 +562,11 @@ describe('KeyringController', () => {
       const dispose = sinon.spy();
       HdKeyring.prototype.destroy = destroy;
       HdKeyring.prototype.dispose = dispose;
-      const accountToRemove =
-        await keyringController.keyrings[0]?.getAccounts();
+      const accountToRemove = (
+        await keyringController.keyrings[0]?.getAccounts()
+      )?.[0];
 
-      await keyringController.removeAccount(accountToRemove?.[0] as Hex);
+      await keyringController.removeAccount(accountToRemove as Hex);
 
       expect(destroy.calledOnce).toBe(true);
       expect(dispose.calledOnce).toBe(true);
