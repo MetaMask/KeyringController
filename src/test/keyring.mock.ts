@@ -33,6 +33,14 @@ class KeyringMockWithInit implements Keyring<Json> {
   async deserialize(_: any) {
     return Promise.resolve();
   }
+
+  async removeAccount(_: any) {
+    return Promise.resolve();
+  }
+
+  async destroy() {
+    return Promise.resolve();
+  }
 }
 
 export default KeyringMockWithInit;

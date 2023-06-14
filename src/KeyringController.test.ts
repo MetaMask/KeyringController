@@ -79,17 +79,13 @@ describe('KeyringController', () => {
       expect(lockSpy.calledOnce).toBe(true);
     });
 
-    it('calls keyring optional destroy or dispose functions', async () => {
-      const destroy = sinon.spy();
-      const dispose = sinon.spy();
-
-      HdKeyring.prototype.destroy = destroy;
-      HdKeyring.prototype.dispose = dispose;
+    it('calls keyring optional destroy function', async () => {
+      const destroy = sinon.spy(KeyringMockWithInit.prototype, 'destroy');
+      await keyringController.addNewKeyring('Keyring Mock With Init');
 
       await keyringController.setLocked();
 
       expect(destroy.calledOnce).toBe(true);
-      expect(dispose.calledOnce).toBe(true);
     });
   });
 
@@ -557,19 +553,16 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(1);
     });
 
-    it('calls keyring destroy or dispose if available', async () => {
-      const destroy = sinon.spy();
-      const dispose = sinon.spy();
-      HdKeyring.prototype.destroy = destroy;
-      HdKeyring.prototype.dispose = dispose;
-      const accountToRemove = (
-        await keyringController.keyrings[0]?.getAccounts()
-      )?.[0];
+    it('calls keyring optional destroy function', async () => {
+      const destroy = sinon.spy(KeyringMockWithInit.prototype, 'destroy');
+      const keyring = await keyringController.addNewKeyring(
+        'Keyring Mock With Init',
+      );
+      sinon.stub(keyringController, 'getKeyringForAccount').resolves(keyring);
 
-      await keyringController.removeAccount(accountToRemove as Hex);
+      await keyringController.removeAccount('0x0');
 
       expect(destroy.calledOnce).toBe(true);
-      expect(dispose.calledOnce).toBe(true);
     });
 
     it('does not remove the keyring if there are accounts remaining after removing one from the keyring', async () => {
