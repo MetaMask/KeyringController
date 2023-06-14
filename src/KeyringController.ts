@@ -142,7 +142,7 @@ class KeyringController extends EventEmitter {
     }
     this.password = password;
 
-    this.#clearKeyrings();
+    await this.#clearKeyrings();
     const keyring = await this.addNewKeyring(KeyringType.HD, {
       mnemonic: seedPhrase,
       numberOfAccounts: 1,
@@ -175,7 +175,7 @@ class KeyringController extends EventEmitter {
     });
 
     // remove keyrings
-    this.#clearKeyrings();
+    await this.#clearKeyrings();
     this.emit('lock');
     return this.fullUpdate();
   }
@@ -641,7 +641,7 @@ class KeyringController extends EventEmitter {
         if (accounts.length > 0) {
           validKeyrings.push(keyring);
         } else {
-          this.#disposeKeyring(keyring);
+          await this.#disposeKeyring(keyring);
         }
       }),
     );
@@ -860,7 +860,7 @@ class KeyringController extends EventEmitter {
       throw new Error(KeyringControllerError.VaultError);
     }
 
-    this.#clearKeyrings();
+    await this.#clearKeyrings();
 
     let vault;
 
@@ -929,7 +929,7 @@ class KeyringController extends EventEmitter {
    * @returns A promise that resolves if the operation was successful.
    */
   async #createFirstKeyTree(): Promise<null> {
-    this.#clearKeyrings();
+    await this.#clearKeyrings();
 
     const keyring = await this.addNewKeyring(KeyringType.HD);
     if (!keyring) {
@@ -988,14 +988,12 @@ class KeyringController extends EventEmitter {
    * Used before initializing a new vault and after locking
    * MetaMask.
    */
-  #clearKeyrings() {
+  async #clearKeyrings() {
     // clear keyrings from memory
-    while (this.keyrings.length > 0) {
-      const keyring = this.keyrings.pop();
-      if (keyring) {
-        this.#disposeKeyring(keyring);
-      }
+    for (const keyring of this.keyrings) {
+      await this.#disposeKeyring(keyring);
     }
+    this.keyrings = [];
     this.memStore.updateState({
       keyrings: [],
     });
@@ -1011,13 +1009,13 @@ class KeyringController extends EventEmitter {
    *
    * @param keyring - The keyring to dispose or destroy.
    */
-  #disposeKeyring(keyring: Keyring<Json>) {
+  async #disposeKeyring(keyring: Keyring<Json>) {
     if ('dispose' in keyring && typeof keyring.dispose === 'function') {
-      keyring.dispose();
+      await keyring.dispose();
     }
 
     if ('destroy' in keyring && typeof keyring.destroy === 'function') {
-      keyring.destroy();
+      await keyring.destroy();
     }
   }
 
