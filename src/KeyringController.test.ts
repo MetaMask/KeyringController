@@ -78,6 +78,15 @@ describe('KeyringController', () => {
 
       expect(lockSpy.calledOnce).toBe(true);
     });
+
+    it('calls keyring optional destroy function', async () => {
+      const destroy = sinon.spy(KeyringMockWithInit.prototype, 'destroy');
+      await keyringController.addNewKeyring('Keyring Mock With Init');
+
+      await keyringController.setLocked();
+
+      expect(destroy.calledOnce).toBe(true);
+    });
   });
 
   describe('submitPassword', () => {
@@ -542,6 +551,18 @@ describe('KeyringController', () => {
       // Check that the previous keyring with only one account
       // was also removed after removing the account
       expect(keyringController.keyrings).toHaveLength(1);
+    });
+
+    it('calls keyring optional destroy function', async () => {
+      const destroy = sinon.spy(KeyringMockWithInit.prototype, 'destroy');
+      const keyring = await keyringController.addNewKeyring(
+        'Keyring Mock With Init',
+      );
+      sinon.stub(keyringController, 'getKeyringForAccount').resolves(keyring);
+
+      await keyringController.removeAccount('0x0');
+
+      expect(destroy.calledOnce).toBe(true);
     });
 
     it('does not remove the keyring if there are accounts remaining after removing one from the keyring', async () => {
