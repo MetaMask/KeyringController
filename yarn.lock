@@ -1074,7 +1074,7 @@ __metadata:
     "@metamask/eth-hd-keyring": ^6.0.0
     "@metamask/eth-sig-util": ^6.0.0
     "@metamask/eth-simple-keyring": ^5.0.0
-    "@metamask/utils": ^5.0.0
+    "@metamask/utils": ^6.1.0
     "@types/jest": ^29.4.0
     "@types/sinon": ^10.0.13
     "@typescript-eslint/eslint-plugin": ^5.55.0
@@ -1152,16 +1152,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^5.0.0":
-  version: 5.0.2
-  resolution: "@metamask/utils@npm:5.0.2"
+"@metamask/utils@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "@metamask/utils@npm:6.1.0"
   dependencies:
     "@ethereumjs/tx": ^4.1.2
     "@types/debug": ^4.1.7
     debug: ^4.3.4
     semver: ^7.3.8
     superstruct: ^1.0.3
-  checksum: eca82e42911b2840deb4f32f0f215c5ffd14d22d68afbbe92d3180e920e509e310777b15eab29def3448f3535b66596ceb4c23666ec846adacc8e1bb093ff882
+  checksum: d4eac3ce3c08674b8e9ef838d1661a5025690c6f266c26ebdb8e8d0da11fce786e54c326b5d9c6d33b262f37e7057e31d6545a3715613bd0a5bfa10e7755643a
   languageName: node
   linkType: hard
 
