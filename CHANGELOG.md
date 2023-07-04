@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [12.0.0]
+### Uncategorized
+- Update utils package and rename dispose fn ([#234](https://github.com/MetaMask/KeyringController/pull/234))
+- chore: update nodejs min version ([#236](https://github.com/MetaMask/KeyringController/pull/236))
+- chore: update @metamask/eth-sig-util to ^6 ([#235](https://github.com/MetaMask/KeyringController/pull/235))
+- Dispose or destroy keyrings on reference drop ([#233](https://github.com/MetaMask/KeyringController/pull/233))
+- Make use of the new subteam functionality ([#232](https://github.com/MetaMask/KeyringController/pull/232))
+
 ## [11.0.0]
 ### Changed
 - **BREAKING**: The addNewKeyring method now expects an object containing the property `privateKeys` of type `string[]` in case the supplied keyring is a "Simple Keyring". ([#202](https://github.com/MetaMask/KeyringController/pull/202)), ([#228](https://github.com/MetaMask/KeyringController/pull/228))
@@ -106,7 +114,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v11.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v12.0.0...HEAD
+[12.0.0]: https://github.com/MetaMask/KeyringController/compare/v11.0.0...v12.0.0
 [11.0.0]: https://github.com/MetaMask/KeyringController/compare/v10.0.1...v11.0.0
 [10.0.1]: https://github.com/MetaMask/KeyringController/compare/v10.0.0...v10.0.1
 [10.0.0]: https://github.com/MetaMask/KeyringController/compare/v9.0.0...v10.0.0
