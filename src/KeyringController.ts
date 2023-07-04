@@ -641,7 +641,7 @@ class KeyringController extends EventEmitter {
         if (accounts.length > 0) {
           validKeyrings.push(keyring);
         } else {
-          await this.#disposeKeyring(keyring);
+          await this.#destroyKeyring(keyring);
         }
       }),
     );
@@ -991,7 +991,7 @@ class KeyringController extends EventEmitter {
   async #clearKeyrings() {
     // clear keyrings from memory
     for (const keyring of this.keyrings) {
-      await this.#disposeKeyring(keyring);
+      await this.#destroyKeyring(keyring);
     }
     this.keyrings = [];
     this.memStore.updateState({
@@ -1000,23 +1000,16 @@ class KeyringController extends EventEmitter {
   }
 
   /**
-   * Dispose Keyring
+   * Destroy Keyring
    *
-   * The Trezor Keyring has a method called `dispose` that removes the
-   * iframe from the DOM. The Ledger Keyring has a method called `destroy`
-   * that clears the keyring event listeners. This method checks if the provided
-   * keyring has either of these methods and calls them if they exist.
+   * Some keyrings support a method called `destroy`, that destroys the
+   * keyring along with removing all its event listeners and, in some cases,
+   * clears the keyring bridge iframe from the DOM.
    *
-   * @param keyring - The keyring to dispose or destroy.
+   * @param keyring - The keyring to destroy.
    */
-  async #disposeKeyring(keyring: Keyring<Json>) {
-    if ('dispose' in keyring && typeof keyring.dispose === 'function') {
-      await keyring.dispose();
-    }
-
-    if ('destroy' in keyring && typeof keyring.destroy === 'function') {
-      await keyring.destroy();
-    }
+  async #destroyKeyring(keyring: Keyring<Json>) {
+    await keyring.destroy?.();
   }
 
   /**
