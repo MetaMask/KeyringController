@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [12.0.0]
+### Changed
+- **BREAKING**: Update `@metamask/eth-sig-util` to version `^6` ([#235](https://github.com/MetaMask/KeyringController/pull/235))
+  - `signPersonalMessage` now normalizes `msgParams.data` in a different way for `0` and empty strings inputs. `0` will be normalized to `0x00` and empty strings to `0x`
+- **BREAKING**: Update Node.js min version to 16.0.0 ([#236](https://github.com/MetaMask/KeyringController/pull/236))
+- Update `@metamask/utils` package ([#234](https://github.com/MetaMask/KeyringController/pull/234))
+- Destroy keyrings on reference drop ([#233](https://github.com/MetaMask/KeyringController/pull/233))
+
 ## [11.0.0]
 ### Changed
 - **BREAKING**: The addNewKeyring method now expects an object containing the property `privateKeys` of type `string[]` in case the supplied keyring is a "Simple Keyring". ([#202](https://github.com/MetaMask/KeyringController/pull/202)), ([#228](https://github.com/MetaMask/KeyringController/pull/228))
@@ -106,7 +114,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v11.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v12.0.0...HEAD
+[12.0.0]: https://github.com/MetaMask/KeyringController/compare/v11.0.0...v12.0.0
 [11.0.0]: https://github.com/MetaMask/KeyringController/compare/v10.0.1...v11.0.0
 [10.0.1]: https://github.com/MetaMask/KeyringController/compare/v10.0.0...v10.0.1
 [10.0.0]: https://github.com/MetaMask/KeyringController/compare/v9.0.0...v10.0.0

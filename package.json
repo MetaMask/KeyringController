@@ -1,6 +1,6 @@
 {
   "name": "@metamask/eth-keyring-controller",
-  "version": "11.0.0",
+  "version": "12.0.0",
   "description": "A module for managing various keyrings of Ethereum accounts, encrypting them, and using them",
   "keywords": [
     "ethereum",
