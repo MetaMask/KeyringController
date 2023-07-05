@@ -41,6 +41,7 @@
   "dependencies": {
     "@ethereumjs/tx": "^4.1.1",
     "@metamask/browser-passworder": "^4.1.0",
+    "@metamask/controller-utils": "^4.0.1",
     "@metamask/eth-hd-keyring": "^6.0.0",
     "@metamask/eth-sig-util": "^6.0.0",
     "@metamask/eth-simple-keyring": "^5.0.0",
@@ -95,7 +96,8 @@
       "ethereumjs-wallet>ethereum-cryptography>keccak": false,
       "ethereumjs-wallet>ethereum-cryptography>secp256k1": false,
       "@metamask/eth-hd-keyring>eth-simple-keyring>eth-sig-util>ethereumjs-util>keccak": false,
-      "@metamask/eth-hd-keyring>eth-simple-keyring>eth-sig-util>ethereumjs-util>secp256k1": false
+      "@metamask/eth-hd-keyring>eth-simple-keyring>eth-sig-util>ethereumjs-util>secp256k1": false,
+      "@metamask/controller-utils>babel-runtime>core-js": false
     }
   }
 }
