@@ -10,10 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **BREAKING**: Update `@metamask/eth-sig-util` to version `^6` ([#235](https://github.com/MetaMask/KeyringController/pull/235))
   - `signPersonalMessage` now normalizes `msgParams.data` in a different way for `0` and empty strings inputs. `0` will be normalized to `0x00` and empty strings to `0x`
-- Update `@metamask/utils` package and rename dispose fn ([#234](https://github.com/MetaMask/KeyringController/pull/234))
-- Update Node.js min version ([#236](https://github.com/MetaMask/KeyringController/pull/236))
-- Dispose or destroy keyrings on reference drop ([#233](https://github.com/MetaMask/KeyringController/pull/233))
-- Make use of the new subteam functionality ([#232](https://github.com/MetaMask/KeyringController/pull/232))
+- **BREAKING**: Update Node.js min version to 16.0.0 ([#236](https://github.com/MetaMask/KeyringController/pull/236))
+- Update `@metamask/utils` package ([#234](https://github.com/MetaMask/KeyringController/pull/234))
+- Destroy keyrings on reference drop ([#233](https://github.com/MetaMask/KeyringController/pull/233))
 
 ## [11.0.0]
 ### Changed
