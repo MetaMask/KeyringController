@@ -41,11 +41,10 @@
   "dependencies": {
     "@ethereumjs/tx": "^4.1.1",
     "@metamask/browser-passworder": "^4.1.0",
-    "@metamask/controller-utils": "^4.0.1",
     "@metamask/eth-hd-keyring": "^6.0.0",
     "@metamask/eth-sig-util": "^6.0.0",
     "@metamask/eth-simple-keyring": "^5.0.0",
-    "@metamask/utils": "^6.1.0",
+    "@metamask/utils": "^6.2.0",
     "obs-store": "^4.0.3"
   },
   "devDependencies": {

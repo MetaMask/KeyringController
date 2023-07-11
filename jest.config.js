@@ -43,8 +43,8 @@ module.exports = {
     global: {
       branches: 72.09,
       functions: 92.85,
-      lines: 90.84,
-      statements: 91.05,
+      lines: 90.81,
+      statements: 91.02,
     },
   },
   preset: 'ts-jest',

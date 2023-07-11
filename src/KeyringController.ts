@@ -1,10 +1,9 @@
 import type { TypedTransaction, TxData } from '@ethereumjs/tx';
 import * as encryptorUtils from '@metamask/browser-passworder';
-import { isValidHexAddress } from '@metamask/controller-utils';
 import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
-import { remove0x } from '@metamask/utils';
+import { remove0x, isValidHexAddress } from '@metamask/utils';
 import type {
   Hex,
   Json,
