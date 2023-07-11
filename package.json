@@ -95,8 +95,7 @@
       "ethereumjs-wallet>ethereum-cryptography>keccak": false,
       "ethereumjs-wallet>ethereum-cryptography>secp256k1": false,
       "@metamask/eth-hd-keyring>eth-simple-keyring>eth-sig-util>ethereumjs-util>keccak": false,
-      "@metamask/eth-hd-keyring>eth-simple-keyring>eth-sig-util>ethereumjs-util>secp256k1": false,
-      "@metamask/controller-utils>babel-runtime>core-js": false
+      "@metamask/eth-hd-keyring>eth-simple-keyring>eth-sig-util>ethereumjs-util>secp256k1": false
     }
   }
 }
