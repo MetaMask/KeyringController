@@ -7,9 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [12.0.1]
-### Uncategorized
-- fix: throw correct error on empty or invalid address ([#238](https://github.com/MetaMask/KeyringController/pull/238))
-- Bump semver from 6.3.0 to 6.3.1 ([#239](https://github.com/MetaMask/KeyringController/pull/239))
+### Fixed
+- Throw correct error when calling `getKeyringForAccount` with empty or invalid address ([#238](https://github.com/MetaMask/KeyringController/pull/238))
 
 ## [12.0.0]
 ### Changed
