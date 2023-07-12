@@ -39,7 +39,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@ethereumjs/tx": "^4.1.1",
+    "@ethereumjs/tx": "^4.2.0",
     "@metamask/browser-passworder": "^4.1.0",
     "@metamask/eth-hd-keyring": "^6.0.0",
     "@metamask/eth-sig-util": "^6.0.0",
