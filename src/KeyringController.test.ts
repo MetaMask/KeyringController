@@ -723,10 +723,22 @@ describe('KeyringController', () => {
       );
     });
 
+    it('throws error when address is invalid', async () => {
+      await expect(
+        keyringController.getKeyringForAccount('0x04'),
+      ).rejects.toThrow(
+        new Error(
+          `${KeyringControllerError.NoKeyring}. Error info: The address passed in is invalid/empty`,
+        ),
+      );
+    });
+
     it('throws error when there are no keyrings', async () => {
       keyringController.keyrings = [];
       await expect(
-        keyringController.getKeyringForAccount('0x04'),
+        keyringController.getKeyringForAccount(
+          '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+        ),
       ).rejects.toThrow(
         new Error(
           `${KeyringControllerError.NoKeyring}. Error info: There are no keyrings`,
@@ -745,7 +757,9 @@ describe('KeyringController', () => {
       ];
 
       await expect(
-        keyringController.getKeyringForAccount('0x04'),
+        keyringController.getKeyringForAccount(
+          '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+        ),
       ).rejects.toThrow(
         new Error(
           `${KeyringControllerError.NoKeyring}. Error info: There are keyrings, but none match the address`,

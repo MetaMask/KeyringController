@@ -3,7 +3,7 @@ import * as encryptorUtils from '@metamask/browser-passworder';
 import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
-import { remove0x } from '@metamask/utils';
+import { remove0x, isValidHexAddress } from '@metamask/utils';
 import type {
   Hex,
   Json,
@@ -716,7 +716,7 @@ class KeyringController extends EventEmitter {
 
     // Adding more info to the error
     let errorInfo = '';
-    if (!address) {
+    if (!isValidHexAddress(hexed)) {
       errorInfo = 'The address passed in is invalid/empty';
     } else if (!candidates.length) {
       errorInfo = 'There are no keyrings';
