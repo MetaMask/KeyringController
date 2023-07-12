@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [12.0.1]
+### Fixed
+- Improved error handling when calling `getKeyringForAccount` with empty or invalid address ([#238](https://github.com/MetaMask/KeyringController/pull/238))
+
 ## [12.0.0]
 ### Changed
 - **BREAKING**: Update `@metamask/eth-sig-util` to version `^6` ([#235](https://github.com/MetaMask/KeyringController/pull/235))
@@ -114,7 +118,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v12.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v12.0.1...HEAD
+[12.0.1]: https://github.com/MetaMask/KeyringController/compare/v12.0.0...v12.0.1
 [12.0.0]: https://github.com/MetaMask/KeyringController/compare/v11.0.0...v12.0.0
 [11.0.0]: https://github.com/MetaMask/KeyringController/compare/v10.0.1...v11.0.0
 [10.0.1]: https://github.com/MetaMask/KeyringController/compare/v10.0.0...v10.0.1
