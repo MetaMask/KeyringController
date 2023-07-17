@@ -166,15 +166,14 @@ class KeyringController extends EventEmitter {
   async setLocked(): Promise<KeyringControllerState> {
     delete this.password;
 
-    // remove keyrings
-    await this.#clearKeyrings();
-
     // set locked
     this.memStore.putState({
       isUnlocked: false,
       keyrings: [],
     });
 
+    // remove keyrings
+    await this.#clearKeyrings();
     this.emit('lock');
     return this.fullUpdate();
   }
