@@ -7,7 +7,6 @@ import { remove0x, isValidHexAddress } from '@metamask/utils';
 import type {
   Hex,
   Json,
-  Bytes,
   Keyring,
   KeyringClass,
   Eip1024EncryptedData,
@@ -467,7 +466,7 @@ class KeyringController extends EventEmitter {
   async getEncryptionPublicKey(
     address: string,
     opts: Record<string, unknown> = {},
-  ): Promise<Bytes> {
+  ): Promise<string> {
     const normalizedAddress = normalizeToHex(address) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.getEncryptionPublicKey) {
@@ -490,7 +489,7 @@ class KeyringController extends EventEmitter {
   async decryptMessage(msgParams: {
     from: string;
     data: Eip1024EncryptedData;
-  }): Promise<Bytes> {
+  }): Promise<string> {
     const address = normalizeToHex(msgParams.from) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.decryptMessage) {
@@ -516,7 +515,7 @@ class KeyringController extends EventEmitter {
       data: Record<string, unknown>[];
     },
     opts: Record<string, unknown> = { version: 'V1' },
-  ): Promise<Bytes> {
+  ): Promise<string> {
     // Cast to `Hex` here is safe here because `msgParams.from` is not nullish.
     // `normalizeToHex` returns `Hex` unless given a nullish value.
     const address = normalizeToHex(msgParams.from) as Hex;
