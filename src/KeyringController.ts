@@ -3,6 +3,7 @@ import * as encryptorUtils from '@metamask/browser-passworder';
 import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
+import { ObservableStore } from '@metamask/obs-store';
 import { remove0x, isValidHexAddress } from '@metamask/utils';
 import type {
   Hex,
@@ -14,7 +15,6 @@ import type {
 // TODO: Stop using `events`, and remove the notice about this from the README
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import { ObservableStore } from '@metamask/obs-store';
 
 import { KeyringType, KeyringControllerError } from './constants';
 import {

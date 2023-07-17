@@ -1,5 +1,4 @@
 import type { Json, Keyring } from '@metamask/utils';
-import { ObservableStore } from '@metamask/obs-store';
 
 export type KeyringControllerArgs = {
   keyringBuilders:
