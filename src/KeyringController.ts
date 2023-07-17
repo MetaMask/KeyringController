@@ -334,7 +334,9 @@ class KeyringController extends EventEmitter {
       return res.concat(arr);
     }, []);
 
-    return addresses.map(normalizeToHex);
+    // Cast to `Hex[]` here is safe here because `addresses` has no nullish
+    // values, and `normalizeToHex` returns `Hex` unless given a nullish value
+    return addresses.map(normalizeToHex) as Hex[];
   }
 
   /**
@@ -515,7 +517,9 @@ class KeyringController extends EventEmitter {
     },
     opts: Record<string, unknown> = { version: 'V1' },
   ): Promise<Bytes> {
-    const address = normalizeToHex(msgParams.from);
+    // Cast to `Hex` here is safe here because `msgParams.from` is not nullish.
+    // `normalizeToHex` returns `Hex` unless given a nullish value.
+    const address = normalizeToHex(msgParams.from) as Hex;
     const keyring = await this.getKeyringForAccount(address);
     if (!keyring.signTypedData) {
       throw new Error(KeyringControllerError.UnsupportedSignTypedMessage);
@@ -697,7 +701,9 @@ class KeyringController extends EventEmitter {
    * @returns The keyring of the account, if it exists.
    */
   async getKeyringForAccount(address: string): Promise<Keyring<Json>> {
-    const hexed = normalizeToHex(address);
+    // Cast to `Hex` here is safe here because `address` is not nullish.
+    // `normalizeToHex` returns `Hex` unless given a nullish value.
+    const hexed = normalizeToHex(address) as Hex;
 
     const candidates = await Promise.all(
       this.keyrings.map(async (keyring) => {
@@ -1086,7 +1092,9 @@ async function displayForKeyring(
 
   return {
     type: keyring.type,
-    accounts: accounts.map(normalizeToHex),
+    // Cast to `Hex[]` here is safe here because `addresses` has no nullish
+    // values, and `normalizeToHex` returns `Hex` unless given a nullish value
+    accounts: accounts.map(normalizeToHex) as Hex[],
   };
 }
 
