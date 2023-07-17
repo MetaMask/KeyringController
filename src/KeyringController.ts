@@ -14,13 +14,14 @@ import type {
 // TODO: Stop using `events`, and remove the notice about this from the README
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import ObservableStore from 'obs-store';
+import { ObservableStore } from '@metamask/obs-store';
 
 import { KeyringType, KeyringControllerError } from './constants';
 import {
   SerializedKeyring,
   KeyringControllerArgs,
   KeyringControllerState,
+  KeyringControllerPersistentState,
 } from './types';
 
 const defaultKeyringBuilders = [
@@ -31,9 +32,9 @@ const defaultKeyringBuilders = [
 class KeyringController extends EventEmitter {
   keyringBuilders: { (): Keyring<Json>; type: string }[];
 
-  public store: typeof ObservableStore;
+  public store: ObservableStore<KeyringControllerPersistentState>;
 
-  public memStore: typeof ObservableStore;
+  public memStore: ObservableStore<KeyringControllerState>;
 
   public encryptor: any;
 
@@ -62,7 +63,6 @@ class KeyringController extends EventEmitter {
         (keyringBuilder) => keyringBuilder.type,
       ),
       keyrings: [],
-      encryptionKey: null,
     });
 
     this.encryptor = encryptor;
@@ -166,15 +166,15 @@ class KeyringController extends EventEmitter {
   async setLocked(): Promise<KeyringControllerState> {
     delete this.password;
 
-    // set locked
-    this.memStore.updateState({
-      isUnlocked: false,
-      encryptionKey: null,
-      encryptionSalt: null,
-    });
-
     // remove keyrings
     await this.#clearKeyrings();
+
+    // set locked
+    this.memStore.putState({
+      isUnlocked: false,
+      keyrings: [],
+    });
+
     this.emit('lock');
     return this.fullUpdate();
   }
@@ -362,7 +362,7 @@ class KeyringController extends EventEmitter {
    *
    * Updates the in-memory keyrings, without persisting.
    */
-  async updateMemStoreKeyrings(): Promise<Json> {
+  async updateMemStoreKeyrings(): Promise<void> {
     const keyrings = await Promise.all(this.keyrings.map(displayForKeyring));
     return this.memStore.updateState({ keyrings });
   }
@@ -898,10 +898,12 @@ class KeyringController extends EventEmitter {
 
         // This call is required on the first call because encryptionKey
         // is not yet inside the memStore
-        this.memStore.updateState({
-          encryptionKey,
-          encryptionSalt,
-        });
+        this.memStore.putState(
+          Object.assign(this.memStore.getState(), {
+            encryptionKey,
+            encryptionSalt,
+          }),
+        );
       }
     } else {
       if (typeof password !== 'string') {
