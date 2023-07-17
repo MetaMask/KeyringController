@@ -950,27 +950,161 @@ describe('KeyringController', () => {
       expect(result).toBe('SR6bQ1m3OTHvI1FLwcGzm+Uk6hffoFPxsQ0DTOeKMEc=');
     });
 
-    it('signTypedMessage', async () => {
-      const inputParams = {
-        from: mockAddress,
-        data: [
-          {
-            type: 'string',
-            name: 'Message',
-            value: 'Hi, Alice!',
+    describe('signTypedMessage', () => {
+      it('signs a v1 typed message if no version is provided', async () => {
+        const inputParams = {
+          from: mockAddress,
+          data: [
+            {
+              type: 'string',
+              name: 'Message',
+              value: 'Hi, Alice!',
+            },
+            {
+              type: 'uint32',
+              name: 'A number',
+              value: '1337',
+            },
+          ],
+          origin: 'https://metamask.github.io',
+        };
+        const result = await keyringController.signTypedMessage(inputParams);
+        expect(result).toMatchInlineSnapshot(
+          `"0x089bb031f5bf2b2cbdf49eb2bb37d6071ab71f950b9dc49e398ca2ba984aca3c189b3b8de6c14c56461460dd9f59443340f1b144aeeff73275ace41ac184e54f1c"`,
+        );
+      });
+
+      it('signs a v1 typed message', async () => {
+        const inputParams = {
+          from: mockAddress,
+          data: [
+            {
+              type: 'string',
+              name: 'Message',
+              value: 'Hi, Alice!',
+            },
+            {
+              type: 'uint32',
+              name: 'A number',
+              value: '1337',
+            },
+          ],
+          origin: 'https://metamask.github.io',
+        };
+        const result = await keyringController.signTypedMessage(inputParams, {
+          version: 'V1',
+        });
+        expect(result).toMatchInlineSnapshot(
+          `"0x089bb031f5bf2b2cbdf49eb2bb37d6071ab71f950b9dc49e398ca2ba984aca3c189b3b8de6c14c56461460dd9f59443340f1b144aeeff73275ace41ac184e54f1c"`,
+        );
+      });
+
+      it('signs a v3 typed message', async () => {
+        const typedData = {
+          types: {
+            EIP712Domain: [
+              { name: 'name', type: 'string' },
+              { name: 'version', type: 'string' },
+              { name: 'chainId', type: 'uint256' },
+              { name: 'verifyingContract', type: 'address' },
+            ],
+            Person: [
+              { name: 'name', type: 'string' },
+              { name: 'wallet', type: 'address' },
+            ],
+            Mail: [
+              { name: 'from', type: 'Person' },
+              { name: 'to', type: 'Person' },
+              { name: 'contents', type: 'string' },
+            ],
           },
-          {
-            type: 'uint32',
-            name: 'A number',
-            value: '1337',
+          primaryType: 'Mail' as const,
+          domain: {
+            name: 'Ether Mail',
+            version: '1',
+            chainId: 1,
+            verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
           },
-        ],
-        origin: 'https://metamask.github.io',
-      };
-      const result = await keyringController.signTypedMessage(inputParams);
-      expect(result).toBe(
-        '0x089bb031f5bf2b2cbdf49eb2bb37d6071ab71f950b9dc49e398ca2ba984aca3c189b3b8de6c14c56461460dd9f59443340f1b144aeeff73275ace41ac184e54f1c',
-      );
+          message: {
+            from: {
+              name: 'Cow',
+              wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+            },
+            to: {
+              name: 'Bob',
+              wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+            },
+            contents: 'Hello, Bob!',
+          },
+        };
+        const inputParams = {
+          from: mockAddress,
+          data: typedData,
+          origin: 'https://metamask.github.io',
+        };
+        const result = await keyringController.signTypedMessage(inputParams, {
+          version: 'V3',
+        });
+        expect(result).toMatchInlineSnapshot(
+          `"0x1c496cc9f42fc8f8a30bef731b20a1b8722569473643c0cd92e3e494be9c62725043275475ca81d9691c6c31e188dfbd5884b4352ba21bd99f38e6d357c738b81b"`,
+        );
+      });
+
+      it('signs a v4 typed message', async () => {
+        const typedData = {
+          types: {
+            EIP712Domain: [
+              { name: 'name', type: 'string' },
+              { name: 'version', type: 'string' },
+              { name: 'chainId', type: 'uint256' },
+              { name: 'verifyingContract', type: 'address' },
+            ],
+            Person: [
+              { name: 'name', type: 'string' },
+              { name: 'wallet', type: 'address[]' },
+            ],
+            Mail: [
+              { name: 'from', type: 'Person' },
+              { name: 'to', type: 'Person[]' },
+              { name: 'contents', type: 'string' },
+            ],
+          },
+          primaryType: 'Mail' as const,
+          domain: {
+            name: 'Ether Mail',
+            version: '1',
+            chainId: 1,
+            verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+          },
+          message: {
+            from: {
+              name: 'Cow',
+              wallet: [
+                '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+                '0xDD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+              ],
+            },
+            to: [
+              {
+                name: 'Bob',
+                wallet: ['0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'],
+              },
+            ],
+            contents: 'Hello, Bob!',
+          },
+        };
+        const inputParams = {
+          from: mockAddress,
+          data: typedData,
+          origin: 'https://metamask.github.io',
+        };
+        const result = await keyringController.signTypedMessage(inputParams, {
+          version: 'V4',
+        });
+        expect(result).toMatchInlineSnapshot(
+          `"0xe8d6baed58a611bbe247aecf2a8cbe0e3877bf1828c6bd9402749ce9e16f557a5669102bd05f0c3e33c200ff965abf07dab9299cb4bcdc504c9a695205240b321c"`,
+        );
+      });
     });
   });
 });

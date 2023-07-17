@@ -512,7 +512,7 @@ class KeyringController extends EventEmitter {
   async signTypedMessage(
     msgParams: {
       from: string;
-      data: Record<string, unknown>[];
+      data: Record<string, unknown> | Record<string, unknown>[];
     },
     opts: Record<string, unknown> = { version: 'V1' },
   ): Promise<string> {
