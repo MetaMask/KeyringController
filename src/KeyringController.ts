@@ -3,7 +3,7 @@ import * as encryptorUtils from '@metamask/browser-passworder';
 import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
-import { remove0x, isValidHexAddress } from '@metamask/utils';
+import { remove0x, isValidHexAddress, isObject } from '@metamask/utils';
 import type {
   Hex,
   Json,
@@ -586,25 +586,14 @@ class KeyringController extends EventEmitter {
    * @param opts - The constructor options for the keyring.
    * @returns The new keyring.
    */
-  async addNewKeyring(
-    type: string,
-    opts: Record<string, unknown> = {},
-  ): Promise<Keyring<Json>> {
-    let keyring: Keyring<Json>;
-    switch (type) {
-      case KeyringType.Simple:
-        keyring = await this.#newKeyring(type, opts.privateKeys);
-        break;
-      default:
-        keyring = await this.#newKeyring(type, opts);
-        break;
-    }
+  async addNewKeyring(type: string, opts?: unknown): Promise<Keyring<Json>> {
+    const keyring = await this.#newKeyring(type, opts);
 
     if (!keyring) {
       throw new Error(KeyringControllerError.NoKeyring);
     }
 
-    if (!opts.mnemonic && type === KeyringType.HD) {
+    if (type === KeyringType.HD && isObject(opts) && !opts.mnemonic) {
       if (!keyring.generateRandomMnemonic) {
         throw new Error(
           KeyringControllerError.UnsupportedGenerateRandomMnemonic,

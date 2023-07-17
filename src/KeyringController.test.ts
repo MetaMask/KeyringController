@@ -363,7 +363,7 @@ describe('KeyringController', () => {
       const previousAccounts = await keyringController.getAccounts();
       const keyring = await keyringController.addNewKeyring(
         KeyringType.Simple,
-        { privateKeys: [privateKey] },
+        [privateKey],
       );
 
       const keyringAccounts = await keyring?.getAccounts();
