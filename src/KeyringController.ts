@@ -516,7 +516,7 @@ class KeyringController extends EventEmitter {
       data: Record<string, unknown>[];
     },
     opts: Record<string, unknown> = { version: 'V1' },
-  ): Promise<Bytes> {
+  ): Promise<string> {
     // Cast to `Hex` here is safe here because `msgParams.from` is not nullish.
     // `normalizeToHex` returns `Hex` unless given a nullish value.
     const address = normalizeToHex(msgParams.from) as Hex;
