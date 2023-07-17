@@ -1,7 +1,7 @@
 import type { Json, Keyring } from '@metamask/utils';
 
 export type KeyringControllerArgs = {
-  keyringBuilders: { (): Keyring<Json>; type: string }[];
+  keyringBuilders?: { (): Keyring<Json>; type: string }[];
   cacheEncryptionKey: boolean;
   initState?: KeyringControllerPersistentState;
   encryptor?: any;
