@@ -584,22 +584,8 @@ class KeyringController extends EventEmitter {
    * @param opts - The constructor options for the keyring.
    * @returns The new keyring.
    */
-  async addNewKeyring(
-    type: string,
-    opts?: Record<string, unknown>,
-  ): Promise<Keyring<Json>> {
-    let keyring: Keyring<Json>;
-    switch (type) {
-      case KeyringType.Simple:
-        if (!isObject(opts)) {
-          throw new Error('Private keys missing');
-        }
-        keyring = await this.#newKeyring(type, opts.privateKeys);
-        break;
-      default:
-        keyring = await this.#newKeyring(type, opts);
-        break;
-    }
+  async addNewKeyring(type: string, opts?: unknown): Promise<Keyring<Json>> {
+    const keyring = await this.#newKeyring(type, opts);
 
     if (!keyring) {
       throw new Error(KeyringControllerError.NoKeyring);

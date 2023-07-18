@@ -457,7 +457,7 @@ describe('KeyringController', () => {
       const previousAccounts = await keyringController.getAccounts();
       const keyring = await keyringController.addNewKeyring(
         KeyringType.Simple,
-        { privateKeys: [privateKey] },
+        [privateKey],
       );
 
       const keyringAccounts = await keyring?.getAccounts();
@@ -471,15 +471,6 @@ describe('KeyringController', () => {
         expectedKeyringAccounts,
       );
       expect(allAccounts).toStrictEqual(expectedAllAccounts);
-    });
-
-    it('should throw an error when attempting to add simple key pair without private keys', async () => {
-      const keyringController = await initializeKeyringController({
-        password: PASSWORD,
-      });
-      await expect(async () =>
-        keyringController.addNewKeyring(KeyringType.Simple),
-      ).rejects.toThrow('Private keys missing');
     });
 
     it('should add HD Key Tree without mnemonic passed as an argument', async () => {
@@ -663,9 +654,9 @@ describe('KeyringController', () => {
       const accountsBeforeAdding = await keyringController.getAccounts();
 
       // Add a new keyring with one account
-      await keyringController.addNewKeyring(KeyringType.Simple, {
-        privateKeys: [account.privateKey],
-      });
+      await keyringController.addNewKeyring(KeyringType.Simple, [
+        account.privateKey,
+      ]);
       expect(keyringController.keyrings).toHaveLength(2);
 
       // remove that account that we just added
@@ -688,9 +679,9 @@ describe('KeyringController', () => {
       };
 
       // Add a new keyring with one account
-      await keyringController.addNewKeyring(KeyringType.Simple, {
-        privateKeys: [account.privateKey],
-      });
+      await keyringController.addNewKeyring(KeyringType.Simple, [
+        account.privateKey,
+      ]);
 
       // We should have 2 keyrings
       expect(keyringController.keyrings).toHaveLength(2);
@@ -823,7 +814,7 @@ describe('KeyringController', () => {
 
       const keyring = await keyringController.addNewKeyring(
         KeyringType.Simple,
-        { privateKeys: [privateKey] },
+        [privateKey],
       );
 
       const getAppKeyAddressSpy = sinon.spy(
@@ -857,9 +848,7 @@ describe('KeyringController', () => {
       const address = '0x01560cd3bac62cc6d7e6380600d9317363400896';
       const privateKey =
         '0xb8a9c05beeedb25df85f8d641538cbffedf67216048de9c678ee26260eb91952';
-      await keyringController.addNewKeyring(KeyringType.Simple, {
-        privateKeys: [privateKey],
-      });
+      await keyringController.addNewKeyring(KeyringType.Simple, [privateKey]);
       const appKeyAddress = await keyringController.getAppKeyAddress(
         address,
         'someapp.origin.io',
@@ -1051,9 +1040,9 @@ describe('KeyringController', () => {
       };
 
       // Add a new keyring with one account
-      await keyringController.addNewKeyring(KeyringType.Simple, {
-        privateKeys: [account.privateKey],
-      });
+      await keyringController.addNewKeyring(KeyringType.Simple, [
+        account.privateKey,
+      ]);
       expect(await keyringController.getAccounts()).toHaveLength(4);
 
       // remove that account that we just added
