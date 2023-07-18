@@ -14,6 +14,7 @@ import {
   MOCK_HARDCODED_KEY,
   MOCK_HEX,
 } from './test';
+import type { KeyringControllerArgs } from './types';
 
 const MOCK_ENCRYPTION_KEY =
   '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
@@ -52,9 +53,7 @@ async function initializeKeyringController({
   password,
   seedPhrase,
 }: {
-  constructorOptions?: Partial<
-    ConstructorParameters<typeof KeyringController>[0]
-  >;
+  constructorOptions?: Partial<KeyringControllerArgs>;
   password?: string;
   seedPhrase?: string;
 } = {}) {
