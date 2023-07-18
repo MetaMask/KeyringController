@@ -897,12 +897,13 @@ class KeyringController extends EventEmitter {
 
         // This call is required on the first call because encryptionKey
         // is not yet inside the memStore
-        this.memStore.putState(
-          Object.assign(this.memStore.getState(), {
-            encryptionKey,
-            encryptionSalt,
-          }),
-        );
+        this.memStore.updateState({
+          encryptionKey,
+          // we can safely assume that encryptionSalt is defined here
+          // because we compare it with the salt from the vault
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          encryptionSalt: encryptionSalt!,
+        });
       }
     } else {
       if (typeof password !== 'string') {
