@@ -473,6 +473,15 @@ describe('KeyringController', () => {
       expect(allAccounts).toStrictEqual(expectedAllAccounts);
     });
 
+    it('should throw an error when attempting to add simple key pair without private keys', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+      });
+      await expect(async () =>
+        keyringController.addNewKeyring(KeyringType.Simple),
+      ).rejects.toThrow('Private keys missing');
+    });
+
     it('should add HD Key Tree without mnemonic passed as an argument', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
@@ -502,6 +511,26 @@ describe('KeyringController', () => {
       expect(keyringAccounts?.[1]).toStrictEqual(walletTwoAddresses[1]);
       const allAccounts = await keyringController.getAccounts();
       expect(allAccounts).toHaveLength(3);
+    });
+
+    it('should add keyring that expects undefined serialized state', async () => {
+      let deserializedSpy = sinon.spy();
+      const mockKeyringBuilder = () => {
+        const keyring = new KeyringMockWithInit();
+        deserializedSpy = sinon.spy(keyring, 'deserialize');
+        return keyring;
+      };
+      mockKeyringBuilder.type = 'Mock Keyring';
+      const keyringController = await initializeKeyringController({
+        constructorOptions: {
+          keyringBuilders: [mockKeyringBuilder],
+        },
+        password: PASSWORD,
+      });
+      await keyringController.addNewKeyring('Mock Keyring');
+
+      expect(deserializedSpy.callCount).toBe(1);
+      expect(deserializedSpy.calledWith(undefined)).toBe(true);
     });
 
     it('should call init method if available', async () => {
