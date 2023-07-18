@@ -13,9 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **BREAKING**: Add types for store and fix type discrepancies ([#247](https://github.com/MetaMask/KeyringController/pull/247))
-- **BREAKING**: constructor opts `KeyringControllerArgs` properties types changed ([#247](https://github.com/MetaMask/KeyringController/pull/247)):
-  - Simplified type for `keyringBuilders`, now is an optional `{ (): Keyring<Json>; type: string }[]`
-  - `initState` now accepts only an optional persistent state, of type `KeyringControllerPersistentState`
+- **BREAKING**: Constructor parameter `KeyringControllerArgs` fields changed ([#247](https://github.com/MetaMask/KeyringController/pull/247)):
 - **BREAKING**: type of `store` and `memStore` public properties changed ([#247](https://github.com/MetaMask/KeyringController/pull/247)):
   - `KeyringController.store` is now an `ObservableStore<KeyringControllerPersistentState>`
   - `KeyringController.memStore` is now an `ObservableStore<KeyringControllerState>`
