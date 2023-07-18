@@ -3,6 +3,7 @@ import * as encryptorUtils from '@metamask/browser-passworder';
 import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
+import { ObservableStore } from '@metamask/obs-store';
 import { remove0x, isValidHexAddress } from '@metamask/utils';
 import type {
   Hex,
@@ -14,13 +15,13 @@ import type {
 // TODO: Stop using `events`, and remove the notice about this from the README
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import ObservableStore from 'obs-store';
 
 import { KeyringType, KeyringControllerError } from './constants';
 import {
   SerializedKeyring,
   KeyringControllerArgs,
   KeyringControllerState,
+  KeyringControllerPersistentState,
 } from './types';
 
 const defaultKeyringBuilders = [
@@ -31,9 +32,9 @@ const defaultKeyringBuilders = [
 class KeyringController extends EventEmitter {
   keyringBuilders: { (): Keyring<Json>; type: string }[];
 
-  public store: typeof ObservableStore;
+  public store: ObservableStore<KeyringControllerPersistentState>;
 
-  public memStore: typeof ObservableStore;
+  public memStore: ObservableStore<KeyringControllerState>;
 
   public encryptor: any;
 
@@ -62,7 +63,6 @@ class KeyringController extends EventEmitter {
         (keyringBuilder) => keyringBuilder.type,
       ),
       keyrings: [],
-      encryptionKey: null,
     });
 
     this.encryptor = encryptor;
@@ -167,10 +167,9 @@ class KeyringController extends EventEmitter {
     delete this.password;
 
     // set locked
-    this.memStore.updateState({
+    this.memStore.putState({
       isUnlocked: false,
-      encryptionKey: null,
-      encryptionSalt: null,
+      keyrings: [],
     });
 
     // remove keyrings
@@ -362,9 +361,9 @@ class KeyringController extends EventEmitter {
    *
    * Updates the in-memory keyrings, without persisting.
    */
-  async updateMemStoreKeyrings(): Promise<Json> {
+  async updateMemStoreKeyrings(): Promise<void> {
     const keyrings = await Promise.all(this.keyrings.map(displayForKeyring));
-    return this.memStore.updateState({ keyrings });
+    this.memStore.updateState({ keyrings });
   }
 
   /**
@@ -900,7 +899,10 @@ class KeyringController extends EventEmitter {
         // is not yet inside the memStore
         this.memStore.updateState({
           encryptionKey,
-          encryptionSalt,
+          // we can safely assume that encryptionSalt is defined here
+          // because we compare it with the salt from the vault
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          encryptionSalt: encryptionSalt!,
         });
       }
     } else {

@@ -1,32 +1,26 @@
 import type { Json, Keyring } from '@metamask/utils';
-import ObservableStore from 'obs-store';
 
 export type KeyringControllerArgs = {
-  keyringBuilders:
-    | { (): Keyring<Json>; type: string }
-    | ConcatArray<{ (): Keyring<Json>; type: string }>;
-
+  keyringBuilders?: { (): Keyring<Json>; type: string }[];
   cacheEncryptionKey: boolean;
-  initState?: KeyringControllerState;
+  initState?: KeyringControllerPersistentState;
   encryptor?: any;
 };
 
+export type KeyringObject = {
+  type: string;
+  accounts: string[];
+};
+
+export type KeyringControllerPersistentState = {
+  vault?: string;
+};
+
 export type KeyringControllerState = {
-  keyringBuilders?: { (): Keyring<Json>; type: string }[];
-
-  store?: typeof ObservableStore;
-
-  memStore?: typeof ObservableStore;
-
-  keyrings?: Keyring<Json>[];
-
-  isUnlocked?: boolean;
-
+  keyrings: KeyringObject[];
+  isUnlocked: boolean;
   encryptionKey?: string;
-
   encryptionSalt?: string;
-
-  password?: string;
 };
 
 export type SerializedKeyring = {

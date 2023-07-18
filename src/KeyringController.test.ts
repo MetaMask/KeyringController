@@ -122,6 +122,7 @@ describe('KeyringController', () => {
       await keyringController.persistAllKeyrings();
 
       const { vault } = keyringController.store.getState();
+      assert(vault, 'Vault is not set');
       const keyrings = await mockEncryptor.decrypt(PASSWORD, vault);
       expect(keyrings).toContain(unsupportedKeyring);
       expect(keyrings).toHaveLength(2);
@@ -136,7 +137,9 @@ describe('KeyringController', () => {
         const vault = JSON.stringify({ salt: vaultEncryptionSalt });
         keyringController.store.updateState({ vault });
 
-        expect(keyringController.memStore.getState().encryptionKey).toBeNull();
+        expect(
+          keyringController.memStore.getState().encryptionKey,
+        ).toBeUndefined();
         expect(
           keyringController.memStore.getState().encryptionSalt,
         ).toBeUndefined();
@@ -201,7 +204,7 @@ describe('KeyringController', () => {
 
   describe('createNewVaultAndKeychain', () => {
     it('should create a new vault', async () => {
-      keyringController.store.updateState({ vault: null });
+      keyringController.store.putState({});
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
       const newVault = await keyringController.createNewVaultAndKeychain(
@@ -213,7 +216,7 @@ describe('KeyringController', () => {
     });
 
     it('should unlock the vault', async () => {
-      keyringController.store.updateState({ vault: null });
+      keyringController.store.putState({});
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
       await keyringController.createNewVaultAndKeychain(PASSWORD);
@@ -222,7 +225,7 @@ describe('KeyringController', () => {
     });
 
     it('should encrypt keyrings with the correct password each time they are persisted', async () => {
-      keyringController.store.updateState({ vault: null });
+      keyringController.store.putState({});
       assert(!keyringController.store.getState().vault, 'no previous vault');
 
       await keyringController.createNewVaultAndKeychain(PASSWORD);
@@ -254,7 +257,7 @@ describe('KeyringController', () => {
         await keyringController.createNewVaultAndKeychain(PASSWORD);
         const finalMemStore = keyringController.memStore.getState();
 
-        expect(initialMemStore.encryptionKey).toBeNull();
+        expect(initialMemStore.encryptionKey).toBeUndefined();
         expect(initialMemStore.encryptionSalt).toBeUndefined();
 
         expect(finalMemStore.encryptionKey).toBe(MOCK_HARDCODED_KEY);
@@ -347,7 +350,7 @@ describe('KeyringController', () => {
         );
         const finalMemStore = keyringController.memStore.getState();
 
-        expect(initialMemStore.encryptionKey).toBeNull();
+        expect(initialMemStore.encryptionKey).toBeUndefined();
         expect(initialMemStore.encryptionSalt).toBeUndefined();
 
         expect(finalMemStore.encryptionKey).toBe(MOCK_HARDCODED_KEY);
@@ -888,9 +891,13 @@ describe('KeyringController', () => {
 
       await keyringController.setLocked();
 
-      expect(keyringController.memStore.getState().encryptionSalt).toBeNull();
+      expect(
+        keyringController.memStore.getState().encryptionSalt,
+      ).toBeUndefined();
       expect(keyringController.password).toBeUndefined();
-      expect(keyringController.memStore.getState().encryptionKey).toBeNull();
+      expect(
+        keyringController.memStore.getState().encryptionKey,
+      ).toBeUndefined();
     });
   });
 
