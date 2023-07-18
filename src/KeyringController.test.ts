@@ -74,7 +74,6 @@ async function initializeKeyringController({
     );
   } else if (password) {
     await keyringController.createNewVaultAndKeychain(PASSWORD);
-    await keyringController.submitPassword(PASSWORD);
   }
 
   return keyringController;
