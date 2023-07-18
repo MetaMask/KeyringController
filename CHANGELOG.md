@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix `signTypedMessage` parameter types ([#250](https://github.com/MetaMask/KeyringController/pull/250))
 - Restore compatibility with QR Keyring ([#252](https://github.com/MetaMask/KeyringController/pull/252))
-  - opts argument for addNewKeyring method is now optional
+  - An empty object is no longer used as a default when deserialized state was not provided to the `addNewKeyring` method. This default empty object was breaking the QR keyring.
 
 
 ## [12.0.1]
