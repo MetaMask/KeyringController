@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [13.0.0]
+### Added
+- Added `KeyringControllerPersistentState` type which includes only persistent state, an optional string property with key `vault` ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+- Added `KeyringObject` type for how keyrings are represented in `memStore` ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+
 ### Changed
 - **BREAKING**: Add types for store and fix type discrepancies ([#247](https://github.com/MetaMask/KeyringController/pull/247))
 - **BREAKING**: constructor opts `KeyringControllerArgs` properties types changed ([#247](https://github.com/MetaMask/KeyringController/pull/247)):
@@ -31,10 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `fullUpdate`
 - Narrow return type of `signTypedMessage` and encryption methods ([#249](https://github.com/MetaMask/KeyringController/pull/249))
   - The methods `signTypedMessage`, `getEncryptionPublicKey`, and `decryptMessage` now return `string` rather than `Bytes`
-
-### Added
-- Added `KeyringControllerPersistentState` type which includes only persistent state, an optional string property with key `vault` ([#247](https://github.com/MetaMask/KeyringController/pull/247))
-- Added `KeyringObject` type for how keyrings are represented in `memStore` ([#247](https://github.com/MetaMask/KeyringController/pull/247))
 
 ### Fixed
 - Fix `@metamask/eth-sig-util` types ([#248](https://github.com/MetaMask/KeyringController/pull/248))
