@@ -1,0 +1,141 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@metamask/eth-keyring-controller</title><meta name="description" content="Documentation for @metamask/eth-keyring-controller"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base=".">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">@metamask/eth-keyring-controller</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<h2>@metamask/eth-keyring-controller</h2></div>
+<div class="tsd-panel tsd-typography">
+<a href="#eth-keyring-controller" id="eth-keyring-controller" style="color: inherit; text-decoration: none;">
+  <h1>Eth Keyring Controller</h1>
+</a>
+<p>A module for managing groups of Ethereum accounts called &quot;Keyrings&quot;, defined originally for MetaMask&#39;s multiple-account-type feature.</p>
+<p>To add new account types to a <code>KeyringController</code>, just make sure it follows <a href="./docs/keyring.md">The Keyring Class Protocol</a>.</p>
+<p>The KeyringController has three main responsibilities:</p>
+<ul>
+<li>Initializing &amp; using (signing with) groups of Ethereum accounts (&quot;keyrings&quot;).</li>
+<li>Keeping track of local nicknames for those individual accounts.</li>
+<li>Providing password-encryption persisting &amp; restoring of secret information.</li>
+</ul>
+
+<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+  <h2>Installation</h2>
+</a>
+<p><code>yarn add @metamask/eth-keyring-controller</code></p>
+<p>This library uses the Node.js <code>events</code> API. If you are using this library outside of a Node.js context, ensure that you have a polyfill for the <code>events</code> API (this is built-in to <code>browserify</code>).</p>
+
+<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+  <h2>Usage</h2>
+</a>
+<pre><code class="language-javascript"><span class="hl-0">const</span><span class="hl-1"> { </span><span class="hl-2">KeyringController</span><span class="hl-1"> } = </span><span class="hl-3">require</span><span class="hl-1">(</span><span class="hl-4">&#39;@metamask/eth-keyring-controller&#39;</span><span class="hl-1">);</span><br/><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-2">SimpleKeyring</span><span class="hl-1"> = </span><span class="hl-3">require</span><span class="hl-1">(</span><span class="hl-4">&#39;@metamask/eth-simple-keyring&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-2">keyringController</span><span class="hl-1"> = </span><span class="hl-0">new</span><span class="hl-1"> </span><span class="hl-3">KeyringController</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-5">keyringTypes:</span><span class="hl-1"> [</span><span class="hl-5">SimpleKeyring</span><span class="hl-1">], </span><span class="hl-6">// optional array of types to support.</span><br/><span class="hl-1">  </span><span class="hl-5">initState:</span><span class="hl-1"> </span><span class="hl-5">initState</span><span class="hl-1">.</span><span class="hl-5">KeyringController</span><span class="hl-1">, </span><span class="hl-6">// Last emitted persisted state.</span><br/><span class="hl-1">  </span><span class="hl-5">encryptor:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-6">// An optional object for defining encryption schemes:</span><br/><span class="hl-1">    </span><span class="hl-6">// Defaults to Browser-native SubtleCrypto.</span><br/><span class="hl-1">    </span><span class="hl-3">encrypt</span><span class="hl-1">(</span><span class="hl-5">password</span><span class="hl-1">, </span><span class="hl-5">object</span><span class="hl-1">) {</span><br/><span class="hl-1">      </span><span class="hl-7">return</span><span class="hl-1"> </span><span class="hl-0">new</span><span class="hl-1"> </span><span class="hl-8">Promise</span><span class="hl-1">(</span><span class="hl-4">&#39;encrypted!&#39;</span><span class="hl-1">);</span><br/><span class="hl-1">    },</span><br/><span class="hl-1">    </span><span class="hl-3">decrypt</span><span class="hl-1">(</span><span class="hl-5">password</span><span class="hl-1">, </span><span class="hl-5">encryptedString</span><span class="hl-1">) {</span><br/><span class="hl-1">      </span><span class="hl-7">return</span><span class="hl-1"> </span><span class="hl-0">new</span><span class="hl-1"> </span><span class="hl-8">Promise</span><span class="hl-1">({ </span><span class="hl-5">foo:</span><span class="hl-1"> </span><span class="hl-4">&#39;bar&#39;</span><span class="hl-1"> });</span><br/><span class="hl-1">    },</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-6">// The KeyringController is also an event emitter:</span><br/><span class="hl-0">this</span><span class="hl-1">.</span><span class="hl-5">keyringController</span><span class="hl-1">.</span><span class="hl-3">on</span><span class="hl-1">(</span><span class="hl-4">&#39;newAccount&#39;</span><span class="hl-1">, (</span><span class="hl-5">address</span><span class="hl-1">) </span><span class="hl-0">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-3">log</span><span class="hl-1">(</span><span class="hl-4">`New account created: </span><span class="hl-0">${</span><span class="hl-5">address</span><span class="hl-0">}</span><span class="hl-4">`</span><span class="hl-1">);</span><br/><span class="hl-1">});</span><br/><span class="hl-0">this</span><span class="hl-1">.</span><span class="hl-5">keyringController</span><span class="hl-1">.</span><span class="hl-3">on</span><span class="hl-1">(</span><span class="hl-4">&#39;removedAccount&#39;</span><span class="hl-1">, </span><span class="hl-5">handleThat</span><span class="hl-1">);</span>
+</code></pre>
+
+<a href="#methods" id="methods" style="color: inherit; text-decoration: none;">
+  <h2>Methods</h2>
+</a>
+<p>Currently the methods are heavily commented in <a href="./index.js">the source code</a>, so it&#39;s the best place to look until we aggregate it here as well.</p>
+
+<a href="#contributing" id="contributing" style="color: inherit; text-decoration: none;">
+  <h2>Contributing</h2>
+</a>
+
+<a href="#setup" id="setup" style="color: inherit; text-decoration: none;">
+  <h3>Setup</h3>
+</a>
+<ul>
+<li>Install <a href="https://nodejs.org">Node.js</a> version 14<ul>
+<li>If you are using <a href="https://github.com/creationix/nvm#installation">nvm</a> (recommended) running <code>nvm use</code> will automatically choose the right node version for you.</li>
+</ul>
+</li>
+<li>Install <a href="https://yarnpkg.com/getting-started/install">Yarn v3</a></li>
+<li>Run <code>yarn install</code> to install dependencies and run any required post-install scripts</li>
+</ul>
+
+<a href="#testing-and-linting" id="testing-and-linting" style="color: inherit; text-decoration: none;">
+  <h3>Testing and Linting</h3>
+</a>
+<p>Run <code>yarn test</code> to run the tests once.</p>
+<p>Run <code>yarn lint</code> to run the linter, or run <code>yarn lint:fix</code> to run the linter and fix any automatically fixable issues.</p>
+
+<a href="#release-amp-publishing" id="release-amp-publishing" style="color: inherit; text-decoration: none;">
+  <h3>Release &amp; Publishing</h3>
+</a>
+<p>The project follows the same release process as the other libraries in the MetaMask organization. The GitHub Actions <a href="https://github.com/MetaMask/action-create-release-pr"><code>action-create-release-pr</code></a> and <a href="https://github.com/MetaMask/action-publish-release"><code>action-publish-release</code></a> are used to automate the release process; see those repositories for more information about how they work.</p>
+<ol>
+<li><p>Choose a release version.</p>
+<ul>
+<li>The release version should be chosen according to SemVer. Analyze the changes to see whether they include any breaking changes, new features, or deprecations, then choose the appropriate SemVer version. See <a href="https://semver.org/">the SemVer specification</a> for more information.</li>
+</ul>
+</li>
+<li><p>If this release is backporting changes onto a previous release, then ensure there is a major version branch for that version (e.g. <code>1.x</code> for a <code>v1</code> backport release).</p>
+<ul>
+<li>The major version branch should be set to the most recent release with that major version. For example, when backporting a <code>v1.0.2</code> release, you&#39;d want to ensure there was a <code>1.x</code> branch that was set to the <code>v1.0.1</code> tag.</li>
+</ul>
+</li>
+<li><p>Trigger the <a href="https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch"><code>workflow_dispatch</code></a> event <a href="https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow">manually</a> for the <code>Create Release Pull Request</code> action to create the release PR.</p>
+<ul>
+<li>For a backport release, the base branch should be the major version branch that you ensured existed in step 2. For a normal release, the base branch should be the main branch for that repository (which should be the default value).</li>
+<li>This should trigger the <a href="https://github.com/MetaMask/action-create-release-pr"><code>action-create-release-pr</code></a> workflow to create the release PR.</li>
+</ul>
+</li>
+<li><p>Update the changelog to move each change entry into the appropriate change category (<a href="https://keepachangelog.com/en/1.0.0/#types">See here</a> for the full list of change categories, and the correct ordering), and edit them to be more easily understood by users of the package.</p>
+<ul>
+<li>Generally any changes that don&#39;t affect consumers of the package (e.g. lockfile changes or development environment changes) are omitted. Exceptions may be made for changes that might be of interest despite not having an effect upon the published package (e.g. major test improvements, security improvements, improved documentation, etc.).</li>
+<li>Try to explain each change in terms that users of the package would understand (e.g. avoid referencing internal variables/concepts).</li>
+<li>Consolidate related changes into one change entry if it makes it easier to explain.</li>
+<li>Run <code>yarn auto-changelog validate --rc</code> to check that the changelog is correctly formatted.</li>
+</ul>
+</li>
+<li><p>Review and QA the release.</p>
+<ul>
+<li>If changes are made to the base branch, the release branch will need to be updated with these changes and review/QA will need to restart again. As such, it&#39;s probably best to avoid merging other PRs into the base branch while review is underway.</li>
+</ul>
+</li>
+<li><p>Squash &amp; Merge the release.</p>
+<ul>
+<li>This should trigger the <a href="https://github.com/MetaMask/action-publish-release"><code>action-publish-release</code></a> workflow to tag the final release commit and publish the release on GitHub.</li>
+</ul>
+</li>
+<li><p>Publish the release on npm.</p>
+<ul>
+<li>Wait for the <code>publish-release</code> GitHub Action workflow to finish. This should trigger a second job (<code>publish-npm</code>), which will wait for a run approval by the <a href="https://github.com/orgs/MetaMask/teams/npm-publishers"><code>npm publishers</code></a> team.</li>
+<li>Approve the <code>publish-npm</code> job (or ask somebody on the npm publishers team to approve it for you).</li>
+<li>Once the <code>publish-npm</code> job has finished, check npm to verify that it has been published.</li>
+</ul>
+</li>
+</ol>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current selected"><a href="modules.html">@metamask/eth-<wbr/>keyring-<wbr/>controller</a>
+<ul></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky">
+<ul>
+<li class="tsd-kind-enum"><a href="enums/KeyringControllerError.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-enum)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-8-path"></rect><path d="M9.45 16V7.24H14.49V8.224H10.518V10.936H14.07V11.908H10.518V15.016H14.49V16H9.45Z" fill="var(--color-text)" id="icon-8-text"></path></svg>Keyring<wbr/>Controller<wbr/>Error</a></li>
+<li class="tsd-kind-enum"><a href="enums/KeyringType.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-8-path"></use><use href="#icon-8-text"></use></svg>Keyring<wbr/>Type</a></li>
+<li class="tsd-kind-class"><a href="classes/KeyringController.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-class)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-128-path"></rect><path d="M11.898 16.1201C11.098 16.1201 10.466 15.8961 10.002 15.4481C9.53803 15.0001 9.30603 14.3841 9.30603 13.6001V9.64012C9.30603 8.85612 9.53803 8.24012 10.002 7.79212C10.466 7.34412 11.098 7.12012 11.898 7.12012C12.682 7.12012 13.306 7.34812 13.77 7.80412C14.234 8.25212 14.466 8.86412 14.466 9.64012H13.386C13.386 9.14412 13.254 8.76412 12.99 8.50012C12.734 8.22812 12.37 8.09212 11.898 8.09212C11.426 8.09212 11.054 8.22412 10.782 8.48812C10.518 8.75212 10.386 9.13212 10.386 9.62812V13.6001C10.386 14.0961 10.518 14.4801 10.782 14.7521C11.054 15.0161 11.426 15.1481 11.898 15.1481C12.37 15.1481 12.734 15.0161 12.99 14.7521C13.254 14.4801 13.386 14.0961 13.386 13.6001H14.466C14.466 14.3761 14.234 14.9921 13.77 15.4481C13.306 15.8961 12.682 16.1201 11.898 16.1201Z" fill="var(--color-text)" id="icon-128-text"></path></svg>Keyring<wbr/>Controller</a></li>
+<li class="tsd-kind-function"><a href="functions/keyringBuilderFactory.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-64-path"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)" id="icon-64-text"></path></svg>keyring<wbr/>Builder<wbr/>Factory</a></li></ul></nav></div></div>
+<div class="overlay"></div><script src="assets/main.js"></script></body></html>
