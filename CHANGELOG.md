@@ -6,6 +6,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [13.0.0]
+### Added
+- Added `KeyringControllerPersistentState` type which includes only persistent state, an optional string property with key `vault` ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+- Added `KeyringObject` type for how keyrings are represented in `memStore` ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+
+### Changed
+- **BREAKING**: Add types for store and fix type discrepancies ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+- **BREAKING**: Constructor parameter `KeyringControllerArgs` fields changed ([#247](https://github.com/MetaMask/KeyringController/pull/247)):
+- **BREAKING**: type of `store` and `memStore` public properties changed ([#247](https://github.com/MetaMask/KeyringController/pull/247)):
+  - `KeyringController.store` is now an `ObservableStore<KeyringControllerPersistentState>`
+  - `KeyringController.memStore` is now an `ObservableStore<KeyringControllerState>`
+- **BREAKING**: `updateMemStoreKeyrings` method return type changed to `Promise<void>` ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+- **BREAKING**: `KeyringControllerState` type changed to include only non-persistent state ([#247](https://github.com/MetaMask/KeyringController/pull/247)):
+  - Now `undefined` is used instead of `null` when `encryptionKey` and `encryptionSalt` are unset
+  - `keyrings` is now of type `KeyringObject[]` instead of `Keyring<Json>`
+  - `password`, `store`, `memStore` have been removed - note that in practice this change only affects types
+  - This changes cause the following methods also to change the return type:
+    - `createNewVaultAndKeychain`
+    - `createNewVaultAndRestore`
+    - `setLocked`
+    - `submitPassword`
+    - `submitEncryptionKey`
+    - `addNewAccount`
+    - `removeAccount`
+    - `fullUpdate`
+- **BREAKING**: When constructing a simple keyring with `addNewKeyring`, the second parameter (`opts`) is now expected to be an array of private keys rather than an object with a `privateKeys` property ([#253](https://github.com/MetaMask/KeyringController/pull/253))
+- Restored support for keyrings with non-object serialized state ([#253](https://github.com/MetaMask/KeyringController/pull/253))
+- Narrow return type of `signTypedMessage` and encryption methods ([#249](https://github.com/MetaMask/KeyringController/pull/249))
+  - The methods `signTypedMessage`, `getEncryptionPublicKey`, and `decryptMessage` now return `string` rather than `Bytes`
+
+### Fixed
+- Fix `signTypedMessage` parameter types ([#250](https://github.com/MetaMask/KeyringController/pull/250))
+- Restore compatibility with QR Keyring ([#252](https://github.com/MetaMask/KeyringController/pull/252))
+  - An empty object is no longer used as a default when deserialized state was not provided to the `addNewKeyring` method. This default empty object was breaking the QR keyring.
+
+
 ## [12.0.1]
 ### Fixed
 - Improved error handling when calling `getKeyringForAccount` with empty or invalid address ([#238](https://github.com/MetaMask/KeyringController/pull/238))
@@ -118,7 +154,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v12.0.1...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v13.0.0...HEAD
+[13.0.0]: https://github.com/MetaMask/KeyringController/compare/v12.0.1...v13.0.0
 [12.0.1]: https://github.com/MetaMask/KeyringController/compare/v12.0.0...v12.0.1
 [12.0.0]: https://github.com/MetaMask/KeyringController/compare/v11.0.0...v12.0.0
 [11.0.0]: https://github.com/MetaMask/KeyringController/compare/v10.0.1...v11.0.0
