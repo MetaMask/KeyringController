@@ -39,7 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The methods `signTypedMessage`, `getEncryptionPublicKey`, and `decryptMessage` now return `string` rather than `Bytes`
 
 ### Fixed
-- Fix `@metamask/eth-sig-util` types ([#248](https://github.com/MetaMask/KeyringController/pull/248))
 - Fix `signTypedMessage` parameter types ([#250](https://github.com/MetaMask/KeyringController/pull/250))
 - Restore compatibility with QR Keyring ([#252](https://github.com/MetaMask/KeyringController/pull/252))
   - opts argument for addNewKeyring method is now optional
