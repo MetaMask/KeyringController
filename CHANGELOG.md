@@ -7,14 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [13.0.0]
-### Uncategorized
-- Restore compatibility with QR Keyring ([#252](https://github.com/MetaMask/KeyringController/pull/252))
-- Refactor controller initialization in tests ([#251](https://github.com/MetaMask/KeyringController/pull/251))
-- Add types for store and fix type discrepancies ([#247](https://github.com/MetaMask/KeyringController/pull/247))
-- Fix `signTypedMessage` parameter types ([#250](https://github.com/MetaMask/KeyringController/pull/250))
+### Changed
+- **BREAKING**: Add types for store and fix type discrepancies ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+- **BREAKING**: constructor opts `KeyringControllerArgs` properties types changed ([#247](https://github.com/MetaMask/KeyringController/pull/247)):
+  - Simplified type for `keyringBuilders`, now is an optional `{ (): Keyring<Json>; type: string }[]`
+  - `initState` now accepts only an optional persistent state, of type `KeyringControllerPersistentState`
+- **BREAKING**: type of `store` and `memStore` public properties changed ([#247](https://github.com/MetaMask/KeyringController/pull/247)):
+  - `KeyringController.store` is now an `ObservableStore<KeyringControllerPersistentState>`
+  - `KeyringController.memStore` is now an `ObservableStore<KeyringControllerState>`
+- **BREAKING**: `updateMemStoreKeyrings` method return type changed to `Promise<void>` ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+- **BREAKING**: `KeyringControllerState` type changed to include only non-persistent state ([#247](https://github.com/MetaMask/KeyringController/pull/247)):
+  - Now `undefined` is used instead of `null` when `encryptionKey` and `encryptionSalt` are unset
+  - `keyrings` is now of type `KeyringObject[]` instead of `Keyring<Json>`
+  - `password`, `store`, `memStore` have been removed - note that in practice this change only affects types
+  - This changes cause the following methods also to change the return type:
+    - `createNewVaultAndKeychain`
+    - `createNewVaultAndRestore`
+    - `setLocked`
+    - `submitPassword`
+    - `submitEncryptionKey`
+    - `addNewAccount`
+    - `removeAccount`
+    - `fullUpdate`
 - Narrow return type of `signTypedMessage` and encryption methods ([#249](https://github.com/MetaMask/KeyringController/pull/249))
+  - The methods `signTypedMessage`, `getEncryptionPublicKey`, and `decryptMessage` now return `string` rather than `Bytes`
+
+### Added
+- Added `KeyringControllerPersistentState` type which includes only persistent state, an optional string property with key `vault` ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+- Added `KeyringObject` type for how keyrings are represented in `memStore` ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+
+### Fixed
 - Fix `@metamask/eth-sig-util` types ([#248](https://github.com/MetaMask/KeyringController/pull/248))
-- Bump @metamask/auto-changelog from 3.1.0 to 3.2.0 ([#244](https://github.com/MetaMask/KeyringController/pull/244))
+- Fix `signTypedMessage` parameter types ([#250](https://github.com/MetaMask/KeyringController/pull/250))
+- Restore compatibility with QR Keyring ([#252](https://github.com/MetaMask/KeyringController/pull/252))
+  - opts argument for addNewKeyring method is now optional
+
 
 ## [12.0.1]
 ### Fixed
