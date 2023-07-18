@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `addNewAccount`
     - `removeAccount`
     - `fullUpdate`
-- **BREAKING**: When constructing a simple keyring with `addNewKeying`, the second parameter (`opts`) is now expected to be an array of private keys rather than an object with a `privateKeys` property ([#253](https://github.com/MetaMask/KeyringController/pull/253))
+- **BREAKING**: When constructing a simple keyring with `addNewKeyring`, the second parameter (`opts`) is now expected to be an array of private keys rather than an object with a `privateKeys` property ([#253](https://github.com/MetaMask/KeyringController/pull/253))
 - Restored support for keyrings with non-object serialized state ([#253](https://github.com/MetaMask/KeyringController/pull/253))
 - Narrow return type of `signTypedMessage` and encryption methods ([#249](https://github.com/MetaMask/KeyringController/pull/249))
   - The methods `signTypedMessage`, `getEncryptionPublicKey`, and `decryptMessage` now return `string` rather than `Bytes`
