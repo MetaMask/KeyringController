@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [13.0.0]
+### Uncategorized
+- Restore compatibility with QR Keyring ([#252](https://github.com/MetaMask/KeyringController/pull/252))
+- Refactor controller initialization in tests ([#251](https://github.com/MetaMask/KeyringController/pull/251))
+- Add types for store and fix type discrepancies ([#247](https://github.com/MetaMask/KeyringController/pull/247))
+- Fix `signTypedMessage` parameter types ([#250](https://github.com/MetaMask/KeyringController/pull/250))
+- Narrow return type of `signTypedMessage` and encryption methods ([#249](https://github.com/MetaMask/KeyringController/pull/249))
+- Fix `@metamask/eth-sig-util` types ([#248](https://github.com/MetaMask/KeyringController/pull/248))
+- Bump @metamask/auto-changelog from 3.1.0 to 3.2.0 ([#244](https://github.com/MetaMask/KeyringController/pull/244))
+
 ## [12.0.1]
 ### Fixed
 - Improved error handling when calling `getKeyringForAccount` with empty or invalid address ([#238](https://github.com/MetaMask/KeyringController/pull/238))
@@ -118,7 +128,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v12.0.1...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v13.0.0...HEAD
+[13.0.0]: https://github.com/MetaMask/KeyringController/compare/v12.0.1...v13.0.0
 [12.0.1]: https://github.com/MetaMask/KeyringController/compare/v12.0.0...v12.0.1
 [12.0.0]: https://github.com/MetaMask/KeyringController/compare/v11.0.0...v12.0.0
 [11.0.0]: https://github.com/MetaMask/KeyringController/compare/v10.0.1...v11.0.0
