@@ -45,7 +45,7 @@
     "@metamask/eth-sig-util": "^6.0.0",
     "@metamask/eth-simple-keyring": "^5.0.0",
     "@metamask/obs-store": "^8.1.0",
-    "@metamask/utils": "^6.2.0"
+    "@metamask/utils": "^7.1.0"
   },
   "devDependencies": {
     "@lavamoat/allow-scripts": "^2.3.1",
