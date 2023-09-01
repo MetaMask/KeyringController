@@ -1234,6 +1234,8 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.55.0
     "@typescript-eslint/parser": ^5.55.0
     "@yarnpkg/cli": ^4.0.0-rc.50
+    "@yarnpkg/core": ^4.0.0-rc.50
+    "@yarnpkg/fslib": ^3.0.0-rc.50
     clipanion: ^4.0.0-rc.2
     depcheck: ^1.4.5
     eslint: ^8.48.0
@@ -2058,7 +2060,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@yarnpkg/core@npm:^4.0.0-rc.51":
+"@yarnpkg/core@npm:^4.0.0-rc.50, @yarnpkg/core@npm:^4.0.0-rc.51":
   version: 4.0.0-rc.51
   resolution: "@yarnpkg/core@npm:4.0.0-rc.51"
   dependencies:
@@ -2101,7 +2103,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@yarnpkg/fslib@npm:^3.0.0-rc.51":
+"@yarnpkg/fslib@npm:^3.0.0-rc.50, @yarnpkg/fslib@npm:^3.0.0-rc.51":
   version: 3.0.0-rc.51
   resolution: "@yarnpkg/fslib@npm:3.0.0-rc.51"
   dependencies:
