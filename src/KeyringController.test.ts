@@ -1,8 +1,9 @@
+import { Wallet } from '@ethereumjs/wallet';
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
 import type { Hex } from '@metamask/utils';
+import { bytesToHex } from '@metamask/utils';
 import { strict as assert } from 'assert';
-import Wallet from 'ethereumjs-wallet';
 import * as sinon from 'sinon';
 
 import { KeyringController, keyringBuilderFactory } from '.';
@@ -860,7 +861,7 @@ describe('KeyringController', () => {
       );
 
       const wallet = Wallet.fromPrivateKey(Buffer.from(privateAppKey, 'hex'));
-      const recoveredAddress = `0x${wallet.getAddress().toString('hex')}`;
+      const recoveredAddress = bytesToHex(wallet.getAddress());
 
       expect(recoveredAddress).toBe(appKeyAddress);
       expect(privateAppKey).not.toBe(privateKey);
