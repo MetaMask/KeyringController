@@ -7,9 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [13.0.1]
-### Uncategorized
-- Bump @metamask/utils from 6.2.0 to 8.1.0 ([#261](https://github.com/MetaMask/KeyringController/pull/261))
-- Bump word-wrap from 1.2.3 to 1.2.4 ([#255](https://github.com/MetaMask/KeyringController/pull/255))
+### Changed
+- Bump `@metamask/utils` from ^6.2.0` to `^8.1.0` ([#261](https://github.com/MetaMask/KeyringController/pull/261))
 
 ## [13.0.0]
 ### Added
