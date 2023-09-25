@@ -521,7 +521,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethereumjs/util@npm:^8.0.0, @ethereumjs/util@npm:^8.0.2, @ethereumjs/util@npm:^8.0.6, @ethereumjs/util@npm:^8.1.0":
+"@ethereumjs/util@npm:^8.0.2, @ethereumjs/util@npm:^8.0.6, @ethereumjs/util@npm:^8.1.0":
   version: 8.1.0
   resolution: "@ethereumjs/util@npm:8.1.0"
   dependencies:
@@ -1088,7 +1088,7 @@ __metadata:
     "@metamask/eslint-config-typescript": ^11.1.0
     "@metamask/eth-hd-keyring": ^6.0.0
     "@metamask/eth-sig-util": ^7.0.0
-    "@metamask/eth-simple-keyring": ^5.0.0
+    "@metamask/eth-simple-keyring": ^6.0.0
     "@metamask/obs-store": ^8.1.0
     "@metamask/utils": ^8.1.0
     "@types/jest": ^29.4.0
@@ -1116,7 +1116,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@metamask/eth-sig-util@npm:^5.0.1, @metamask/eth-sig-util@npm:^5.0.2":
+"@metamask/eth-sig-util@npm:^5.0.2":
   version: 5.1.0
   resolution: "@metamask/eth-sig-util@npm:5.1.0"
   dependencies:
@@ -1145,15 +1145,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-simple-keyring@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "@metamask/eth-simple-keyring@npm:5.0.0"
+"@metamask/eth-simple-keyring@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "@metamask/eth-simple-keyring@npm:6.0.0"
   dependencies:
-    "@ethereumjs/util": ^8.0.0
-    "@metamask/eth-sig-util": ^5.0.1
-    ethereum-cryptography: ^1.1.2
+    "@ethereumjs/util": ^8.1.0
+    "@metamask/eth-sig-util": ^7.0.0
+    "@metamask/utils": ^8.1.0
+    ethereum-cryptography: ^2.1.2
     randombytes: ^2.1.0
-  checksum: 6fd05173531b84f6fb816b90ab8cfb176ac3300f07daa51c4adac673fa17dbcc6ce1ebdf064b9f66549f37476bbc54eb2dd9d28935d57654ef62b935a1e31e1d
+  checksum: dd106695a9903b68938ce45682e976e38e6ab50d41c461ca1a771aed139086d535e1891c85bbf91ad80fdc372d7168a71ac83622d3d834d03ad9f8a42b95a567
   languageName: node
   linkType: hard
 
