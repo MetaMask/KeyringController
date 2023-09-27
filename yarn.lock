@@ -521,7 +521,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethereumjs/util@npm:^8.0.0, @ethereumjs/util@npm:^8.0.2, @ethereumjs/util@npm:^8.0.6, @ethereumjs/util@npm:^8.1.0":
+"@ethereumjs/util@npm:^8.0.0, @ethereumjs/util@npm:^8.0.6, @ethereumjs/util@npm:^8.1.0":
   version: 8.1.0
   resolution: "@ethereumjs/util@npm:8.1.0"
   dependencies:
@@ -1059,15 +1059,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-hd-keyring@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "@metamask/eth-hd-keyring@npm:6.0.0"
+"@metamask/eth-hd-keyring@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "@metamask/eth-hd-keyring@npm:7.0.1"
   dependencies:
-    "@ethereumjs/util": ^8.0.2
-    "@metamask/eth-sig-util": ^5.0.2
-    "@metamask/scure-bip39": ^2.0.3
-    ethereum-cryptography: ^1.1.2
-  checksum: 2f1b05c1bdb001f1529bedcd05ef4bcca43af5c8d64742ec1b2feed341edab565bff7f66ef3834ae1a451b23532bda20ac3579c62dde2201330af01025d1497a
+    "@ethereumjs/util": ^8.1.0
+    "@metamask/eth-sig-util": ^7.0.0
+    "@metamask/scure-bip39": ^2.1.0
+    "@metamask/utils": ^8.1.0
+    ethereum-cryptography: ^2.1.2
+  checksum: f6ee6dd4bfaf63358265bdfb9c99f32b4a35239ff83def6dca5cf4d9e635c8dc063aab1d3c512f07df50bc0a0e2d05f92075aebecc5098f731b29f8de5d5e2be
   languageName: node
   linkType: hard
 
@@ -1085,7 +1086,7 @@ __metadata:
     "@metamask/eslint-config-jest": ^11.1.0
     "@metamask/eslint-config-nodejs": ^11.1.0
     "@metamask/eslint-config-typescript": ^11.1.0
-    "@metamask/eth-hd-keyring": ^6.0.0
+    "@metamask/eth-hd-keyring": ^7.0.1
     "@metamask/eth-sig-util": ^7.0.0
     "@metamask/eth-simple-keyring": ^5.0.0
     "@metamask/obs-store": ^8.1.0
@@ -1115,7 +1116,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@metamask/eth-sig-util@npm:^5.0.1, @metamask/eth-sig-util@npm:^5.0.2":
+"@metamask/eth-sig-util@npm:^5.0.1":
   version: 5.1.0
   resolution: "@metamask/eth-sig-util@npm:5.1.0"
   dependencies:
@@ -1173,7 +1174,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/scure-bip39@npm:^2.0.3":
+"@metamask/scure-bip39@npm:^2.1.0":
   version: 2.1.0
   resolution: "@metamask/scure-bip39@npm:2.1.0"
   dependencies:
