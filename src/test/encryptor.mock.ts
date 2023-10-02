@@ -1,4 +1,4 @@
-import { Json } from '@metamask/utils';
+import type { Json } from '@metamask/utils';
 import { stub } from 'sinon';
 
 const PASSWORD = 'password123';
