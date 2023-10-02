@@ -7,13 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [14.0.0]
-### Uncategorized
-- Bump @metamask/utils from 6.2.0 to 8.1.0 ([#261](https://github.com/MetaMask/KeyringController/pull/261))
-- Bump word-wrap from 1.2.3 to 1.2.4 ([#255](https://github.com/MetaMask/KeyringController/pull/255))
+### Changed
+- **BREAKING:** Bump `@metamask/eth-sig-util` from `^6.0.0` to `^7.0.0` ([#269](https://github.com/MetaMask/KeyringController/pull/269))
+- **BREAKING:** Bump `@metamask/eth-hd-keyring` from `^6.0.0` to `^7.0.1` ([#275](https://github.com/MetaMask/KeyringController/pull/275))
+- **BREAKING:** Bump `@metamask/eth-simple-keyring` from `^5.0.0` to `^6.0.0` ([#273](https://github.com/MetaMask/KeyringController/pull/273))
 
 ## [13.0.1]
 ### Changed
-- Bump `@metamask/utils` from ^6.2.0` to `^8.1.0` ([#261](https://github.com/MetaMask/KeyringController/pull/261))
+- Bump `@metamask/utils` from `^6.2.0` to `^8.1.0` ([#261](https://github.com/MetaMask/KeyringController/pull/261))
 
 ## [13.0.0]
 ### Added
