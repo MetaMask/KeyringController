@@ -17,7 +17,7 @@ import type {
 import { EventEmitter } from 'events';
 
 import { KeyringType, KeyringControllerError } from './constants';
-import {
+import type {
   SerializedKeyring,
   KeyringControllerArgs,
   KeyringControllerState,
