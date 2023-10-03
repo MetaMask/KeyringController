@@ -6,9 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [14.0.0]
+### Changed
+- **BREAKING:** Bump `@metamask/eth-sig-util` from `^6.0.0` to `^7.0.0` ([#269](https://github.com/MetaMask/KeyringController/pull/269))
+- **BREAKING:** Bump `@metamask/eth-hd-keyring` from `^6.0.0` to `^7.0.1` ([#275](https://github.com/MetaMask/KeyringController/pull/275))
+- **BREAKING:** Bump `@metamask/eth-simple-keyring` from `^5.0.0` to `^6.0.0` ([#273](https://github.com/MetaMask/KeyringController/pull/273))
+
 ## [13.0.1]
 ### Changed
-- Bump `@metamask/utils` from ^6.2.0` to `^8.1.0` ([#261](https://github.com/MetaMask/KeyringController/pull/261))
+- Bump `@metamask/utils` from `^6.2.0` to `^8.1.0` ([#261](https://github.com/MetaMask/KeyringController/pull/261))
 
 ## [13.0.0]
 ### Added
@@ -158,7 +164,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v13.0.1...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v14.0.0...HEAD
+[14.0.0]: https://github.com/MetaMask/KeyringController/compare/v13.0.1...v14.0.0
 [13.0.1]: https://github.com/MetaMask/KeyringController/compare/v13.0.0...v13.0.1
 [13.0.0]: https://github.com/MetaMask/KeyringController/compare/v12.0.1...v13.0.0
 [12.0.1]: https://github.com/MetaMask/KeyringController/compare/v12.0.0...v12.0.1
