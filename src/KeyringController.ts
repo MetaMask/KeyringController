@@ -301,7 +301,11 @@ class KeyringController extends EventEmitter {
     if (!keyring.removeAccount) {
       throw new Error(KeyringControllerError.UnsupportedRemoveAccount);
     }
-    keyring.removeAccount(address);
+
+    // The `removeAccount` method of snaps keyring is async. We have to update
+    // the interface of the other keyrings to be async as well.
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await keyring.removeAccount(address);
     this.emit('removedAccount', address);
 
     const accounts = await keyring.getAccounts();
