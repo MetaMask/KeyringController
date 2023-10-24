@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [14.0.1]
+### Uncategorized
+- Bump @metamask/eth-simple-keyring from 6.0.0 to 6.0.1 ([#288](https://github.com/MetaMask/KeyringController/pull/288))
+- Bump @metamask/auto-changelog from 3.4.0 to 3.4.1 ([#289](https://github.com/MetaMask/KeyringController/pull/289))
+- Bump @metamask/utils from 8.1.0 to 8.2.0 ([#286](https://github.com/MetaMask/KeyringController/pull/286))
+- Bump react-devtools-core from 4.28.0 to 4.28.4 ([#284](https://github.com/MetaMask/KeyringController/pull/284))
+- Bump @metamask/auto-changelog from 3.3.0 to 3.4.0 ([#283](https://github.com/MetaMask/KeyringController/pull/283))
+- fix: await account removal ([#280](https://github.com/MetaMask/KeyringController/pull/280))
+- Bump postcss from 8.4.23 to 8.4.31 ([#282](https://github.com/MetaMask/KeyringController/pull/282))
+- Bump @metamask/scure-bip39 from 2.1.0 to 2.1.1 ([#281](https://github.com/MetaMask/KeyringController/pull/281))
+
 ## [14.0.0]
 ### Changed
 - **BREAKING:** Bump `@metamask/eth-sig-util` from `^6.0.0` to `^7.0.0` ([#269](https://github.com/MetaMask/KeyringController/pull/269))
@@ -164,7 +175,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v14.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v14.0.1...HEAD
+[14.0.1]: https://github.com/MetaMask/KeyringController/compare/v14.0.0...v14.0.1
 [14.0.0]: https://github.com/MetaMask/KeyringController/compare/v13.0.1...v14.0.0
 [13.0.1]: https://github.com/MetaMask/KeyringController/compare/v13.0.0...v13.0.1
 [13.0.0]: https://github.com/MetaMask/KeyringController/compare/v12.0.1...v13.0.0
