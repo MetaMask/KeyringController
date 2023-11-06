@@ -1240,7 +1240,7 @@ __metadata:
     "@metamask/eslint-config-typescript": ^12.1.0
     "@metamask/eth-hd-keyring": ^7.0.1
     "@metamask/eth-sig-util": ^7.0.0
-    "@metamask/eth-simple-keyring": ^6.0.0
+    "@metamask/eth-simple-keyring": ^6.0.1
     "@metamask/obs-store": ^8.1.0
     "@metamask/utils": ^8.1.0
     "@types/jest": ^29.4.0
@@ -1289,7 +1289,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-simple-keyring@npm:^6.0.0":
+"@metamask/eth-simple-keyring@npm:^6.0.1":
   version: 6.0.1
   resolution: "@metamask/eth-simple-keyring@npm:6.0.1"
   dependencies:

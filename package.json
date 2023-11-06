@@ -47,7 +47,7 @@
     "@metamask/browser-passworder": "^4.1.0",
     "@metamask/eth-hd-keyring": "^7.0.1",
     "@metamask/eth-sig-util": "^7.0.0",
-    "@metamask/eth-simple-keyring": "^6.0.0",
+    "@metamask/eth-simple-keyring": "^6.0.1",
     "@metamask/obs-store": "^8.1.0",
     "@metamask/utils": "^8.1.0"
   },
