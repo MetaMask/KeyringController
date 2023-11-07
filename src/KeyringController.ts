@@ -4,7 +4,12 @@ import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
 import { ObservableStore } from '@metamask/obs-store';
-import { remove0x, isValidHexAddress, isObject } from '@metamask/utils';
+import {
+  remove0x,
+  isValidHexAddress,
+  isObject,
+  isValidJson,
+} from '@metamask/utils';
 import type {
   Hex,
   Json,
@@ -22,6 +27,8 @@ import type {
   KeyringControllerArgs,
   KeyringControllerState,
   KeyringControllerPersistentState,
+  GenericEncryptor,
+  KeyEncryptor,
 } from './types';
 
 const defaultKeyringBuilders = [
@@ -36,7 +43,7 @@ class KeyringController extends EventEmitter {
 
   public memStore: ObservableStore<KeyringControllerState>;
 
-  public encryptor: any;
+  public encryptor: GenericEncryptor | KeyEncryptor;
 
   public keyrings: Keyring<Json>[];
 
@@ -790,6 +797,10 @@ class KeyringController extends EventEmitter {
     let newEncryptionKey;
 
     if (this.cacheEncryptionKey) {
+      if (!isKeyEncryptor(this.encryptor)) {
+        throw new Error(KeyringControllerError.UnsupportedKeyDecryption);
+      }
+
       if (this.password) {
         const { vault: newVault, exportedKeyString } =
           await this.encryptor.encryptWithDetail(
@@ -805,7 +816,9 @@ class KeyringController extends EventEmitter {
           key,
           serializedKeyrings,
         );
-        vaultJSON.salt = encryptionSalt;
+        if (encryptionSalt) {
+          vaultJSON.salt = encryptionSalt;
+        }
         vault = JSON.stringify(vaultJSON);
       }
     } else {
@@ -862,6 +875,10 @@ class KeyringController extends EventEmitter {
     let vault;
 
     if (this.cacheEncryptionKey) {
+      if (!isKeyEncryptor(this.encryptor)) {
+        throw new Error(KeyringControllerError.UnsupportedKeyDecryption);
+      }
+
       if (password) {
         const result = await this.encryptor.decryptWithDetail(
           password,
@@ -905,6 +922,10 @@ class KeyringController extends EventEmitter {
 
       vault = await this.encryptor.decrypt(password, encryptedVault);
       this.password = password;
+    }
+
+    if (!isSerializedKeyringsArray(vault)) {
+      throw new Error(KeyringControllerError.VaultError);
     }
 
     await Promise.all(vault.map(this.#restoreKeyring.bind(this)));
@@ -1090,6 +1111,48 @@ async function displayForKeyring(
     // values, and `normalizeToHex` returns `Hex` unless given a nullish value
     accounts: accounts.map(normalizeToHex) as Hex[],
   };
+}
+
+/**
+ * Check if the provided encryptor supports
+ * key encryption.
+ *
+ * @param encryptor - The encryptor to check.
+ * @returns True if the encryptor supports key encryption.
+ */
+function isKeyEncryptor(
+  encryptor: GenericEncryptor | KeyEncryptor,
+): encryptor is KeyEncryptor {
+  return (
+    'importKey' in encryptor &&
+    typeof encryptor.importKey === 'function' &&
+    'decryptWithKey' in encryptor &&
+    typeof encryptor.decryptWithKey === 'function' &&
+    'encryptWithKey' in encryptor &&
+    typeof encryptor.encryptWithKey === 'function'
+  );
+}
+
+/**
+ * Checks if the provided value is a serialized keyrings array.
+ *
+ * @param array - The value to check.
+ * @returns True if the value is a serialized keyrings array.
+ */
+function isSerializedKeyringsArray(
+  array: unknown,
+): array is SerializedKeyring[] {
+  if (typeof array !== 'object' || !Array.isArray(array)) {
+    return false;
+  }
+
+  for (const value of array) {
+    if (!value.type || !isValidJson(value.data)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export { KeyringController, keyringBuilderFactory };

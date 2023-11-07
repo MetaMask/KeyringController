@@ -9,6 +9,7 @@ export enum KeyringControllerError {
   NoFirstAccount = 'KeyringController - First Account not found.',
   DuplicatedAccount = 'KeyringController - The account you are trying to import is a duplicate',
   VaultError = 'KeyringController - Cannot unlock without a previous vault.',
+  UnsupportedKeyDecryption = 'KeyringController - The encryptor does not support key decryption.',
   UnsupportedGenerateRandomMnemonic = 'KeyringController - The current keyring does not support the method generateRandomMnemonic.',
   UnsupportedExportAccount = '`KeyringController - The keyring for the current address does not support the method exportAccount',
   UnsupportedRemoveAccount = '`KeyringController - The keyring for the current address does not support the method removeAccount',
