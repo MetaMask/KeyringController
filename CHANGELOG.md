@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [14.0.1]
 ### Fixed
-- Await account removal ([#280](https://github.com/MetaMask/KeyringController/pull/280))
+- Fix `removeAccount` to await the account removal in order to account for Snaps keyrings ([#280](https://github.com/MetaMask/KeyringController/pull/280))
 - Bump `@metamask/eth-simple-keyring` from `^6.0.0` to `^6.0.1` ([#287](https://github.com/MetaMask/KeyringController/pull/287))
 
 ## [14.0.0]
