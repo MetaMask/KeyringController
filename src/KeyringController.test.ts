@@ -96,7 +96,7 @@ describe('KeyringController', () => {
                 encrypt: async (_pass: string, _obj: any) => 'decrypted',
               },
             }),
-        ).toThrow(KeyringControllerError.UnsupportedKeyDecryption);
+        ).toThrow(KeyringControllerError.UnsupportedEncryptionKeyExport);
       });
     });
   });
@@ -117,7 +117,7 @@ describe('KeyringController', () => {
       });
 
       expect(() => (keyringController.encryptor = encryptor)).toThrow(
-        KeyringControllerError.UnsupportedKeyDecryption,
+        KeyringControllerError.UnsupportedEncryptionKeyExport,
       );
     });
   });
@@ -138,7 +138,7 @@ describe('KeyringController', () => {
       });
 
       expect(() => (keyringController.cacheEncryptionKey = true)).toThrow(
-        KeyringControllerError.UnsupportedKeyDecryption,
+        KeyringControllerError.UnsupportedEncryptionKeyExport,
       );
     });
   });

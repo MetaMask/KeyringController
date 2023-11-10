@@ -1242,7 +1242,7 @@ function assertIsExportableKeyEncryptor(
       typeof encryptor.encryptWithKey === 'function'
     )
   ) {
-    throw new Error(KeyringControllerError.UnsupportedKeyDecryption);
+    throw new Error(KeyringControllerError.UnsupportedEncryptionKeyExport);
   }
 }
 
