@@ -45,7 +45,7 @@ export type GenericEncryptor = {
    * @param object - The object to encrypt.
    * @returns The encrypted string.
    */
-  encrypt: <Obj>(password: string, object: Obj) => Promise<string>;
+  encrypt: (password: string, object: Json) => Promise<string>;
   /**
    * Decrypts the given encrypted string with the given password.
    *
@@ -77,7 +77,7 @@ export type ExportableKeyEncryptor = GenericEncryptor & {
    * @param object - The object to encrypt.
    * @returns The encryption result.
    */
-  encryptWithKey: <Obj>(key: unknown, object: Obj) => Promise<EncryptionResult>;
+  encryptWithKey: (key: unknown, object: Json) => Promise<EncryptionResult>;
   /**
    * Encrypts the given object with the given password, and returns the
    * encryption result and the exported key string.
@@ -87,9 +87,9 @@ export type ExportableKeyEncryptor = GenericEncryptor & {
    * @param salt - The optional salt to use for encryption.
    * @returns The encrypted string and the exported key string.
    */
-  encryptWithDetail: <Obj>(
+  encryptWithDetail: (
     password: string,
-    object: Obj,
+    object: Json,
     salt?: string,
   ) => Promise<DetailedEncryptionResult>;
   /**
