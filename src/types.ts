@@ -7,9 +7,9 @@ import type { Json, Keyring } from '@metamask/utils';
 
 export type KeyringControllerArgs = {
   keyringBuilders?: { (): Keyring<Json>; type: string }[];
-  initState?: KeyringControllerPersistentState;
-  encryptor?: GenericEncryptor | KeyEncryptor;
   cacheEncryptionKey: boolean;
+  initState?: KeyringControllerPersistentState;
+  encryptor?: GenericEncryptor | ExportableKeyEncryptor;
 };
 
 export type KeyringObject = {
@@ -39,7 +39,7 @@ export type GenericEncryptor = {
   updateVault?: (vault: string, password: string) => Promise<string>;
 };
 
-export type KeyEncryptor = GenericEncryptor & {
+export type ExportableKeyEncryptor = GenericEncryptor & {
   encryptWithKey: <Obj>(key: unknown, object: Obj) => Promise<EncryptionResult>;
   encryptWithDetail: <Obj>(
     password: string,

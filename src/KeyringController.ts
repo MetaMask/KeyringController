@@ -28,7 +28,7 @@ import type {
   KeyringControllerState,
   KeyringControllerPersistentState,
   GenericEncryptor,
-  KeyEncryptor,
+  ExportableKeyEncryptor,
 } from './types';
 
 const defaultKeyringBuilders = [
@@ -49,7 +49,7 @@ class KeyringController extends EventEmitter {
 
   public password?: string;
 
-  #encryptor: GenericEncryptor | KeyEncryptor;
+  #encryptor: GenericEncryptor | ExportableKeyEncryptor;
 
   #cacheEncryptionKey: boolean;
 
@@ -80,7 +80,7 @@ class KeyringController extends EventEmitter {
     // for use in decrypting and encrypting data without password
     this.#cacheEncryptionKey = Boolean(cacheEncryptionKey);
     if (this.#cacheEncryptionKey) {
-      assertIsKeyEncryptor(encryptor);
+      assertIsExportableKeyEncryptor(encryptor);
     }
   }
 
@@ -800,7 +800,7 @@ class KeyringController extends EventEmitter {
     let newEncryptionKey;
 
     if (this.cacheEncryptionKey) {
-      assertIsKeyEncryptor(this.encryptor);
+      assertIsExportableKeyEncryptor(this.encryptor);
 
       if (this.password) {
         const { vault: newVault, exportedKeyString } =
@@ -878,7 +878,7 @@ class KeyringController extends EventEmitter {
     let vault;
 
     if (this.cacheEncryptionKey) {
-      assertIsKeyEncryptor(this.encryptor);
+      assertIsExportableKeyEncryptor(this.encryptor);
 
       if (password) {
         const result = await this.encryptor.decryptWithDetail(
@@ -939,11 +939,11 @@ class KeyringController extends EventEmitter {
    *
    * @param encryptor - The encryptor to set.
    * @throws If the `cacheEncryptionKey` option is true and the
-   * encryptor is not a valid KeyEncryptor.
+   * encryptor is not a valid ExportableKeyEncryptor.
    */
-  set encryptor(encryptor: GenericEncryptor | KeyEncryptor) {
+  set encryptor(encryptor: GenericEncryptor | ExportableKeyEncryptor) {
     if (this.cacheEncryptionKey) {
-      assertIsKeyEncryptor(encryptor);
+      assertIsExportableKeyEncryptor(encryptor);
     }
 
     this.#encryptor = encryptor;
@@ -963,11 +963,11 @@ class KeyringController extends EventEmitter {
    *
    * @param cache - Whether to cache the encryption key.
    * @throws If the `cacheEncryptionKey` option is true and the
-   * encryptor is not a valid KeyEncryptor.
+   * encryptor is not a valid ExportableKeyEncryptor.
    */
   set cacheEncryptionKey(cache: boolean) {
     if (cache) {
-      assertIsKeyEncryptor(this.encryptor);
+      assertIsExportableKeyEncryptor(this.encryptor);
     }
 
     this.#cacheEncryptionKey = cache;
@@ -1149,7 +1149,7 @@ class KeyringController extends EventEmitter {
     let updatedEncryptedVault: string;
 
     if (this.cacheEncryptionKey) {
-      assertIsKeyEncryptor(this.encryptor);
+      assertIsExportableKeyEncryptor(this.encryptor);
 
       const { vault, exportedKeyString } =
         await this.encryptor.updateVaultWithDetail(
@@ -1224,14 +1224,14 @@ async function displayForKeyring(
 
 /**
  * Assert that the provided encryptor supports
- * key encryption.
+ * encryption and encryption key export.
  *
  * @param encryptor - The encryptor to check.
  * @throws If the encryptor does not support key encryption.
  */
-function assertIsKeyEncryptor(
-  encryptor: GenericEncryptor | KeyEncryptor,
-): asserts encryptor is KeyEncryptor {
+function assertIsExportableKeyEncryptor(
+  encryptor: GenericEncryptor | ExportableKeyEncryptor,
+): asserts encryptor is ExportableKeyEncryptor {
   if (
     !(
       'importKey' in encryptor &&

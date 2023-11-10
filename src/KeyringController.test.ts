@@ -15,7 +15,7 @@ import {
   MOCK_HARDCODED_KEY,
   MOCK_ENCRYPTION_SALT,
 } from './test';
-import type { KeyEncryptor, KeyringControllerArgs } from './types';
+import type { ExportableKeyEncryptor, KeyringControllerArgs } from './types';
 
 const MOCK_ENCRYPTION_KEY =
   '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
@@ -856,7 +856,7 @@ describe('KeyringController', () => {
           );
           const updateVaultStub = sinon
             .stub(
-              keyringController.encryptor as KeyEncryptor,
+              keyringController.encryptor as ExportableKeyEncryptor,
               'updateVaultWithDetail',
             )
             .resolves({
@@ -1091,10 +1091,10 @@ describe('KeyringController', () => {
         },
       });
       const returnValue = await (
-        keyringController.encryptor as KeyEncryptor
+        keyringController.encryptor as ExportableKeyEncryptor
       ).decryptWithKey('', '');
       const decryptWithKeyStub = sinon.stub(
-        keyringController.encryptor as KeyEncryptor,
+        keyringController.encryptor as ExportableKeyEncryptor,
         'decryptWithKey',
       );
       decryptWithKeyStub.resolves(Promise.resolve(returnValue));
