@@ -43,15 +43,15 @@ class KeyringController extends EventEmitter {
 
   public memStore: ObservableStore<KeyringControllerState>;
 
-  public encryptor: GenericEncryptor | KeyEncryptor;
-
   public keyrings: Keyring<Json>[];
-
-  public cacheEncryptionKey: boolean;
 
   public unsupportedKeyrings: SerializedKeyring[];
 
   public password?: string;
+
+  #encryptor: GenericEncryptor | KeyEncryptor;
+
+  #cacheEncryptionKey: boolean;
 
   constructor({
     keyringBuilders,
@@ -72,13 +72,16 @@ class KeyringController extends EventEmitter {
       keyrings: [],
     });
 
-    this.encryptor = encryptor;
+    this.#encryptor = encryptor;
     this.keyrings = [];
     this.unsupportedKeyrings = [];
 
     // This option allows the controller to cache an exported key
     // for use in decrypting and encrypting data without password
-    this.cacheEncryptionKey = Boolean(cacheEncryptionKey);
+    this.#cacheEncryptionKey = Boolean(cacheEncryptionKey);
+    if (this.#cacheEncryptionKey) {
+      assertIsKeyEncryptor(encryptor);
+    }
   }
 
   /**
@@ -797,9 +800,7 @@ class KeyringController extends EventEmitter {
     let newEncryptionKey;
 
     if (this.cacheEncryptionKey) {
-      if (!isKeyEncryptor(this.encryptor)) {
-        throw new Error(KeyringControllerError.UnsupportedKeyDecryption);
-      }
+      assertIsKeyEncryptor(this.encryptor);
 
       if (this.password) {
         const { vault: newVault, exportedKeyString } =
@@ -865,6 +866,8 @@ class KeyringController extends EventEmitter {
     encryptionKey?: string,
     encryptionSalt?: string,
   ): Promise<Keyring<Json>[]> {
+    await this.#updateVaultEncryption();
+
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
       throw new Error(KeyringControllerError.VaultError);
@@ -875,9 +878,7 @@ class KeyringController extends EventEmitter {
     let vault;
 
     if (this.cacheEncryptionKey) {
-      if (!isKeyEncryptor(this.encryptor)) {
-        throw new Error(KeyringControllerError.UnsupportedKeyDecryption);
-      }
+      assertIsKeyEncryptor(this.encryptor);
 
       if (password) {
         const result = await this.encryptor.decryptWithDetail(
@@ -925,12 +926,60 @@ class KeyringController extends EventEmitter {
     }
 
     if (!isSerializedKeyringsArray(vault)) {
-      throw new Error(KeyringControllerError.VaultError);
+      throw new Error(KeyringControllerError.VaultDataError);
     }
 
     await Promise.all(vault.map(this.#restoreKeyring.bind(this)));
     await this.updateMemStoreKeyrings();
     return this.keyrings;
+  }
+
+  /**
+   * Setter for the encryptor.
+   *
+   * @param encryptor - The encryptor to set.
+   * @throws If the `cacheEncryptionKey` option is true and the
+   * encryptor is not a valid KeyEncryptor.
+   */
+  set encryptor(encryptor: GenericEncryptor | KeyEncryptor) {
+    if (this.cacheEncryptionKey) {
+      assertIsKeyEncryptor(encryptor);
+    }
+
+    this.#encryptor = encryptor;
+  }
+
+  /**
+   * Getter for the encryptor.
+   *
+   * @returns The encryptor.
+   */
+  get encryptor() {
+    return this.#encryptor;
+  }
+
+  /**
+   * Setter for the cacheEncryptionKey option.
+   *
+   * @param cache - Whether to cache the encryption key.
+   * @throws If the `cacheEncryptionKey` option is true and the
+   * encryptor is not a valid KeyEncryptor.
+   */
+  set cacheEncryptionKey(cache: boolean) {
+    if (cache) {
+      assertIsKeyEncryptor(this.encryptor);
+    }
+
+    this.#cacheEncryptionKey = cache;
+  }
+
+  /**
+   * Getter for the cacheEncryptionKey option.
+   *
+   * @returns Whether the encryption key is cached.
+   */
+  get cacheEncryptionKey() {
+    return this.#cacheEncryptionKey;
   }
 
   // =======================
@@ -1074,6 +1123,66 @@ class KeyringController extends EventEmitter {
 
     return keyring;
   }
+
+  /**
+   * Ensure that the vault is encrypted with the latest encryption method available.
+   *
+   * The vault is left unchanged if no password is available, if the encryptor does not support
+   * the vault update, or if the vault is already encrypted with the latest encryption method.
+   *
+   * @returns The updated encrypted vault.
+   */
+  async #updateVaultEncryption(): Promise<void> {
+    const encryptedVault = this.store.getState().vault;
+
+    if (!encryptedVault) {
+      throw new Error(KeyringControllerError.VaultError);
+    }
+
+    if (
+      !this.password ||
+      (!this.cacheEncryptionKey && !this.encryptor.updateVault)
+    ) {
+      return;
+    }
+
+    let updatedEncryptedVault: string;
+
+    if (this.cacheEncryptionKey) {
+      assertIsKeyEncryptor(this.encryptor);
+
+      const { vault, exportedKeyString } =
+        await this.encryptor.updateVaultWithDetail(
+          {
+            vault: encryptedVault,
+            exportedKeyString: '',
+          },
+          this.password,
+        );
+
+      if (encryptedVault !== vault) {
+        this.memStore.updateState({
+          encryptionKey: exportedKeyString,
+          encryptionSalt: JSON.parse(vault).salt,
+        });
+      }
+
+      updatedEncryptedVault = vault;
+    } else {
+      // @ts-expect-error This line is unreachable if `cacheEncryptionKey` is `false`
+      // and `encryptor.updateVault` is not defined.
+      updatedEncryptedVault = await this.encryptor.updateVault(
+        encryptedVault,
+        this.password,
+      );
+    }
+
+    if (encryptedVault !== updatedEncryptedVault) {
+      this.store.updateState({
+        vault: updatedEncryptedVault,
+      });
+    }
+  }
 }
 
 /**
@@ -1114,23 +1223,27 @@ async function displayForKeyring(
 }
 
 /**
- * Check if the provided encryptor supports
+ * Assert that the provided encryptor supports
  * key encryption.
  *
  * @param encryptor - The encryptor to check.
- * @returns True if the encryptor supports key encryption.
+ * @throws If the encryptor does not support key encryption.
  */
-function isKeyEncryptor(
+function assertIsKeyEncryptor(
   encryptor: GenericEncryptor | KeyEncryptor,
-): encryptor is KeyEncryptor {
-  return (
-    'importKey' in encryptor &&
-    typeof encryptor.importKey === 'function' &&
-    'decryptWithKey' in encryptor &&
-    typeof encryptor.decryptWithKey === 'function' &&
-    'encryptWithKey' in encryptor &&
-    typeof encryptor.encryptWithKey === 'function'
-  );
+): asserts encryptor is KeyEncryptor {
+  if (
+    !(
+      'importKey' in encryptor &&
+      typeof encryptor.importKey === 'function' &&
+      'decryptWithKey' in encryptor &&
+      typeof encryptor.decryptWithKey === 'function' &&
+      'encryptWithKey' in encryptor &&
+      typeof encryptor.encryptWithKey === 'function'
+    )
+  ) {
+    throw new Error(KeyringControllerError.UnsupportedKeyDecryption);
+  }
 }
 
 /**

@@ -1,19 +1,19 @@
 import {
-  mockEncryptor,
+  MockEncryptor,
   PASSWORD,
   MOCK_HARDCODED_KEY,
   MOCK_HEX,
   MOCK_ENCRYPTION_KEY,
-  MOCK_SALT,
+  MOCK_ENCRYPTION_SALT,
 } from './encryptor.mock';
 import KeyringMockWithInit from './keyring.mock';
 
 export {
-  mockEncryptor,
+  MockEncryptor,
   KeyringMockWithInit,
   PASSWORD,
   MOCK_HARDCODED_KEY,
   MOCK_HEX,
   MOCK_ENCRYPTION_KEY,
-  MOCK_SALT,
+  MOCK_ENCRYPTION_SALT,
 };
