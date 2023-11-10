@@ -93,7 +93,7 @@ export type ExportableKeyEncryptor = GenericEncryptor & {
     salt?: string,
   ) => Promise<DetailedEncryptionResult>;
   /**
-   * Decrypts the given encrypted string with the given password.
+   * Decrypts the given encrypted string with the given encryption key.
    *
    * @param key - The encryption key to decrypt with.
    * @param encryptedString - The encrypted string to decrypt.
