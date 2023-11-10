@@ -1,5 +1,7 @@
 import type { Json } from '@metamask/utils';
 
+import type { ExportableKeyEncryptor } from '../types';
+
 export const PASSWORD = 'password123';
 export const MOCK_ENCRYPTION_KEY = JSON.stringify({
   alg: 'A256GCM',
@@ -19,7 +21,7 @@ const INVALID_PASSWORD_ERROR = 'Incorrect password.';
 
 let cacheVal: Json;
 
-export class MockEncryptor {
+export class MockEncryptor implements ExportableKeyEncryptor {
   async encrypt(password: string, dataObj: any) {
     return JSON.stringify({
       ...(await this.encryptWithKey(password, dataObj)),
@@ -35,7 +37,7 @@ export class MockEncryptor {
     return cacheVal ?? {};
   }
 
-  async encryptWithKey(_key: string, dataObj: any) {
+  async encryptWithKey(_key: unknown, dataObj: any) {
     cacheVal = dataObj;
     return {
       data: MOCK_HEX,
@@ -58,8 +60,8 @@ export class MockEncryptor {
     };
   }
 
-  async decryptWithKey(key: string, text: string) {
-    return this.decrypt(key, text);
+  async decryptWithKey(key: unknown, text: string) {
+    return this.decrypt(key as string, text);
   }
 
   async keyFromPassword(_password: string) {
