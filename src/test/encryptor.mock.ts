@@ -81,17 +81,6 @@ export class MockEncryptor implements ExportableKeyEncryptor {
     return _vault;
   }
 
-  async updateVaultWithDetail(
-    encryptedData: any,
-    password: string,
-  ): Promise<any> {
-    const { vault } = encryptedData;
-    return {
-      ...encryptedData,
-      vault: await this.updateVault(vault, password),
-    };
-  }
-
   generateSalt() {
     return MOCK_ENCRYPTION_SALT;
   }

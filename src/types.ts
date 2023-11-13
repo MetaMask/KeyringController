@@ -121,17 +121,4 @@ export type ExportableKeyEncryptor = GenericEncryptor & {
    * @returns The encryption key.
    */
   importKey: (key: string) => Promise<unknown>;
-  /**
-   * Vault migration helper. Updates the provided vault, re-encrypting
-   * data with a safer algorithm if one is available and returning it along with
-   * the updated exported key.
-   *
-   * @param encryptedData - The encrypted data to update.
-   * @param password - The password to decrypt the vault with.
-   * @returns The updated encrypted data and the updated exported key.
-   */
-  updateVaultWithDetail: (
-    encryptedData: DetailedEncryptionResult,
-    password: string,
-  ) => Promise<DetailedEncryptionResult>;
 };
