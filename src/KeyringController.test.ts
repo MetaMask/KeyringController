@@ -841,7 +841,7 @@ describe('KeyringController', () => {
 
     describe('with old vault format', () => {
       describe('with cacheEncryptionKey = true', () => {
-        it('should update the vault to new format', async () => {
+        it('should call persistAllKeyrings', async () => {
           const updatedVault =
             '{"vault": "updated_vault_detail", "salt": "salt"}';
           const keyringController = await initializeKeyringController({
@@ -850,45 +850,44 @@ describe('KeyringController', () => {
               cacheEncryptionKey: true,
             },
           });
-          const updateStateSpy = sinon.spy(
-            keyringController.memStore,
-            'updateState',
-          );
           const updateVaultStub = sinon
             .stub(
               keyringController.encryptor as ExportableKeyEncryptor,
-              'updateVaultWithDetail',
+              'updateVault',
             )
-            .resolves({
-              vault: updatedVault,
-              exportedKeyString: 'exported_key',
-            });
+            .resolves(updatedVault);
+          const persistAllKeyringsSpy = sinon.spy(
+            keyringController,
+            'persistAllKeyrings',
+          );
 
           await keyringController.unlockKeyrings(PASSWORD);
 
           expect(updateVaultStub.calledOnce).toBe(true);
-          expect(keyringController.store.getState().vault).toBe(updatedVault);
-          expect(
-            updateStateSpy.calledWith({
-              encryptionKey: 'exported_key',
-              encryptionSalt: 'salt',
-            }),
-          ).toBe(true);
+          expect(persistAllKeyringsSpy.called).toBe(true);
         });
       });
       describe('with cacheEncryptionKey = false', () => {
-        it('should update the vault to new format', async () => {
+        it('should call persistAllKeyrings', async () => {
           const updatedVault = '{"vault": "updated_vault", "salt": "salt"}';
           const keyringController = await initializeKeyringController({
             password: PASSWORD,
           });
-          sinon
-            .stub(keyringController.encryptor, 'updateVault')
+          const updateVaultStub = sinon
+            .stub(
+              keyringController.encryptor as ExportableKeyEncryptor,
+              'updateVault',
+            )
             .resolves(updatedVault);
+          const persistAllKeyringsSpy = sinon.spy(
+            keyringController,
+            'persistAllKeyrings',
+          );
 
           await keyringController.unlockKeyrings(PASSWORD);
 
-          expect(keyringController.store.getState().vault).toBe(updatedVault);
+          expect(updateVaultStub.calledOnce).toBe(true);
+          expect(persistAllKeyringsSpy.called).toBe(true);
         });
       });
     });

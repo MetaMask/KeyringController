@@ -866,8 +866,6 @@ class KeyringController extends EventEmitter {
     encryptionKey?: string,
     encryptionSalt?: string,
   ): Promise<Keyring<Json>[]> {
-    await this.#updateVaultEncryption();
-
     const encryptedVault = this.store.getState().vault;
     if (!encryptedVault) {
       throw new Error(KeyringControllerError.VaultError);
@@ -931,6 +929,7 @@ class KeyringController extends EventEmitter {
 
     await Promise.all(vault.map(this.#restoreKeyring.bind(this)));
     await this.updateMemStoreKeyrings();
+    await this.#updateVaultEncryption();
     return this.keyrings;
   }
 
@@ -1139,48 +1138,16 @@ class KeyringController extends EventEmitter {
       throw new Error(KeyringControllerError.VaultError);
     }
 
-    if (
-      !this.password ||
-      (!this.cacheEncryptionKey && !this.encryptor.updateVault)
-    ) {
+    if (!this.password) {
       return;
     }
 
-    let updatedEncryptedVault: string;
-
-    if (this.cacheEncryptionKey) {
-      assertIsExportableKeyEncryptor(this.encryptor);
-
-      const { vault, exportedKeyString } =
-        await this.encryptor.updateVaultWithDetail(
-          {
-            vault: encryptedVault,
-            exportedKeyString: '',
-          },
-          this.password,
-        );
-
-      if (encryptedVault !== vault) {
-        this.memStore.updateState({
-          encryptionKey: exportedKeyString,
-          encryptionSalt: JSON.parse(vault).salt,
-        });
-      }
-
-      updatedEncryptedVault = vault;
-    } else {
-      // @ts-expect-error This line is unreachable if `cacheEncryptionKey` is `false`
-      // and `encryptor.updateVault` is not defined.
-      updatedEncryptedVault = await this.encryptor.updateVault(
-        encryptedVault,
-        this.password,
-      );
-    }
-
-    if (encryptedVault !== updatedEncryptedVault) {
-      this.store.updateState({
-        vault: updatedEncryptedVault,
-      });
+    if (
+      this.encryptor.updateVault &&
+      (await this.encryptor.updateVault(encryptedVault, this.password)) !==
+        encryptedVault
+    ) {
+      await this.persistAllKeyrings();
     }
   }
 }
