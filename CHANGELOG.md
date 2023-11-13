@@ -110,7 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix support for asynchronous `addAccounts` HD Keyring method ([#176](https://github.com/MetaMask/KeyringController/pull/176))
-  - This method was asynchronous, but was called synchronously. Currently the method does not do anything asychronous so this should have no functional impact, but this ensures any future errors or asynchronous steps added to that method work correctly in the future.
+  - This method was asynchronous, but was called synchronously. Currently the method does not do anything asynchronous so this should have no functional impact, but this ensures any future errors or asynchronous steps added to that method work correctly in the future.
 
 ## [8.1.0]
 ### Changed
