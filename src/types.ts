@@ -7,10 +7,14 @@ import type { Json, Keyring } from '@metamask/utils';
 
 export type KeyringControllerArgs = {
   keyringBuilders?: { (): Keyring<Json>; type: string }[];
-  cacheEncryptionKey: boolean;
   initState?: KeyringControllerPersistentState;
-  encryptor?: GenericEncryptor | ExportableKeyEncryptor;
-};
+} & (
+  | { encryptor?: ExportableKeyEncryptor; cacheEncryptionKey: true }
+  | {
+      encryptor?: GenericEncryptor | ExportableKeyEncryptor;
+      cacheEncryptionKey: false;
+    }
+);
 
 export type KeyringObject = {
   type: string;

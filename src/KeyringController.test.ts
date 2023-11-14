@@ -88,6 +88,7 @@ describe('KeyringController', () => {
       it('should throw error if provided encryptor does not support key export', async () => {
         expect(
           () =>
+            // @ts-expect-error we want to bypass typechecks here.
             new KeyringController({
               cacheEncryptionKey: true,
               encryptor: {
