@@ -817,9 +817,7 @@ class KeyringController extends EventEmitter {
           key,
           serializedKeyrings,
         );
-        if (encryptionSalt) {
-          vaultJSON.salt = encryptionSalt;
-        }
+        vaultJSON.salt = encryptionSalt;
         vault = JSON.stringify(vaultJSON);
       }
     } else {

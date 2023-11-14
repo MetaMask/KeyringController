@@ -26,7 +26,13 @@ export type KeyringControllerState = {
   isUnlocked: boolean;
   encryptionKey?: string;
   encryptionSalt?: string;
-};
+} & (
+  | { encryptionKey: string; encryptionSalt: string }
+  | {
+      encryptionKey?: never;
+      encryptionSalt?: never;
+    }
+);
 
 export type SerializedKeyring = {
   type: string;
