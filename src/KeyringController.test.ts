@@ -835,54 +835,29 @@ describe('KeyringController', () => {
     });
 
     describe('with old vault format', () => {
-      describe('with cacheEncryptionKey = true', () => {
-        it('should call persistAllKeyrings', async () => {
-          const updatedVault =
-            '{"vault": "updated_vault_detail", "salt": "salt"}';
-          const mockEncryptor = new MockEncryptor();
-          const updateVaultStub = sinon
-            .stub(mockEncryptor, 'updateVault')
-            .resolves(updatedVault);
-          const keyringController = await initializeKeyringController({
-            password: PASSWORD,
-            constructorOptions: {
-              cacheEncryptionKey: true,
-              encryptor: mockEncryptor,
-            },
+      [true, false].forEach((cacheEncryptionKey) => {
+        describe(`with cacheEncryptionKey = ${cacheEncryptionKey}`, () => {
+          it('should update the vault', async () => {
+            const mockEncryptor = new MockEncryptor();
+            const keyringController = await initializeKeyringController({
+              password: PASSWORD,
+              constructorOptions: {
+                cacheEncryptionKey: true,
+                encryptor: mockEncryptor,
+              },
+            });
+            const initialVault = keyringController.store.getState().vault;
+            const updatedVaultMock =
+              '{"vault": "updated_vault_detail", "salt": "salt"}';
+            sinon.stub(mockEncryptor, 'updateVault').resolves(updatedVaultMock);
+            sinon.stub(mockEncryptor, 'encrypt').resolves(updatedVaultMock);
+
+            await keyringController.unlockKeyrings(PASSWORD);
+            const updatedVault = keyringController.store.getState().vault;
+
+            expect(initialVault).not.toBe(updatedVault);
+            expect(updatedVault).toBe(updatedVaultMock);
           });
-          const persistAllKeyringsSpy = sinon.spy(
-            keyringController,
-            'persistAllKeyrings',
-          );
-
-          await keyringController.unlockKeyrings(PASSWORD);
-
-          expect(updateVaultStub.calledOnce).toBe(true);
-          expect(persistAllKeyringsSpy.called).toBe(true);
-        });
-      });
-      describe('with cacheEncryptionKey = false', () => {
-        it('should call persistAllKeyrings', async () => {
-          const updatedVault = '{"vault": "updated_vault", "salt": "salt"}';
-          const mockEncryptor = new MockEncryptor();
-          const updateVaultStub = sinon
-            .stub(mockEncryptor, 'updateVault')
-            .resolves(updatedVault);
-          const keyringController = await initializeKeyringController({
-            password: PASSWORD,
-            constructorOptions: {
-              encryptor: mockEncryptor,
-            },
-          });
-          const persistAllKeyringsSpy = sinon.spy(
-            keyringController,
-            'persistAllKeyrings',
-          );
-
-          await keyringController.unlockKeyrings(PASSWORD);
-
-          expect(updateVaultStub.calledOnce).toBe(true);
-          expect(persistAllKeyringsSpy.called).toBe(true);
         });
       });
     });
