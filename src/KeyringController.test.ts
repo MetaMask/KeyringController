@@ -193,8 +193,8 @@ describe('KeyringController', () => {
 
       assert(keyringController.store.getState().vault, 'Vault is not set');
       expect(encryptSpy.calledOnce).toBe(true);
-      expect(encryptSpy.getCalls()?.[0]?.args[1]).toHaveLength(2);
-      expect(encryptSpy.getCalls()?.[0]?.args[1]).toContain(unsupportedKeyring);
+      expect(encryptSpy.getCalls()[0]?.args[1]).toHaveLength(2);
+      expect(encryptSpy.getCalls()[0]?.args[1]).toContain(unsupportedKeyring);
     });
 
     describe('when `cacheEncryptionKey` is enabled', () => {

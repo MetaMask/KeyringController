@@ -1156,17 +1156,11 @@ function assertIsExportableKeyEncryptor(
 function isSerializedKeyringsArray(
   array: unknown,
 ): array is SerializedKeyring[] {
-  if (typeof array !== 'object' || !Array.isArray(array)) {
-    return false;
-  }
-
-  for (const value of array) {
-    if (!value.type || !isValidJson(value.data)) {
-      return false;
-    }
-  }
-
-  return true;
+  return (
+    typeof array === 'object' &&
+    Array.isArray(array) &&
+    array.every((value) => value.type && isValidJson(value.data))
+  );
 }
 
 export { KeyringController, keyringBuilderFactory };
