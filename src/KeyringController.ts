@@ -4,7 +4,12 @@ import HDKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
 import { ObservableStore } from '@metamask/obs-store';
-import { remove0x, isValidHexAddress, isObject } from '@metamask/utils';
+import {
+  remove0x,
+  isValidHexAddress,
+  isObject,
+  isValidJson,
+} from '@metamask/utils';
 import type {
   Hex,
   Json,
@@ -22,6 +27,8 @@ import type {
   KeyringControllerArgs,
   KeyringControllerState,
   KeyringControllerPersistentState,
+  GenericEncryptor,
+  ExportableKeyEncryptor,
 } from './types';
 
 const defaultKeyringBuilders = [
@@ -36,15 +43,15 @@ class KeyringController extends EventEmitter {
 
   public memStore: ObservableStore<KeyringControllerState>;
 
-  public encryptor: any;
-
   public keyrings: Keyring<Json>[];
-
-  public cacheEncryptionKey: boolean;
 
   public unsupportedKeyrings: SerializedKeyring[];
 
   public password?: string;
+
+  #encryptor: GenericEncryptor | ExportableKeyEncryptor;
+
+  #cacheEncryptionKey: boolean;
 
   constructor({
     keyringBuilders,
@@ -65,13 +72,16 @@ class KeyringController extends EventEmitter {
       keyrings: [],
     });
 
-    this.encryptor = encryptor;
+    this.#encryptor = encryptor;
     this.keyrings = [];
     this.unsupportedKeyrings = [];
 
     // This option allows the controller to cache an exported key
     // for use in decrypting and encrypting data without password
-    this.cacheEncryptionKey = Boolean(cacheEncryptionKey);
+    this.#cacheEncryptionKey = Boolean(cacheEncryptionKey);
+    if (this.#cacheEncryptionKey) {
+      assertIsExportableKeyEncryptor(encryptor);
+    }
   }
 
   /**
@@ -235,7 +245,7 @@ class KeyringController extends EventEmitter {
     if (!encryptedVault) {
       throw new Error(KeyringControllerError.VaultError);
     }
-    await this.encryptor.decrypt(password, encryptedVault);
+    await this.#encryptor.decrypt(password, encryptedVault);
   }
 
   /**
@@ -789,10 +799,12 @@ class KeyringController extends EventEmitter {
     let vault;
     let newEncryptionKey;
 
-    if (this.cacheEncryptionKey) {
+    if (this.#cacheEncryptionKey) {
+      assertIsExportableKeyEncryptor(this.#encryptor);
+
       if (this.password) {
         const { vault: newVault, exportedKeyString } =
-          await this.encryptor.encryptWithDetail(
+          await this.#encryptor.encryptWithDetail(
             this.password,
             serializedKeyrings,
           );
@@ -800,8 +812,8 @@ class KeyringController extends EventEmitter {
         vault = newVault;
         newEncryptionKey = exportedKeyString;
       } else if (encryptionKey) {
-        const key = await this.encryptor.importKey(encryptionKey);
-        const vaultJSON = await this.encryptor.encryptWithKey(
+        const key = await this.#encryptor.importKey(encryptionKey);
+        const vaultJSON = await this.#encryptor.encryptWithKey(
           key,
           serializedKeyrings,
         );
@@ -812,7 +824,7 @@ class KeyringController extends EventEmitter {
       if (typeof this.password !== 'string') {
         throw new TypeError(KeyringControllerError.WrongPasswordType);
       }
-      vault = await this.encryptor.encrypt(this.password, serializedKeyrings);
+      vault = await this.#encryptor.encrypt(this.password, serializedKeyrings);
     }
 
     if (!vault) {
@@ -861,9 +873,11 @@ class KeyringController extends EventEmitter {
 
     let vault;
 
-    if (this.cacheEncryptionKey) {
+    if (this.#cacheEncryptionKey) {
+      assertIsExportableKeyEncryptor(this.#encryptor);
+
       if (password) {
-        const result = await this.encryptor.decryptWithDetail(
+        const result = await this.#encryptor.decryptWithDetail(
           password,
           encryptedVault,
         );
@@ -885,8 +899,8 @@ class KeyringController extends EventEmitter {
           throw new TypeError(KeyringControllerError.WrongPasswordType);
         }
 
-        const key = await this.encryptor.importKey(encryptionKey);
-        vault = await this.encryptor.decryptWithKey(key, parsedEncryptedVault);
+        const key = await this.#encryptor.importKey(encryptionKey);
+        vault = await this.#encryptor.decryptWithKey(key, parsedEncryptedVault);
 
         // This call is required on the first call because encryptionKey
         // is not yet inside the memStore
@@ -903,12 +917,27 @@ class KeyringController extends EventEmitter {
         throw new TypeError(KeyringControllerError.WrongPasswordType);
       }
 
-      vault = await this.encryptor.decrypt(password, encryptedVault);
+      vault = await this.#encryptor.decrypt(password, encryptedVault);
       this.password = password;
+    }
+
+    if (!isSerializedKeyringsArray(vault)) {
+      throw new Error(KeyringControllerError.VaultDataError);
     }
 
     await Promise.all(vault.map(this.#restoreKeyring.bind(this)));
     await this.updateMemStoreKeyrings();
+
+    if (
+      this.password &&
+      this.#encryptor.updateVault &&
+      (await this.#encryptor.updateVault(encryptedVault, this.password)) !==
+        encryptedVault
+    ) {
+      // Re-encrypt the vault with safer method if one is available
+      await this.persistAllKeyrings();
+    }
+
     return this.keyrings;
   }
 
@@ -1090,6 +1119,46 @@ async function displayForKeyring(
     // values, and `normalizeToHex` returns `Hex` unless given a nullish value
     accounts: accounts.map(normalizeToHex) as Hex[],
   };
+}
+
+/**
+ * Assert that the provided encryptor supports
+ * encryption and encryption key export.
+ *
+ * @param encryptor - The encryptor to check.
+ * @throws If the encryptor does not support key encryption.
+ */
+function assertIsExportableKeyEncryptor(
+  encryptor: GenericEncryptor | ExportableKeyEncryptor,
+): asserts encryptor is ExportableKeyEncryptor {
+  if (
+    !(
+      'importKey' in encryptor &&
+      typeof encryptor.importKey === 'function' &&
+      'decryptWithKey' in encryptor &&
+      typeof encryptor.decryptWithKey === 'function' &&
+      'encryptWithKey' in encryptor &&
+      typeof encryptor.encryptWithKey === 'function'
+    )
+  ) {
+    throw new Error(KeyringControllerError.UnsupportedEncryptionKeyExport);
+  }
+}
+
+/**
+ * Checks if the provided value is a serialized keyrings array.
+ *
+ * @param array - The value to check.
+ * @returns True if the value is a serialized keyrings array.
+ */
+function isSerializedKeyringsArray(
+  array: unknown,
+): array is SerializedKeyring[] {
+  return (
+    typeof array === 'object' &&
+    Array.isArray(array) &&
+    array.every((value) => value.type && isValidJson(value.data))
+  );
 }
 
 export { KeyringController, keyringBuilderFactory };

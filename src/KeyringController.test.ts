@@ -9,17 +9,16 @@ import * as sinon from 'sinon';
 import { KeyringController, keyringBuilderFactory } from '.';
 import { KeyringType, KeyringControllerError } from './constants';
 import {
-  mockEncryptor,
+  MockEncryptor,
   KeyringMockWithInit,
   PASSWORD,
   MOCK_HARDCODED_KEY,
-  MOCK_HEX,
+  MOCK_ENCRYPTION_SALT,
 } from './test';
 import type { KeyringControllerArgs } from './types';
 
 const MOCK_ENCRYPTION_KEY =
   '{"alg":"A256GCM","ext":true,"k":"wYmxkxOOFBDP6F6VuuYFcRt_Po-tSLFHCWVolsHs4VI","key_ops":["encrypt","decrypt"],"kty":"oct"}';
-const MOCK_ENCRYPTION_SALT = 'HQ5sfhsb8XAQRJtD+UqcImT7Ve4n3YMagrh05YTOsjk=';
 const MOCK_ENCRYPTION_DATA = `{"data":"2fOOPRKClNrisB+tmqIcETyZvDuL2iIR1Hr1nO7XZHyMqVY1cDBetw2gY5C+cIo1qkpyv3bPp+4buUjp38VBsjbijM0F/FLOqWbcuKM9h9X0uwxsgsZ96uwcIf5I46NiMgoFlhppTTMZT0Nkocz+SnvHM0IgLsFan7JqBU++vSJvx2M1PDljZSunOsqyyL+DKmbYmM4umbouKV42dipUwrCvrQJmpiUZrSkpMJrPJk9ufDQO4CyIVo0qry3aNRdYFJ6rgSyq/k6rXMwGExCMHn8UlhNnAMuMKWPWR/ymK1bzNcNs4VU14iVjEXOZGPvD9cvqVe/VtcnIba6axNEEB4HWDOCdrDh5YNWwMlQVL7vSB2yOhPZByGhnEOloYsj2E5KEb9jFGskt7EKDEYNofr6t83G0c+B72VGYZeCvgtzXzgPwzIbhTtKkP+gdBmt2JNSYrTjLypT0q+v4C9BN1xWTxPmX6TTt0NzkI9pJxgN1VQAfSU9CyWTVpd4CBkgom2cSBsxZ2MNbdKF+qSWz3fQcmJ55hxM0EGJSt9+8eQOTuoJlBapRk4wdZKHR2jdKzPjSF2MAmyVD2kU51IKa/cVsckRFEes+m7dKyHRvlNwgT78W9tBDdZb5PSlfbZXnv8z5q1KtAj2lM2ogJ7brHBdevl4FISdTkObpwcUMcvACOOO0dj6CSYjSKr0ZJ2RLChVruZyPDxEhKGb/8Kv8trLOR3mck/et6d050/NugezycNk4nnzu5iP90gPbSzaqdZI=","iv":"qTGO1afGv3waHN9KoW34Eg==","salt":"${MOCK_ENCRYPTION_SALT}"}`;
 
 const walletOneSeedWords =
@@ -59,7 +58,7 @@ async function initializeKeyringController({
   seedPhrase?: string;
 } = {}) {
   const keyringController = new KeyringController({
-    encryptor: mockEncryptor,
+    encryptor: new MockEncryptor(),
     cacheEncryptionKey: false,
     keyringBuilders: [keyringBuilderFactory(KeyringMockWithInit)],
     ...constructorOptions,
@@ -82,6 +81,25 @@ async function initializeKeyringController({
 describe('KeyringController', () => {
   afterEach(() => {
     sinon.restore();
+  });
+
+  describe('constructor', () => {
+    describe('with cacheEncryptionKey = true', () => {
+      it('should throw error if provided encryptor does not support key export', async () => {
+        expect(
+          () =>
+            // @ts-expect-error we want to bypass typechecks here.
+            new KeyringController({
+              cacheEncryptionKey: true,
+              encryptor: {
+                decrypt: async (_pass: string, _text: string) =>
+                  Promise.resolve('encrypted'),
+                encrypt: async (_pass: string, _obj: any) => 'decrypted',
+              },
+            }),
+        ).toThrow(KeyringControllerError.UnsupportedEncryptionKeyExport);
+      });
+    });
   });
 
   describe('setLocked', () => {
@@ -161,38 +179,38 @@ describe('KeyringController', () => {
 
   describe('persistAllKeyrings', () => {
     it('should persist keyrings in _unsupportedKeyrings array', async () => {
+      const mockEncryptor = new MockEncryptor();
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          encryptor: mockEncryptor,
+        },
       });
+      const encryptSpy = sinon.spy(mockEncryptor, 'encrypt');
       const unsupportedKeyring = { type: 'DUMMY_KEYRING', data: {} };
       keyringController.unsupportedKeyrings = [unsupportedKeyring];
+
       await keyringController.persistAllKeyrings();
 
-      const { vault } = keyringController.store.getState();
-      assert(vault, 'Vault is not set');
-      const keyrings = await mockEncryptor.decrypt(PASSWORD, vault);
-      expect(keyrings).toContain(unsupportedKeyring);
-      expect(keyrings).toHaveLength(2);
+      assert(keyringController.store.getState().vault, 'Vault is not set');
+      expect(encryptSpy.calledOnce).toBe(true);
+      expect(encryptSpy.getCalls()[0]?.args[1]).toHaveLength(2);
+      expect(encryptSpy.getCalls()[0]?.args[1]).toContain(unsupportedKeyring);
     });
 
     describe('when `cacheEncryptionKey` is enabled', () => {
       it('should save an up to date encryption salt to the `memStore` when `password` is unset and `encryptionKey` is set', async () => {
         const keyringController = await initializeKeyringController({
           password: PASSWORD,
+          constructorOptions: {
+            cacheEncryptionKey: true,
+          },
         });
         delete keyringController.password;
-        keyringController.cacheEncryptionKey = true;
         const vaultEncryptionKey = '🔑';
         const vaultEncryptionSalt = '🧂';
         const vault = JSON.stringify({ salt: vaultEncryptionSalt });
         keyringController.store.updateState({ vault });
-
-        expect(
-          keyringController.memStore.getState().encryptionKey,
-        ).toBeUndefined();
-        expect(
-          keyringController.memStore.getState().encryptionSalt,
-        ).toBeUndefined();
 
         await keyringController.unlockKeyrings(
           undefined,
@@ -221,8 +239,10 @@ describe('KeyringController', () => {
       it('should save an up to date encryption salt to the `memStore` when `password` is set through `createNewVaultAndKeychain`', async () => {
         const keyringController = await initializeKeyringController({
           password: PASSWORD,
+          constructorOptions: {
+            cacheEncryptionKey: true,
+          },
         });
-        keyringController.cacheEncryptionKey = true;
 
         await keyringController.createNewVaultAndKeychain(PASSWORD);
 
@@ -233,15 +253,17 @@ describe('KeyringController', () => {
           MOCK_HARDCODED_KEY,
         );
         expect(keyringController.memStore.getState().encryptionSalt).toBe(
-          MOCK_HEX,
+          MOCK_ENCRYPTION_SALT,
         );
       });
 
       it('should save an up to date encryption salt to the `memStore` when `password` is set through `submitPassword`', async () => {
         const keyringController = await initializeKeyringController({
           password: PASSWORD,
+          constructorOptions: {
+            cacheEncryptionKey: true,
+          },
         });
-        keyringController.cacheEncryptionKey = true;
 
         await keyringController.submitPassword(PASSWORD);
 
@@ -252,7 +274,7 @@ describe('KeyringController', () => {
           MOCK_HARDCODED_KEY,
         );
         expect(keyringController.memStore.getState().encryptionSalt).toBe(
-          MOCK_HEX,
+          MOCK_ENCRYPTION_SALT,
         );
       });
     });
@@ -287,8 +309,13 @@ describe('KeyringController', () => {
     });
 
     it('should encrypt keyrings with the correct password each time they are persisted', async () => {
+      const mockEncryptor = new MockEncryptor();
+      const encryptSpy = sinon.spy(mockEncryptor, 'encrypt');
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          encryptor: mockEncryptor,
+        },
       });
       keyringController.store.putState({});
       assert(!keyringController.store.getState().vault, 'no previous vault');
@@ -297,11 +324,9 @@ describe('KeyringController', () => {
       const { vault } = keyringController.store.getState();
       // eslint-disable-next-line jest/no-restricted-matchers
       expect(vault).toBeTruthy();
-      keyringController.encryptor.encrypt.args.forEach(
-        ([actualPassword]: string[]) => {
-          expect(actualPassword).toBe(PASSWORD);
-        },
-      );
+      encryptSpy.args.forEach(([actualPassword]) => {
+        expect(actualPassword).toBe(PASSWORD);
+      });
     });
 
     it('should throw error if accounts are not generated correctly', async () => {
@@ -321,18 +346,16 @@ describe('KeyringController', () => {
       it('should add an `encryptionSalt` to the `memStore` when a new vault is created', async () => {
         const keyringController = await initializeKeyringController({
           password: PASSWORD,
+          constructorOptions: {
+            cacheEncryptionKey: true,
+          },
         });
-        keyringController.cacheEncryptionKey = true;
 
-        const initialMemStore = keyringController.memStore.getState();
         await keyringController.createNewVaultAndKeychain(PASSWORD);
+
         const finalMemStore = keyringController.memStore.getState();
-
-        expect(initialMemStore.encryptionKey).toBeUndefined();
-        expect(initialMemStore.encryptionSalt).toBeUndefined();
-
         expect(finalMemStore.encryptionKey).toBe(MOCK_HARDCODED_KEY);
-        expect(finalMemStore.encryptionSalt).toBe(MOCK_HEX);
+        expect(finalMemStore.encryptionSalt).toBe(MOCK_ENCRYPTION_SALT);
       });
     });
   });
@@ -429,21 +452,19 @@ describe('KeyringController', () => {
       it('should add an `encryptionSalt` to the `memStore` when a vault is restored', async () => {
         const keyringController = await initializeKeyringController({
           password: PASSWORD,
+          constructorOptions: {
+            cacheEncryptionKey: true,
+          },
         });
-        keyringController.cacheEncryptionKey = true;
 
-        const initialMemStore = keyringController.memStore.getState();
         await keyringController.createNewVaultAndRestore(
           PASSWORD,
           walletOneSeedWords,
         );
+
         const finalMemStore = keyringController.memStore.getState();
-
-        expect(initialMemStore.encryptionKey).toBeUndefined();
-        expect(initialMemStore.encryptionSalt).toBeUndefined();
-
         expect(finalMemStore.encryptionKey).toBe(MOCK_HARDCODED_KEY);
-        expect(finalMemStore.encryptionSalt).toBe(MOCK_HEX);
+        expect(finalMemStore.encryptionSalt).toBe(MOCK_ENCRYPTION_SALT);
       });
     });
   });
@@ -751,17 +772,95 @@ describe('KeyringController', () => {
     });
 
     it('add serialized keyring to unsupportedKeyrings array if keyring type is not known', async () => {
+      const mockEncryptor = new MockEncryptor();
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          encryptor: mockEncryptor,
+        },
       });
       const unsupportedKeyrings = [{ type: 'Ledger Keyring', data: 'DUMMY' }];
-      mockEncryptor.encrypt(PASSWORD, unsupportedKeyrings);
+      await mockEncryptor.encrypt(PASSWORD, unsupportedKeyrings);
       await keyringController.setLocked();
+
       const keyrings = await keyringController.unlockKeyrings(PASSWORD);
+
       expect(keyrings).toHaveLength(0);
       expect(keyringController.unsupportedKeyrings).toStrictEqual(
         unsupportedKeyrings,
       );
+    });
+
+    it('should throw error if there is no vault', async () => {
+      const keyringController = new KeyringController({
+        cacheEncryptionKey: false,
+      });
+
+      await expect(async () =>
+        keyringController.unlockKeyrings(PASSWORD),
+      ).rejects.toThrow(KeyringControllerError.VaultError);
+    });
+
+    it('should throw error if decrypted vault is not an array of serialized keyrings', async () => {
+      const mockEncryptor = new MockEncryptor();
+      sinon
+        .stub(mockEncryptor, 'decrypt')
+        .resolves('[{"foo": "not a valid keyring}]');
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        constructorOptions: {
+          encryptor: mockEncryptor,
+        },
+      });
+
+      await expect(async () =>
+        keyringController.unlockKeyrings(PASSWORD),
+      ).rejects.toThrow(KeyringControllerError.VaultDataError);
+    });
+
+    it('should throw error if decrypted vault includes an invalid keyring', async () => {
+      const mockEncryptor = new MockEncryptor();
+      sinon
+        .stub(mockEncryptor, 'decrypt')
+        .resolves([{ foo: 'not a valid keyring' }]);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        constructorOptions: {
+          encryptor: mockEncryptor,
+        },
+      });
+
+      await expect(async () =>
+        keyringController.unlockKeyrings(PASSWORD),
+      ).rejects.toThrow(KeyringControllerError.VaultDataError);
+    });
+
+    describe('with old vault format', () => {
+      [true, false].forEach((cacheEncryptionKey) => {
+        describe(`with cacheEncryptionKey = ${cacheEncryptionKey}`, () => {
+          it('should update the vault', async () => {
+            const mockEncryptor = new MockEncryptor();
+            const keyringController = await initializeKeyringController({
+              password: PASSWORD,
+              constructorOptions: {
+                cacheEncryptionKey: true,
+                encryptor: mockEncryptor,
+              },
+            });
+            const initialVault = keyringController.store.getState().vault;
+            const updatedVaultMock =
+              '{"vault": "updated_vault_detail", "salt": "salt"}';
+            sinon.stub(mockEncryptor, 'updateVault').resolves(updatedVaultMock);
+            sinon.stub(mockEncryptor, 'encrypt').resolves(updatedVaultMock);
+
+            await keyringController.unlockKeyrings(PASSWORD);
+            const updatedVault = keyringController.store.getState().vault;
+
+            expect(initialVault).not.toBe(updatedVault);
+            expect(updatedVault).toBe(updatedVaultMock);
+          });
+        });
+      });
     });
   });
 
@@ -941,28 +1040,34 @@ describe('KeyringController', () => {
     it('sets encryption key data upon submitPassword', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          cacheEncryptionKey: true,
+        },
       });
-      keyringController.cacheEncryptionKey = true;
       await keyringController.submitPassword(PASSWORD);
 
       expect(keyringController.password).toBe(PASSWORD);
-      expect(keyringController.memStore.getState().encryptionSalt).toBe('SALT');
+      expect(keyringController.memStore.getState().encryptionSalt).toBe(
+        MOCK_ENCRYPTION_SALT,
+      );
       expect(keyringController.memStore.getState().encryptionKey).toStrictEqual(
         expect.stringMatching('.+'),
       );
     });
 
     it('unlocks the keyrings with valid information', async () => {
+      const mockEncryptor = new MockEncryptor();
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          cacheEncryptionKey: true,
+          encryptor: mockEncryptor,
+        },
       });
-      keyringController.cacheEncryptionKey = true;
-      const returnValue = await keyringController.encryptor.decryptWithKey();
-      const decryptWithKeyStub = sinon.stub(
-        keyringController.encryptor,
-        'decryptWithKey',
-      );
-      decryptWithKeyStub.resolves(Promise.resolve(returnValue));
+      const returnValue = await mockEncryptor.decryptWithKey('', '');
+      const decryptWithKeyStub = sinon
+        .stub(mockEncryptor, 'decryptWithKey')
+        .resolves(returnValue);
 
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
 
@@ -973,15 +1078,17 @@ describe('KeyringController', () => {
         MOCK_ENCRYPTION_SALT,
       );
 
-      expect(keyringController.encryptor.decryptWithKey.calledOnce).toBe(true);
+      expect(decryptWithKeyStub.calledOnce).toBe(true);
       expect(keyringController.keyrings).toHaveLength(1);
     });
 
     it('should not load keyrings when invalid encryptionKey format', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          cacheEncryptionKey: true,
+        },
       });
-      keyringController.cacheEncryptionKey = true;
       await keyringController.setLocked();
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
 
@@ -997,8 +1104,10 @@ describe('KeyringController', () => {
     it('should not load keyrings when encryptionKey is expired', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          cacheEncryptionKey: true,
+        },
       });
-      keyringController.cacheEncryptionKey = true;
       await keyringController.setLocked();
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
 
@@ -1015,8 +1124,10 @@ describe('KeyringController', () => {
     it('persists keyrings when actions are performed', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          cacheEncryptionKey: true,
+        },
       });
-      keyringController.cacheEncryptionKey = true;
       await keyringController.setLocked();
       keyringController.store.updateState({ vault: MOCK_ENCRYPTION_DATA });
       await keyringController.submitEncryptionKey(
@@ -1064,8 +1175,10 @@ describe('KeyringController', () => {
     it('cleans up login artifacts upon lock', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          cacheEncryptionKey: true,
+        },
       });
-      keyringController.cacheEncryptionKey = true;
       await keyringController.submitPassword(PASSWORD);
       expect(keyringController.password).toBe(PASSWORD);
       expect(
