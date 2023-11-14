@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [15.0.0]
+### Uncategorized
+- Add `encryptor` types ([#293](https://github.com/MetaMask/KeyringController/pull/293))
+
 ## [14.0.1]
 ### Fixed
 - Fix `removeAccount` to await the account removal in order to account for Snaps keyrings ([#280](https://github.com/MetaMask/KeyringController/pull/280))
@@ -169,7 +173,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v14.0.1...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v15.0.0...HEAD
+[15.0.0]: https://github.com/MetaMask/KeyringController/compare/v14.0.1...v15.0.0
 [14.0.1]: https://github.com/MetaMask/KeyringController/compare/v14.0.0...v14.0.1
 [14.0.0]: https://github.com/MetaMask/KeyringController/compare/v13.0.1...v14.0.0
 [13.0.1]: https://github.com/MetaMask/KeyringController/compare/v13.0.0...v13.0.1
