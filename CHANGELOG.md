@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [15.0.0]
-### Uncategorized
-- Add `encryptor` types ([#293](https://github.com/MetaMask/KeyringController/pull/293))
+### Changed
+- **BREAKING** Removed `encryptor` class variable ([#293](https://github.com/MetaMask/KeyringController/pull/293))
+- **BREAKING** Removed `cacheEncryptionKey` class variable ([#293](https://github.com/MetaMask/KeyringController/pull/293))
+- **BREAKING** Changed `encryptor` constructor option property type to `GenericEncryptor | ExportableKeyEncryptor | undefined` ([#293](https://github.com/MetaMask/KeyringController/pull/293))
+  - When the controller is instantiated with `cacheEncryptionKey = true`, the `encryptor` type is restricted to `ExportableKeyEncryptor | undefined`
 
 ## [14.0.1]
 ### Fixed
