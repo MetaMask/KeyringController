@@ -24,8 +24,6 @@ export type KeyringControllerPersistentState = {
 export type KeyringControllerState = {
   keyrings: KeyringObject[];
   isUnlocked: boolean;
-  encryptionKey?: string;
-  encryptionSalt?: string;
 } & (
   | { encryptionKey: string; encryptionSalt: string }
   | {
