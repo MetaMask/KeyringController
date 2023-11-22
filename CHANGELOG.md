@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [16.0.0]
+### Uncategorized
+- Bump @metamask/eth-sig-util from 7.0.0 to 7.0.1 ([#302](https://github.com/MetaMask/KeyringController/pull/302))
+
 ## [15.0.0]
 ### Changed
 - **BREAKING** Removed `encryptor` class variable ([#293](https://github.com/MetaMask/KeyringController/pull/293))
@@ -176,7 +180,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v15.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v16.0.0...HEAD
+[16.0.0]: https://github.com/MetaMask/KeyringController/compare/v15.0.0...v16.0.0
 [15.0.0]: https://github.com/MetaMask/KeyringController/compare/v14.0.1...v15.0.0
 [14.0.1]: https://github.com/MetaMask/KeyringController/compare/v14.0.0...v14.0.1
 [14.0.0]: https://github.com/MetaMask/KeyringController/compare/v13.0.1...v14.0.0
