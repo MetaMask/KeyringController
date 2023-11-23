@@ -887,6 +887,35 @@ describe('KeyringController', () => {
         });
       });
 
+      describe(`with cacheEncryptionKey = true and encryptionKey is set`, () => {
+        it('should not update the vault', async () => {
+          const mockEncryptor = new MockEncryptor();
+          const keyringController = await initializeKeyringController({
+            password: PASSWORD,
+            constructorOptions: {
+              cacheEncryptionKey: true,
+              encryptor: mockEncryptor,
+            },
+          });
+          const initialVault = keyringController.store.getState().vault;
+          const updatedVaultMock =
+            '{"vault": "updated_vault_detail", "salt": "salt"}';
+          const mockEncryptionResult = {
+            data: '0x1234',
+            iv: 'an iv',
+          };
+          sinon.stub(mockEncryptor, 'updateVault').resolves(updatedVaultMock);
+          sinon
+            .stub(mockEncryptor, 'encryptWithKey')
+            .resolves(mockEncryptionResult);
+
+          await keyringController.unlockKeyrings(PASSWORD);
+          const updatedVault = keyringController.store.getState().vault;
+
+          expect(initialVault).not.toBe(updatedVault);
+        });
+      });
+
       describe(`with cacheEncryptionKey = false`, () => {
         it('should update the vault', async () => {
           const mockEncryptor = new MockEncryptor();
