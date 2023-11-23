@@ -24,6 +24,13 @@ module.exports = {
         '@metamask/eslint-config-nodejs',
       ],
     },
+
+    {
+      files: ['*.d.ts'],
+      rules: {
+        'import/unambiguous': 'off',
+      },
+    },
   ],
 
   ignorePatterns: [
