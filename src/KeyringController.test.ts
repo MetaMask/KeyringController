@@ -78,6 +78,18 @@ async function initializeKeyringController({
   return keyringController;
 }
 
+/**
+ * Delete the encryption key and salt from the `memStore` of the given keyring controller.
+ *
+ * @param keyringController - The keyring controller to delete the encryption key and salt from.
+ */
+function deleteEncryptionKeyAndSalt(keyringController: KeyringController) {
+  const keyringControllerState = keyringController.memStore.getState();
+  delete keyringControllerState.encryptionKey;
+  delete keyringControllerState.encryptionSalt;
+  keyringController.memStore.updateState(keyringControllerState);
+}
+
 describe('KeyringController', () => {
   afterEach(() => {
     sinon.restore();
@@ -199,83 +211,86 @@ describe('KeyringController', () => {
     });
 
     describe('when `cacheEncryptionKey` is enabled', () => {
-      it('should save an up to date encryption salt to the `memStore` when `password` is unset and `encryptionKey` is set', async () => {
-        const keyringController = await initializeKeyringController({
-          password: PASSWORD,
-          constructorOptions: {
-            cacheEncryptionKey: true,
-          },
+      describe('when `encryptionKey` is set', () => {
+        it('should save an up to date encryption salt to the `memStore`', async () => {
+          const keyringController = await initializeKeyringController({
+            password: PASSWORD,
+            constructorOptions: {
+              cacheEncryptionKey: true,
+            },
+          });
+          const vaultEncryptionKey = '🔑';
+          const vaultEncryptionSalt = '🧂';
+          const vault = JSON.stringify({ salt: vaultEncryptionSalt });
+          keyringController.store.updateState({ vault });
+
+          await keyringController.unlockKeyrings(
+            undefined,
+            vaultEncryptionKey,
+            vaultEncryptionSalt,
+          );
+
+          expect(keyringController.memStore.getState().encryptionKey).toBe(
+            vaultEncryptionKey,
+          );
+          expect(keyringController.memStore.getState().encryptionSalt).toBe(
+            vaultEncryptionSalt,
+          );
+
+          const response = await keyringController.persistAllKeyrings();
+
+          expect(response).toBe(true);
+          expect(keyringController.memStore.getState().encryptionKey).toBe(
+            vaultEncryptionKey,
+          );
+          expect(keyringController.memStore.getState().encryptionSalt).toBe(
+            vaultEncryptionSalt,
+          );
         });
-        delete keyringController.password;
-        const vaultEncryptionKey = '🔑';
-        const vaultEncryptionSalt = '🧂';
-        const vault = JSON.stringify({ salt: vaultEncryptionSalt });
-        keyringController.store.updateState({ vault });
-
-        await keyringController.unlockKeyrings(
-          undefined,
-          vaultEncryptionKey,
-          vaultEncryptionSalt,
-        );
-
-        expect(keyringController.memStore.getState().encryptionKey).toBe(
-          vaultEncryptionKey,
-        );
-        expect(keyringController.memStore.getState().encryptionSalt).toBe(
-          vaultEncryptionSalt,
-        );
-
-        const response = await keyringController.persistAllKeyrings();
-
-        expect(response).toBe(true);
-        expect(keyringController.memStore.getState().encryptionKey).toBe(
-          vaultEncryptionKey,
-        );
-        expect(keyringController.memStore.getState().encryptionSalt).toBe(
-          vaultEncryptionSalt,
-        );
       });
 
-      it('should save an up to date encryption salt to the `memStore` when `password` is set through `createNewVaultAndKeychain`', async () => {
-        const keyringController = await initializeKeyringController({
-          password: PASSWORD,
-          constructorOptions: {
-            cacheEncryptionKey: true,
-          },
+      describe('when `encryptionKey` is not set and `password` is set', () => {
+        it('should save an up to date encryption salt to the `memStore` when `password` is set through `createNewVaultAndKeychain`', async () => {
+          const keyringController = await initializeKeyringController({
+            password: PASSWORD,
+            constructorOptions: {
+              cacheEncryptionKey: true,
+            },
+          });
+          await keyringController.createNewVaultAndKeychain(PASSWORD);
+          deleteEncryptionKeyAndSalt(keyringController);
+
+          const response = await keyringController.persistAllKeyrings();
+
+          expect(response).toBe(true);
+          expect(keyringController.memStore.getState().encryptionKey).toBe(
+            MOCK_HARDCODED_KEY,
+          );
+          expect(keyringController.memStore.getState().encryptionSalt).toBe(
+            MOCK_ENCRYPTION_SALT,
+          );
         });
 
-        await keyringController.createNewVaultAndKeychain(PASSWORD);
+        it('should save an up to date encryption salt to the `memStore` when `password` is set through `submitPassword`', async () => {
+          const keyringController = await initializeKeyringController({
+            password: PASSWORD,
+            constructorOptions: {
+              cacheEncryptionKey: true,
+            },
+          });
+          await keyringController.submitPassword(PASSWORD);
+          deleteEncryptionKeyAndSalt(keyringController);
 
-        const response = await keyringController.persistAllKeyrings();
+          const response = await keyringController.persistAllKeyrings();
 
-        expect(response).toBe(true);
-        expect(keyringController.memStore.getState().encryptionKey).toBe(
-          MOCK_HARDCODED_KEY,
-        );
-        expect(keyringController.memStore.getState().encryptionSalt).toBe(
-          MOCK_ENCRYPTION_SALT,
-        );
-      });
-
-      it('should save an up to date encryption salt to the `memStore` when `password` is set through `submitPassword`', async () => {
-        const keyringController = await initializeKeyringController({
-          password: PASSWORD,
-          constructorOptions: {
-            cacheEncryptionKey: true,
-          },
+          expect(response).toBe(true);
+          expect(keyringController.memStore.getState().encryptionKey).toBe(
+            MOCK_HARDCODED_KEY,
+          );
+          expect(keyringController.memStore.getState().encryptionSalt).toBe(
+            MOCK_ENCRYPTION_SALT,
+          );
         });
-
-        await keyringController.submitPassword(PASSWORD);
-
-        const response = await keyringController.persistAllKeyrings();
-
-        expect(response).toBe(true);
-        expect(keyringController.memStore.getState().encryptionKey).toBe(
-          MOCK_HARDCODED_KEY,
-        );
-        expect(keyringController.memStore.getState().encryptionSalt).toBe(
-          MOCK_ENCRYPTION_SALT,
-        );
       });
     });
   });
@@ -836,29 +851,92 @@ describe('KeyringController', () => {
     });
 
     describe('with old vault format', () => {
-      [true, false].forEach((cacheEncryptionKey) => {
-        describe(`with cacheEncryptionKey = ${cacheEncryptionKey}`, () => {
-          it('should update the vault', async () => {
-            const mockEncryptor = new MockEncryptor();
-            const keyringController = await initializeKeyringController({
-              password: PASSWORD,
-              constructorOptions: {
-                cacheEncryptionKey: true,
-                encryptor: mockEncryptor,
-              },
-            });
-            const initialVault = keyringController.store.getState().vault;
-            const updatedVaultMock =
-              '{"vault": "updated_vault_detail", "salt": "salt"}';
-            sinon.stub(mockEncryptor, 'updateVault').resolves(updatedVaultMock);
-            sinon.stub(mockEncryptor, 'encrypt').resolves(updatedVaultMock);
-
-            await keyringController.unlockKeyrings(PASSWORD);
-            const updatedVault = keyringController.store.getState().vault;
-
-            expect(initialVault).not.toBe(updatedVault);
-            expect(updatedVault).toBe(updatedVaultMock);
+      describe(`with cacheEncryptionKey = true and encryptionKey is unset`, () => {
+        it('should update the vault', async () => {
+          const mockEncryptor = new MockEncryptor();
+          const keyringController = await initializeKeyringController({
+            password: PASSWORD,
+            constructorOptions: {
+              cacheEncryptionKey: true,
+              encryptor: mockEncryptor,
+            },
           });
+          deleteEncryptionKeyAndSalt(keyringController);
+          const initialVault = keyringController.store.getState().vault;
+          const updatedVaultMock =
+            '{"vault": "updated_vault_detail", "salt": "salt"}';
+          const mockEncryptionResult = {
+            data: '0x1234',
+            iv: 'an iv',
+          };
+          sinon.stub(mockEncryptor, 'updateVault').resolves(updatedVaultMock);
+          sinon
+            .stub(mockEncryptor, 'encryptWithKey')
+            .resolves(mockEncryptionResult);
+
+          await keyringController.unlockKeyrings(PASSWORD);
+          const updatedVault = keyringController.store.getState().vault;
+
+          expect(initialVault).not.toBe(updatedVault);
+          expect(updatedVault).toBe(
+            JSON.stringify({
+              ...mockEncryptionResult,
+              salt: MOCK_ENCRYPTION_SALT,
+            }),
+          );
+        });
+      });
+
+      describe(`with cacheEncryptionKey = true and encryptionKey is set`, () => {
+        it('should not update the vault', async () => {
+          const mockEncryptor = new MockEncryptor();
+          const keyringController = await initializeKeyringController({
+            password: PASSWORD,
+            constructorOptions: {
+              cacheEncryptionKey: true,
+              encryptor: mockEncryptor,
+            },
+          });
+          const initialVault = keyringController.store.getState().vault;
+          const updatedVaultMock =
+            '{"vault": "updated_vault_detail", "salt": "salt"}';
+          const mockEncryptionResult = {
+            data: '0x1234',
+            iv: 'an iv',
+          };
+          sinon.stub(mockEncryptor, 'updateVault').resolves(updatedVaultMock);
+          sinon
+            .stub(mockEncryptor, 'encryptWithKey')
+            .resolves(mockEncryptionResult);
+
+          await keyringController.unlockKeyrings(PASSWORD);
+          const updatedVault = keyringController.store.getState().vault;
+
+          expect(initialVault).not.toBe(updatedVault);
+        });
+      });
+
+      describe(`with cacheEncryptionKey = false`, () => {
+        it('should update the vault', async () => {
+          const mockEncryptor = new MockEncryptor();
+          const keyringController = await initializeKeyringController({
+            password: PASSWORD,
+            constructorOptions: {
+              cacheEncryptionKey: false,
+              encryptor: mockEncryptor,
+            },
+          });
+          const initialVault = keyringController.store.getState().vault;
+          const updatedVaultMock =
+            '{"vault": "updated_vault_detail", "salt": "salt"}';
+          sinon.stub(mockEncryptor, 'updateVault').resolves(updatedVaultMock);
+          sinon.stub(mockEncryptor, 'encrypt').resolves(updatedVaultMock);
+
+          await keyringController.unlockKeyrings(PASSWORD);
+          const updatedVault = keyringController.store.getState().vault;
+
+          expect(initialVault).not.toBe(updatedVault);
+          expect(updatedVault).toBe(updatedVaultMock);
         });
       });
     });
