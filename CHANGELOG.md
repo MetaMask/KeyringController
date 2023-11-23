@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [16.0.0]
-### Uncategorized
-- Bump @metamask/eth-sig-util from 7.0.0 to 7.0.1 ([#302](https://github.com/MetaMask/KeyringController/pull/302))
+### Changed
+- **BREAKING**: Bump `@metamask/obs-store` from `^8.1.0` to `^9.0.0` ([#306](https://github.com/MetaMask/KeyringController/pull/306))
+  - The `store` and `memStore` properties now expose streams confirming to `readable-stream@^3.6.2`
 
 ## [15.0.0]
 ### Changed
