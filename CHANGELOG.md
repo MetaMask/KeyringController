@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING**: Bump `@metamask/obs-store` from `^8.1.0` to `^9.0.0` ([#306](https://github.com/MetaMask/KeyringController/pull/306))
   - The `store` and `memStore` properties now expose streams confirming to `readable-stream@^3.6.2`
 
+### Fixed
+- Prefer cached `encryptionKey` over password when possible ([#307](https://github.com/MetaMask/KeyringController/pull/307))
+
 ## [15.0.0]
 ### Changed
 - **BREAKING** Removed `encryptor` class variable ([#293](https://github.com/MetaMask/KeyringController/pull/293))
