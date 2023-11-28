@@ -2,6 +2,7 @@ import type {
   DetailedDecryptResult,
   DetailedEncryptionResult,
   EncryptionResult,
+  KeyDerivationOptions,
 } from '@metamask/browser-passworder';
 import type { Json, Keyring } from '@metamask/utils';
 
@@ -68,9 +69,27 @@ export type GenericEncryptor = {
    *
    * @param vault - The encrypted string to update.
    * @param password - The password to decrypt the vault with.
+   * @param targetDerivationParams - The optional target derivation params to
+   * use for re-encrypting the vault.
    * @returns The updated encrypted string.
    */
-  updateVault?: (vault: string, password: string) => Promise<string>;
+  updateVault?: (
+    vault: string,
+    password: string,
+    targetDerivationParams?: KeyDerivationOptions,
+  ) => Promise<string>;
+  /**
+   * Optional vault migration helper. Checks if the provided vault is up to date
+   * with the desired encryption algorithm.
+   *
+   * @param vault - The encrypted string to check.
+   * @param targetDerivationParams - The desired target derivation params.
+   * @returns The updated encrypted string.
+   */
+  isVaultUpdated?: (
+    vault: string,
+    targetDerivationParams?: KeyDerivationOptions,
+  ) => boolean;
 };
 
 /**
