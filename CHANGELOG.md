@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [15.1.0]
+### Uncategorized
+- [15.x] Backport encryption improvements ([#312](https://github.com/MetaMask/KeyringController/pull/312))
+
 ## [15.0.0]
 ### Changed
 - **BREAKING** Removed `encryptor` class variable ([#293](https://github.com/MetaMask/KeyringController/pull/293))
@@ -176,7 +180,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v15.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v15.1.0...HEAD
+[15.1.0]: https://github.com/MetaMask/KeyringController/compare/v15.0.0...v15.1.0
 [15.0.0]: https://github.com/MetaMask/KeyringController/compare/v14.0.1...v15.0.0
 [14.0.1]: https://github.com/MetaMask/KeyringController/compare/v14.0.0...v14.0.1
 [14.0.0]: https://github.com/MetaMask/KeyringController/compare/v13.0.1...v14.0.0
