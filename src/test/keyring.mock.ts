@@ -113,8 +113,8 @@ export class KeyringMockWithSignTransaction extends BaseKeyringMock {
     super(options);
   }
 
-  async signTransaction(_from: any, _txData: any, _opts: any): Promise<TxData> {
-    return Promise.resolve(_txData);
+  async signTransaction(_from: any, txData: any, _opts: any): Promise<TxData> {
+    return Promise.resolve(txData);
   }
 }
 
