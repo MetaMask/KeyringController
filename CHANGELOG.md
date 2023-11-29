@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `updateVault` optional property from `GenericEncryptor` type ([#312](https://github.com/MetaMask/KeyringController/pull/312))
 
 ### Fixed
-- Prefer cached encryption key over password when available ([#312](https://github.com/MetaMask/KeyringController/pull/312))
+- Improved encryption performance when the controller is constructed with `cacheEncryptionKey: true` ([#312](https://github.com/MetaMask/KeyringController/pull/312))
 
 ## [15.0.0]
 ### Changed
