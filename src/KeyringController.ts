@@ -802,7 +802,15 @@ class KeyringController extends EventEmitter {
     if (this.#cacheEncryptionKey) {
       assertIsExportableKeyEncryptor(this.#encryptor);
 
-      if (this.password) {
+      if (encryptionKey) {
+        const key = await this.#encryptor.importKey(encryptionKey);
+        const vaultJSON = await this.#encryptor.encryptWithKey(
+          key,
+          serializedKeyrings,
+        );
+        vaultJSON.salt = encryptionSalt;
+        vault = JSON.stringify(vaultJSON);
+      } else if (this.password) {
         const { vault: newVault, exportedKeyString } =
           await this.#encryptor.encryptWithDetail(
             this.password,
@@ -811,14 +819,6 @@ class KeyringController extends EventEmitter {
 
         vault = newVault;
         newEncryptionKey = exportedKeyString;
-      } else if (encryptionKey) {
-        const key = await this.#encryptor.importKey(encryptionKey);
-        const vaultJSON = await this.#encryptor.encryptWithKey(
-          key,
-          serializedKeyrings,
-        );
-        vaultJSON.salt = encryptionSalt;
-        vault = JSON.stringify(vaultJSON);
       }
     } else {
       if (typeof this.password !== 'string') {
@@ -930,9 +930,9 @@ class KeyringController extends EventEmitter {
 
     if (
       this.password &&
-      this.#encryptor.updateVault &&
-      (await this.#encryptor.updateVault(encryptedVault, this.password)) !==
-        encryptedVault
+      (!this.#cacheEncryptionKey || !encryptionKey) &&
+      this.#encryptor.isVaultUpdated &&
+      !this.#encryptor.isVaultUpdated(encryptedVault)
     ) {
       // Re-encrypt the vault with safer method if one is available
       await this.persistAllKeyrings();
