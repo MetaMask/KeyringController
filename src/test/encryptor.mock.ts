@@ -81,6 +81,10 @@ export class MockEncryptor implements ExportableKeyEncryptor {
     return _vault;
   }
 
+  isVaultUpdated(_vault: string) {
+    return true;
+  }
+
   generateSalt() {
     return MOCK_ENCRYPTION_SALT;
   }
