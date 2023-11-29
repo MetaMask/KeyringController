@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [15.1.0]
-### Uncategorized
-- [15.x] Backport encryption improvements ([#312](https://github.com/MetaMask/KeyringController/pull/312))
+### Added
+- Added optional `isVaultUpdated` property to `GenericEncryptor` type ([#312](https://github.com/MetaMask/KeyringController/pull/312))
+
+### Changed
+- Bump `@metamask/browser-passworder` to `^4.3.0` ([#312](https://github.com/MetaMask/KeyringController/pull/312))
+
+### Removed
+- Removed `updateVault` optional property from `GenericEncryptor` type ([#312](https://github.com/MetaMask/KeyringController/pull/312))
+
+### Fixed
+- Prefer cached encryption key over password when available ([#312](https://github.com/MetaMask/KeyringController/pull/312))
 
 ## [15.0.0]
 ### Changed
