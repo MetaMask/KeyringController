@@ -931,9 +931,8 @@ class KeyringController extends EventEmitter {
     if (
       this.password &&
       (!this.#cacheEncryptionKey || !encryptionKey) &&
-      this.#encryptor.updateVault &&
-      (await this.#encryptor.updateVault(encryptedVault, this.password)) !==
-        encryptedVault
+      this.#encryptor.isVaultUpdated &&
+      !this.#encryptor.isVaultUpdated(encryptedVault)
     ) {
       // Re-encrypt the vault with safer method if one is available
       await this.persistAllKeyrings();
