@@ -863,13 +863,11 @@ describe('KeyringController', () => {
           });
           deleteEncryptionKeyAndSalt(keyringController);
           const initialVault = keyringController.store.getState().vault;
-          const updatedVaultMock =
-            '{"vault": "updated_vault_detail", "salt": "salt"}';
           const mockEncryptionResult = {
             data: '0x1234',
             iv: 'an iv',
           };
-          sinon.stub(mockEncryptor, 'updateVault').resolves(updatedVaultMock);
+          sinon.stub(mockEncryptor, 'isVaultUpdated').returns(false);
           sinon
             .stub(mockEncryptor, 'encryptWithKey')
             .resolves(mockEncryptionResult);
@@ -898,21 +896,12 @@ describe('KeyringController', () => {
             },
           });
           const initialVault = keyringController.store.getState().vault;
-          const updatedVaultMock =
-            '{"vault": "updated_vault_detail", "salt": "salt"}';
-          const mockEncryptionResult = {
-            data: '0x1234',
-            iv: 'an iv',
-          };
-          sinon.stub(mockEncryptor, 'updateVault').resolves(updatedVaultMock);
-          sinon
-            .stub(mockEncryptor, 'encryptWithKey')
-            .resolves(mockEncryptionResult);
+          sinon.stub(mockEncryptor, 'isVaultUpdated').returns(false);
 
           await keyringController.unlockKeyrings(PASSWORD);
           const updatedVault = keyringController.store.getState().vault;
 
-          expect(initialVault).not.toBe(updatedVault);
+          expect(initialVault).toBe(updatedVault);
         });
       });
 
@@ -929,7 +918,7 @@ describe('KeyringController', () => {
           const initialVault = keyringController.store.getState().vault;
           const updatedVaultMock =
             '{"vault": "updated_vault_detail", "salt": "salt"}';
-          sinon.stub(mockEncryptor, 'updateVault').resolves(updatedVaultMock);
+          sinon.stub(mockEncryptor, 'isVaultUpdated').returns(false);
           sinon.stub(mockEncryptor, 'encrypt').resolves(updatedVaultMock);
 
           await keyringController.unlockKeyrings(PASSWORD);
