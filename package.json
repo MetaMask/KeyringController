@@ -39,9 +39,9 @@
     "test:watch": "jest --watch"
   },
   "resolutions": {
+    "@metamask/keyring-api": "github:MetaMask/keyring-api#67ffc9aa68526c7475889e8b551adf0bd7120cf8",
     "ink": "3.1.0",
-    "react-reconciler": "0.24.0",
-    "@metamask/keyring-api": "github:MetaMask/keyring-api#67ffc9aa68526c7475889e8b551adf0bd7120cf8"
+    "react-reconciler": "0.24.0"
   },
   "dependencies": {
     "@ethereumjs/tx": "^4.2.0",
