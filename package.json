@@ -40,7 +40,8 @@
   },
   "resolutions": {
     "ink": "3.1.0",
-    "react-reconciler": "0.24.0"
+    "react-reconciler": "0.24.0",
+    "@metamask/keyring-api": "github:MetaMask/keyring-api#67ffc9aa68526c7475889e8b551adf0bd7120cf8"
   },
   "dependencies": {
     "@ethereumjs/tx": "^4.2.0",
@@ -48,6 +49,7 @@
     "@metamask/eth-hd-keyring": "^7.0.1",
     "@metamask/eth-sig-util": "^7.0.0",
     "@metamask/eth-simple-keyring": "^6.0.1",
+    "@metamask/keyring-api": "^1.1.0",
     "@metamask/obs-store": "^9.0.0",
     "@metamask/utils": "^8.2.0"
   },
@@ -72,7 +74,7 @@
     "depcheck": "^1.4.7",
     "eslint": "^8.48.0",
     "eslint-config-prettier": "^8.7.0",
-    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-import": "~2.26.0",
     "eslint-plugin-jest": "^27.2.1",
     "eslint-plugin-jsdoc": "^41",
     "eslint-plugin-n": "^15.7.0",
@@ -100,8 +102,8 @@
   "lavamoat": {
     "allowScripts": {
       "@lavamoat/preinstall-always-fail": false,
-      "@metamask/eth-hd-keyring>eth-simple-keyring>eth-sig-util>ethereumjs-util>keccak": false,
-      "@metamask/eth-hd-keyring>eth-simple-keyring>eth-sig-util>ethereumjs-util>secp256k1": false
+      "@metamask/keyring-api>@metamask/snaps-utils>@metamask/permission-controller>@metamask/controller-utils>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "@metamask/keyring-api>@metamask/snaps-utils>@metamask/permission-controller>@metamask/controller-utils>ethereumjs-util>ethereum-cryptography>secp256k1": false
     }
   }
 }
