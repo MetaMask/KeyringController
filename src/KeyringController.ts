@@ -5,6 +5,7 @@ import { normalize as normalizeToHex } from '@metamask/eth-sig-util';
 import SimpleKeyring from '@metamask/eth-simple-keyring';
 import type {
   EthBaseTransaction,
+  EthBaseUserOperation,
   EthKeyring,
   EthUserOperation,
   EthUserOperationPatch,
@@ -595,7 +596,7 @@ class KeyringController extends EventEmitter {
   async prepareUserOperation(
     rawAddress: string,
     transactions: EthBaseTransaction[],
-  ): Promise<TxData> {
+  ): Promise<EthBaseUserOperation> {
     const address = normalizeToHex(rawAddress) as Hex;
     const keyring = await this.getKeyringForAccount(address);
 
