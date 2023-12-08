@@ -1261,7 +1261,7 @@ __metadata:
     "@metamask/eth-hd-keyring": ^7.0.1
     "@metamask/eth-sig-util": ^7.0.0
     "@metamask/eth-simple-keyring": ^6.0.1
-    "@metamask/keyring-api": ^1.1.0
+    "@metamask/keyring-api": ^2.0.0
     "@metamask/obs-store": ^9.0.0
     "@metamask/utils": ^8.2.0
     "@types/jest": ^29.4.0
@@ -1357,9 +1357,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@github:MetaMask/keyring-api#67ffc9aa68526c7475889e8b551adf0bd7120cf8":
-  version: 1.1.0
-  resolution: "@metamask/keyring-api@https://github.com/MetaMask/keyring-api.git#commit=67ffc9aa68526c7475889e8b551adf0bd7120cf8"
+"@metamask/keyring-api@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@metamask/keyring-api@npm:2.0.0"
   dependencies:
     "@metamask/providers": ^14.0.1
     "@metamask/snaps-controllers": ^3.4.1
@@ -1369,7 +1369,7 @@ __metadata:
     "@types/uuid": ^9.0.1
     superstruct: ^1.0.3
     uuid: ^9.0.0
-  checksum: e695023afa3ba46df4f198a5da1452b1a0313585811b75c4561009cd2913f618b09c33f346bbf8babec568a4100a25c2ee04b3c987f82d9f683c14765b9bfda4
+  checksum: ea7e02a6b6d37ec6983b00b5032f5bd12b55eae3a979ac8a3abaa84bb870fc5ae3702e09955a90ac6e683691c3fe1d2c13bc5720c491fdc2017acfcfac4a9250
   languageName: node
   linkType: hard
 
