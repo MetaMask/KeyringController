@@ -10,7 +10,8 @@
     "noErrorTruncation": true,
     "noUncheckedIndexedAccess": true,
     "strict": true,
-    "target": "ES2017"
+    "target": "ES2017",
+    "skipLibCheck": true
   },
   "exclude": ["./dist/**/*", "node_modules"]
 }

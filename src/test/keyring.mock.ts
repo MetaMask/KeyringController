@@ -1,8 +1,15 @@
-import type { Keyring, Json, Hex } from '@metamask/utils';
+import type {
+  EthBaseTransaction,
+  EthBaseUserOperation,
+  EthKeyring,
+  EthUserOperation,
+  EthUserOperationPatch,
+} from '@metamask/keyring-api';
+import type { Json, Hex } from '@metamask/utils';
 
 const TYPE = 'Keyring Mock With Init';
 
-class KeyringMockWithInit implements Keyring<Json> {
+class KeyringMockWithInit implements EthKeyring<Json> {
   static type = TYPE;
 
   public type = TYPE;
@@ -40,6 +47,27 @@ class KeyringMockWithInit implements Keyring<Json> {
 
   async destroy() {
     return Promise.resolve();
+  }
+
+  async prepareUserOperation(
+    _from: string,
+    _txs: EthBaseTransaction[],
+  ): Promise<EthBaseUserOperation> {
+    return Promise.resolve() as any;
+  }
+
+  async patchUserOperation(
+    _from: string,
+    _userOp: EthUserOperation,
+  ): Promise<EthUserOperationPatch> {
+    return Promise.resolve() as any;
+  }
+
+  async signUserOperation(
+    _from: string,
+    _userOp: EthUserOperation,
+  ): Promise<string> {
+    return Promise.resolve() as any;
   }
 }
 
