@@ -1,9 +1,16 @@
 import type { TxData } from '@ethereumjs/tx';
-import type { Keyring, Json, Hex } from '@metamask/utils';
+import type {
+  EthBaseTransaction,
+  EthBaseUserOperation,
+  EthKeyring,
+  EthUserOperation,
+  EthUserOperationPatch,
+} from '@metamask/keyring-api';
+import type { Json, Hex } from '@metamask/utils';
 
 const TYPE = 'Keyring Mock With Init';
 
-export class BaseKeyringMock implements Keyring<Json> {
+export class BaseKeyringMock implements EthKeyring<Json> {
   static type = 'Keyring Mock';
 
   public type = TYPE;
@@ -89,5 +96,36 @@ export class KeyringMockWithSignTransaction extends BaseKeyringMock {
 
   async signTransaction(_from: any, txData: any, _opts: any): Promise<TxData> {
     return Promise.resolve(txData);
+  }
+}
+
+export class KeyringMockWithUserOp extends BaseKeyringMock {
+  static type = 'Keyring Mock With User Op';
+
+  public type = 'Keyring Mock With User Op';
+
+  constructor(options: Record<string, unknown> | undefined = {}) {
+    super(options);
+  }
+
+  async prepareUserOperation(
+    _from: string,
+    _txs: EthBaseTransaction[],
+  ): Promise<EthBaseUserOperation> {
+    return Promise.resolve() as any;
+  }
+
+  async patchUserOperation(
+    _from: string,
+    _userOp: EthUserOperation,
+  ): Promise<EthUserOperationPatch> {
+    return Promise.resolve() as any;
+  }
+
+  async signUserOperation(
+    _from: string,
+    _userOp: EthUserOperation,
+  ): Promise<string> {
+    return Promise.resolve() as any;
   }
 }

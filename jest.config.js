@@ -36,15 +36,15 @@ module.exports = {
   coverageProvider: 'babel',
 
   // A list of reporter names that Jest uses when writing coverage reports
-  coverageReporters: ['html', 'json-summary', 'text'],
+  coverageReporters: ['html', 'json-summary', 'text', 'lcov'],
 
   // An object that configures minimum threshold enforcement for coverage results
   coverageThreshold: {
     global: {
-      branches: 90.38,
-      functions: 96.61,
-      lines: 97.38,
-      statements: 97.44,
+      branches: 90.17,
+      functions: 96.82,
+      lines: 97.5,
+      statements: 97.56,
     },
   },
   preset: 'ts-jest',
