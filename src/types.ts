@@ -4,10 +4,11 @@ import type {
   EncryptionResult,
   KeyDerivationOptions,
 } from '@metamask/browser-passworder';
-import type { Json, Keyring } from '@metamask/utils';
+import type { EthKeyring } from '@metamask/keyring-api';
+import type { Json } from '@metamask/utils';
 
 export type KeyringControllerArgs = {
-  keyringBuilders?: { (): Keyring<Json>; type: string }[];
+  keyringBuilders?: { (): EthKeyring<Json>; type: string }[];
   initState?: KeyringControllerPersistentState;
 } & (
   | { encryptor?: ExportableKeyEncryptor; cacheEncryptionKey: true }
