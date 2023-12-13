@@ -1723,7 +1723,6 @@ describe('KeyringController', () => {
         password: PASSWORD,
         seedPhrase: walletOneSeedWords,
       });
-
       const userOp = {
         sender: '0x4584d2B4905087A100420AFfCe1b2d73fC69B8E4',
         nonce: '0x1',
@@ -1750,7 +1749,7 @@ describe('KeyringController', () => {
   });
 
   describe('signPersonalMessage', () => {
-    it('should sign personal message', async () => {
+    it('signPersonalMessage', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
         seedPhrase: walletOneSeedWords,

@@ -119,9 +119,9 @@ export class KeyringMockWithSignTransaction extends BaseKeyringMock {
 }
 
 export class KeyringMockWithUserOp extends BaseKeyringMock {
-  static type = 'Keyring Mock With User Operations';
+  static type = 'Keyring Mock With User Op';
 
-  public type = 'Keyring Mock With User Operations';
+  public type = 'Keyring Mock With User Op';
 
   constructor(options: Record<string, unknown> | undefined = {}) {
     super(options);

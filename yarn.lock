@@ -1333,13 +1333,13 @@ __metadata:
   linkType: hard
 
 "@metamask/json-rpc-engine@npm:^7.1.1, @metamask/json-rpc-engine@npm:^7.3.0":
-  version: 7.3.1
-  resolution: "@metamask/json-rpc-engine@npm:7.3.1"
+  version: 7.3.0
+  resolution: "@metamask/json-rpc-engine@npm:7.3.0"
   dependencies:
     "@metamask/rpc-errors": ^6.1.0
     "@metamask/safe-event-emitter": ^3.0.0
     "@metamask/utils": ^8.2.0
-  checksum: 4952eb4e70c0011d334fb4a9bf56aa2d68bef745c892dddd06f6ed7e6303fb95b3b60b4e32c88b6d77bfc5091acc8e71ad274f389419e4bdcc5741ef49cde87d
+  checksum: 7e12fb58ee2775269aa3e6e3a40d18d9053b6cefb6eaa2b80558a65986d0e451a9faf3935548d5b4eced857c6b569e768cb235ef10ff0feb72a23ccadaaff4bc
   languageName: node
   linkType: hard
 
@@ -1436,7 +1436,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/providers@npm:^14.0.1, @metamask/providers@npm:^14.0.2":
+"@metamask/providers@npm:^14.0.1":
   version: 14.0.2
   resolution: "@metamask/providers@npm:14.0.2"
   dependencies:
@@ -1547,16 +1547,16 @@ __metadata:
   linkType: hard
 
 "@metamask/snaps-sdk@npm:^1.2.0":
-  version: 1.3.2
-  resolution: "@metamask/snaps-sdk@npm:1.3.2"
+  version: 1.2.0
+  resolution: "@metamask/snaps-sdk@npm:1.2.0"
   dependencies:
     "@metamask/key-tree": ^9.0.0
-    "@metamask/providers": ^14.0.2
+    "@metamask/providers": ^14.0.1
     "@metamask/rpc-errors": ^6.1.0
     "@metamask/utils": ^8.2.1
     is-svg: ^4.4.0
     superstruct: ^1.0.3
-  checksum: 6492e5aaa57ce3ccd057537890a57d2a1a1e3c442b7decb8bc734ba02c1eae172d58d27b8c4af449d57be6cfe55ba2ebe4f128d673b10baa2d5a32ed9e4181ff
+  checksum: ce32fce94c690a2ba236d4584e78111baf1b7527113f411bce2768f76f0c3b7cd1cd56684ffc5d941dd06b46065466148b1872126fd084f94c481937d06fc51d
   languageName: node
   linkType: hard
 
@@ -1617,8 +1617,8 @@ __metadata:
   linkType: hard
 
 "@metamask/utils@npm:^8.0.0, @metamask/utils@npm:^8.1.0, @metamask/utils@npm:^8.2.0, @metamask/utils@npm:^8.2.1":
-  version: 8.3.0
-  resolution: "@metamask/utils@npm:8.3.0"
+  version: 8.2.1
+  resolution: "@metamask/utils@npm:8.2.1"
   dependencies:
     "@ethereumjs/tx": ^4.2.0
     "@noble/hashes": ^1.3.1
@@ -1628,7 +1628,7 @@ __metadata:
     pony-cause: ^2.1.10
     semver: ^7.5.4
     superstruct: ^1.0.3
-  checksum: cd60c49b4c0397fb31e6b38937a0d9346cbb8337cb8add59db8db0e0e2156fb063ff4df93a26410157f0cc02aa9a9b785fc1b53cfc4ab73204462893ed11cacb
+  checksum: 36a714a17e4949d2040bedb28d4373a22e7e86bb797aa2d59223f9799fd76e662443bcede113719c4e200f5e9d90a9d62feafad5028fff8b9a7a85fface097ca
   languageName: node
   linkType: hard
 
