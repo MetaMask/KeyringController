@@ -302,10 +302,31 @@ describe('KeyringController', () => {
         });
       });
     });
+
+    it('should add an `encryptionSalt` to the `memStore` when a vault is restored', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        constructorOptions: {
+          cacheEncryptionKey: true,
+        },
+      });
+
+      await keyringController.createNewVaultWithKeyring(PASSWORD, {
+        type: KeyringType.HD,
+        opts: {
+          mnemonic: walletOneSeedWords,
+          numberOfAccounts: 1,
+        },
+      });
+
+      const finalMemStore = keyringController.memStore.getState();
+      expect(finalMemStore.encryptionKey).toBe(MOCK_HARDCODED_KEY);
+      expect(finalMemStore.encryptionSalt).toBe(MOCK_ENCRYPTION_SALT);
+    });
   });
 
-  describe('createNewVaultAndKeychain', () => {
-    it('should create a new vault', async () => {
+  describe('createNewVaultWithKeyring', () => {
+    it('should create a new vault with a HD keyring', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
       });
@@ -321,6 +342,29 @@ describe('KeyringController', () => {
       const { vault } = keyringController.store.getState();
       expect(vault).toStrictEqual(expect.stringMatching('.+'));
       expect(typeof newVault).toBe('object');
+    });
+
+    it('should create a new vault with a simple keyring', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+      });
+      keyringController.store.putState({});
+      assert(!keyringController.store.getState().vault, 'no previous vault');
+
+      const newVault = await keyringController.createNewVaultWithKeyring(
+        PASSWORD,
+        {
+          type: KeyringType.Simple,
+          opts: walletOnePrivateKey,
+        },
+      );
+      const { vault } = keyringController.store.getState();
+      expect(vault).toStrictEqual(expect.stringMatching('.+'));
+      expect(typeof newVault).toBe('object');
+
+      const accounts = await keyringController.getAccounts();
+      expect(accounts).toHaveLength(1);
+      expect(accounts[0]).toBe(walletOneAddresses[0]);
     });
 
     it('should unlock the vault', async () => {
@@ -393,9 +437,7 @@ describe('KeyringController', () => {
         expect(finalMemStore.encryptionSalt).toBe(MOCK_ENCRYPTION_SALT);
       });
     });
-  });
 
-  describe('createNewVaultAndRestore', () => {
     it('clears old keyrings and creates a one', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
@@ -506,29 +548,6 @@ describe('KeyringController', () => {
           },
         }),
       ).rejects.toThrow('KeyringController - First Account not found.');
-    });
-
-    describe('when `cacheEncryptionKey` is enabled', () => {
-      it('should add an `encryptionSalt` to the `memStore` when a vault is restored', async () => {
-        const keyringController = await initializeKeyringController({
-          password: PASSWORD,
-          constructorOptions: {
-            cacheEncryptionKey: true,
-          },
-        });
-
-        await keyringController.createNewVaultWithKeyring(PASSWORD, {
-          type: KeyringType.HD,
-          opts: {
-            mnemonic: walletOneSeedWords,
-            numberOfAccounts: 1,
-          },
-        });
-
-        const finalMemStore = keyringController.memStore.getState();
-        expect(finalMemStore.encryptionKey).toBe(MOCK_HARDCODED_KEY);
-        expect(finalMemStore.encryptionSalt).toBe(MOCK_ENCRYPTION_SALT);
-      });
     });
   });
 
