@@ -987,8 +987,8 @@ class KeyringController extends EventEmitter {
    * Create keyring.
    *
    * - Creates a new vault.
-   * - Creates a new keyring with one account.
-   * - Makes that account the selected account.
+   * - Creates a new keyring with at least one account.
+   * - Makes the first account the selected account.
    * @param type - Keyring type to instantiate.
    * @param opts - Optional parameters required to instantiate the keyring.
    * @returns A promise that resolves if the operation was successful.
