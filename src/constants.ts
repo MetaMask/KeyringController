@@ -22,7 +22,6 @@ export enum KeyringControllerError {
   UnsupportedSignTypedMessage = 'KeyringController - The keyring for the current address does not support the method signTypedMessage.',
   UnsupportedGetAppKeyAddress = 'KeyringController - The keyring for the current address does not support the method getAppKeyAddress.',
   UnsupportedExportAppKeyForAddress = 'KeyringController - The keyring for the current address does not support the method exportAppKeyForAddress.',
-  NoAccountOnKeychain = 'KeyringController - The keyring for the current address does not support the method decryptMessage.',
   MissingCredentials = 'KeyringController - Cannot persist vault without password and encryption key',
   MissingVaultData = 'KeyringController - Cannot persist vault without vault information',
   ExpiredCredentials = 'KeyringController - Encryption key and salt provided are expired',
