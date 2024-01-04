@@ -919,28 +919,24 @@ class KeyringController extends EventEmitter {
   // =======================
 
   /**
-   * Create First Key Tree.
+   * Create keyring.
    *
-   * - Clears the existing vault.
    * - Creates a new vault.
-   * - Creates a random new HD Keyring with 1 account.
+   * - Creates a new keyring with one account.
    * - Makes that account the selected account.
-   * - Faucets that account on testnet.
-   * - Puts the current seed words into the state tree.
-   *
+   * @param type - Keyring type to instantiate.
+   * @param opts - Optional parameters required to instantiate the keyring.
    * @returns A promise that resolves if the operation was successful.
    */
-  async #createFirstKeyTree(): Promise<null> {
-    await this.#clearKeyrings();
-
-    const keyring = await this.addNewKeyring(KeyringType.HD);
+  async #createKeyring(type: string, opts?: unknown): Promise<null> {
+    const keyring = await this.addNewKeyring(type, opts);
     if (!keyring) {
       throw new Error(KeyringControllerError.NoKeyring);
     }
 
     const [firstAccount] = await keyring.getAccounts();
     if (!firstAccount) {
-      throw new Error(KeyringControllerError.NoAccountOnKeychain);
+      throw new Error(KeyringControllerError.NoFirstAccount);
     }
 
     const hexAccount = normalizeToHex(firstAccount);
