@@ -115,43 +115,25 @@ class KeyringController extends EventEmitter {
    */
 
   /**
-   * Create New Vault And Keychain
+   * Create new vault And with a specific keyring
    *
    * Destroys any old encrypted storage,
    * creates a new encrypted store with the given password,
-   * randomly creates a new HD wallet with 1 account,
-   * faucets that account on the testnet.
+   * creates a new wallet with 1 account.
    *
    * @fires KeyringController#unlock
    * @param password - The password to encrypt the vault with.
+   * @param keyring - A object containing the params to instantiate a new keyring.
+   * @param keyring.type - The keyring type.
+   * @param keyring.opts - Optional parameters required to instantiate the keyring.
    * @returns A promise that resolves to the state.
    */
-  async createNewVaultAndKeychain(
+  async createNewVaultWithKeyring(
     password: string,
-  ): Promise<KeyringControllerState> {
-    this.password = password;
-
-    await this.#createFirstKeyTree();
-    this.#setUnlocked();
-    return this.fullUpdate();
-  }
-
-  /**
-   * CreateNewVaultAndRestore
-   *
-   * Destroys any old encrypted storage,
-   * creates a new encrypted store with the given password,
-   * creates a new HD wallet from the given seed with 1 account.
-   *
-   * @fires KeyringController#unlock
-   * @param password - The password to encrypt the vault with.
-   * @param seedPhrase - The BIP39-compliant seed phrase,
-   * either as a string or Uint8Array.
-   * @returns A promise that resolves to the state.
-   */
-  async createNewVaultAndRestore(
-    password: string,
-    seedPhrase: Uint8Array | string | number[],
+    keyring: {
+      type: string;
+      opts?: unknown;
+    },
   ): Promise<KeyringControllerState> {
     if (typeof password !== 'string') {
       throw new TypeError(KeyringControllerError.WrongPasswordType);
@@ -159,16 +141,7 @@ class KeyringController extends EventEmitter {
     this.password = password;
 
     await this.#clearKeyrings();
-    const keyring = await this.addNewKeyring(KeyringType.HD, {
-      mnemonic: seedPhrase,
-      numberOfAccounts: 1,
-    });
-
-    const [firstAccount] = await keyring.getAccounts();
-
-    if (!firstAccount) {
-      throw new Error(KeyringControllerError.NoFirstAccount);
-    }
+    await this.#createKeyring(keyring.type, keyring.opts);
     this.#setUnlocked();
     return this.fullUpdate();
   }
