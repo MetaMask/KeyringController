@@ -1133,8 +1133,8 @@ __metadata:
   linkType: hard
 
 "@metamask/auto-changelog@npm:^3.0.0":
-  version: 3.4.3
-  resolution: "@metamask/auto-changelog@npm:3.4.3"
+  version: 3.4.4
+  resolution: "@metamask/auto-changelog@npm:3.4.4"
   dependencies:
     diff: ^5.0.0
     execa: ^5.1.1
@@ -1143,7 +1143,7 @@ __metadata:
     yargs: ^17.0.1
   bin:
     auto-changelog: dist/cli.js
-  checksum: 3405f1f85d02684a95945ab253523619014bdae5da6121fb540140f8b21ddf2dda104683d91a24176c4c67a44fb9446d2e607d94a532a2bbb4f08a08a1e5a605
+  checksum: 4876ab3ec98f6d0c00a0679f9e44e1ee79d335ae97e18336a638ac19484cac30d2f3750e6875121ee07b0da128f8609490bed0e195c8153c2b74866f34e405ed
   languageName: node
   linkType: hard
 
@@ -1333,13 +1333,13 @@ __metadata:
   linkType: hard
 
 "@metamask/json-rpc-engine@npm:^7.1.1, @metamask/json-rpc-engine@npm:^7.3.0":
-  version: 7.3.0
-  resolution: "@metamask/json-rpc-engine@npm:7.3.0"
+  version: 7.3.1
+  resolution: "@metamask/json-rpc-engine@npm:7.3.1"
   dependencies:
     "@metamask/rpc-errors": ^6.1.0
     "@metamask/safe-event-emitter": ^3.0.0
     "@metamask/utils": ^8.2.0
-  checksum: 7e12fb58ee2775269aa3e6e3a40d18d9053b6cefb6eaa2b80558a65986d0e451a9faf3935548d5b4eced857c6b569e768cb235ef10ff0feb72a23ccadaaff4bc
+  checksum: 4952eb4e70c0011d334fb4a9bf56aa2d68bef745c892dddd06f6ed7e6303fb95b3b60b4e32c88b6d77bfc5091acc8e71ad274f389419e4bdcc5741ef49cde87d
   languageName: node
   linkType: hard
 
@@ -1436,7 +1436,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/providers@npm:^14.0.1":
+"@metamask/providers@npm:^14.0.1, @metamask/providers@npm:^14.0.2":
   version: 14.0.2
   resolution: "@metamask/providers@npm:14.0.2"
   dependencies:
@@ -1547,16 +1547,16 @@ __metadata:
   linkType: hard
 
 "@metamask/snaps-sdk@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@metamask/snaps-sdk@npm:1.2.0"
+  version: 1.3.1
+  resolution: "@metamask/snaps-sdk@npm:1.3.1"
   dependencies:
     "@metamask/key-tree": ^9.0.0
-    "@metamask/providers": ^14.0.1
+    "@metamask/providers": ^14.0.2
     "@metamask/rpc-errors": ^6.1.0
     "@metamask/utils": ^8.2.1
     is-svg: ^4.4.0
     superstruct: ^1.0.3
-  checksum: ce32fce94c690a2ba236d4584e78111baf1b7527113f411bce2768f76f0c3b7cd1cd56684ffc5d941dd06b46065466148b1872126fd084f94c481937d06fc51d
+  checksum: 763dc1ac942e8440f190fa416dc94da715407e9b42496a99b5281a21b9cc05c02f3badd168f3f11558baa355c9781f222cd396a892f7f56fe7399d24fc5990b3
   languageName: node
   linkType: hard
 
