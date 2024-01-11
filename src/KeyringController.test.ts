@@ -1303,6 +1303,207 @@ describe('KeyringController', () => {
       );
     });
 
+    it('prepares a base UserOperation', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+      });
+
+      await keyringController.addNewKeyring('Keyring Mock With Init');
+      const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
+      const baseTxs = [
+        {
+          to: '0x8cBC0EA145491fe83104abA9ef916f8632367227',
+          value: '0x0',
+          data: '0x',
+        },
+      ];
+
+      const baseUserOp = {
+        callData: '0x7064',
+        initCode: '0x22ff',
+        nonce: '0x1',
+        gasLimits: {
+          callGasLimit: '0x58a83',
+          verificationGasLimit: '0xe8c4',
+          preVerificationGas: '0xc57c',
+        },
+        dummySignature: '0x0000',
+        dummyPaymasterAndData: '0x',
+        bundlerUrl: 'https://bundler.example.com/rpc',
+      };
+
+      jest
+        .spyOn(KeyringMockWithInit.prototype, 'getAccounts')
+        .mockResolvedValueOnce([sender]);
+
+      jest
+        .spyOn(KeyringMockWithInit.prototype, 'prepareUserOperation')
+        .mockResolvedValueOnce(baseUserOp);
+
+      const result = await keyringController.prepareUserOperation(
+        sender,
+        baseTxs,
+      );
+
+      expect(result).toStrictEqual(baseUserOp);
+    });
+
+    it('patches an UserOperation', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+      });
+
+      await keyringController.addNewKeyring('Keyring Mock With Init');
+      const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
+      const userOp = {
+        sender: '0x4584d2B4905087A100420AFfCe1b2d73fC69B8E4',
+        nonce: '0x1',
+        initCode: '0x',
+        callData: '0x7064',
+        callGasLimit: '0x58a83',
+        verificationGasLimit: '0xe8c4',
+        preVerificationGas: '0xc57c',
+        maxFeePerGas: '0x87f0878c0',
+        maxPriorityFeePerGas: '0x1dcd6500',
+        paymasterAndData: '0x',
+        signature: '0x',
+      };
+
+      const patch = {
+        paymasterAndData: '0x1234',
+      };
+
+      jest
+        .spyOn(KeyringMockWithInit.prototype, 'getAccounts')
+        .mockResolvedValueOnce([sender]);
+
+      jest
+        .spyOn(KeyringMockWithInit.prototype, 'patchUserOperation')
+        .mockResolvedValueOnce(patch);
+
+      const result = await keyringController.patchUserOperation(sender, userOp);
+      expect(result).toStrictEqual(patch);
+    });
+
+    it('signs an UserOperation', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+      });
+
+      await keyringController.addNewKeyring('Keyring Mock With Init');
+      const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
+      const userOp = {
+        sender: '0x4584d2B4905087A100420AFfCe1b2d73fC69B8E4',
+        nonce: '0x1',
+        initCode: '0x',
+        callData: '0x7064',
+        callGasLimit: '0x58a83',
+        verificationGasLimit: '0xe8c4',
+        preVerificationGas: '0xc57c',
+        maxFeePerGas: '0x87f0878c0',
+        maxPriorityFeePerGas: '0x1dcd6500',
+        paymasterAndData: '0x',
+        signature: '0x',
+      };
+
+      const signature = '0x1234';
+
+      jest
+        .spyOn(KeyringMockWithInit.prototype, 'getAccounts')
+        .mockResolvedValueOnce([sender]);
+
+      jest
+        .spyOn(KeyringMockWithInit.prototype, 'signUserOperation')
+        .mockResolvedValueOnce(signature);
+
+      const result = await keyringController.signUserOperation(sender, userOp);
+      expect(result).toStrictEqual(signature);
+    });
+
+    it("throws when the keyring doesn't implement prepareUserOperation", async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        seedPhrase: walletOneSeedWords,
+      });
+
+      const txs = [
+        {
+          to: '0x8cBC0EA145491fe83104abA9ef916f8632367227',
+          value: '0x0',
+          data: '0x',
+        },
+      ];
+
+      const result = keyringController.prepareUserOperation(
+        walletOneAddresses[0] as string,
+        txs,
+      );
+
+      await expect(result).rejects.toThrow(
+        'KeyringController - The keyring for the current address does not support the method prepareUserOperation.',
+      );
+    });
+
+    it("throws when the keyring doesn't implement patchUserOperation", async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        seedPhrase: walletOneSeedWords,
+      });
+
+      const userOp = {
+        sender: '0x4584d2B4905087A100420AFfCe1b2d73fC69B8E4',
+        nonce: '0x1',
+        initCode: '0x',
+        callData: '0x7064',
+        callGasLimit: '0x58a83',
+        verificationGasLimit: '0xe8c4',
+        preVerificationGas: '0xc57c',
+        maxFeePerGas: '0x87f0878c0',
+        maxPriorityFeePerGas: '0x1dcd6500',
+        paymasterAndData: '0x',
+        signature: '0x',
+      };
+
+      const result = keyringController.patchUserOperation(
+        walletOneAddresses[0] as string,
+        userOp,
+      );
+
+      await expect(result).rejects.toThrow(
+        'KeyringController - The keyring for the current address does not support the method patchUserOperation.',
+      );
+    });
+
+    it("throws when the keyring doesn't implement signUserOperation", async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        seedPhrase: walletOneSeedWords,
+      });
+
+      const userOp = {
+        sender: '0x4584d2B4905087A100420AFfCe1b2d73fC69B8E4',
+        nonce: '0x1',
+        initCode: '0x',
+        callData: '0x7064',
+        callGasLimit: '0x58a83',
+        verificationGasLimit: '0xe8c4',
+        preVerificationGas: '0xc57c',
+        maxFeePerGas: '0x87f0878c0',
+        maxPriorityFeePerGas: '0x1dcd6500',
+        paymasterAndData: '0x',
+        signature: '0x',
+      };
+
+      const result = keyringController.signUserOperation(
+        walletOneAddresses[0] as string,
+        userOp,
+      );
+
+      await expect(result).rejects.toThrow(
+        'KeyringController - The keyring for the current address does not support the method signUserOperation.',
+      );
+    });
+
     it('signPersonalMessage', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
