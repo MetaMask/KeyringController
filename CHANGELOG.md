@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [16.0.0]
+### Changed
+- **BREAKING**: Bump `@metamask/obs-store` from `^8.1.0` to `^9.0.0` ([#306](https://github.com/MetaMask/KeyringController/pull/306))
+  - The `store` and `memStore` properties now expose streams confirming to `readable-stream@^3.6.2`
+- **BREAKING**: Replace `GenericEncryptor.updateVault` with `GenericEncryptor.isVaultUpdated` ([#310](https://github.com/MetaMask/KeyringController/pull/310)))
+- Bump `@metamask/browser-passworder` from `^4.2.0` to `^4.3.0` ([#310](https://github.com/MetaMask/KeyringController/pull/310) [#311](https://github.com/MetaMask/KeyringController/pull/311))
+
+### Fixed
+- Prefer cached `encryptionKey` over password when possible ([#307](https://github.com/MetaMask/KeyringController/pull/307))
+
 ## [15.1.0]
 ### Added
 - Added optional `isVaultUpdated` property to `GenericEncryptor` type ([#312](https://github.com/MetaMask/KeyringController/pull/312))
@@ -189,7 +199,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v15.1.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v16.0.0...HEAD
+[16.0.0]: https://github.com/MetaMask/KeyringController/compare/v15.1.0...v16.0.0
 [15.1.0]: https://github.com/MetaMask/KeyringController/compare/v15.0.0...v15.1.0
 [15.0.0]: https://github.com/MetaMask/KeyringController/compare/v14.0.1...v15.0.0
 [14.0.1]: https://github.com/MetaMask/KeyringController/compare/v14.0.0...v14.0.1
