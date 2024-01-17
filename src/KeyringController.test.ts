@@ -16,7 +16,7 @@ import {
   MOCK_ENCRYPTION_SALT,
   BaseKeyringMock,
   KeyringMockWithDestroy,
-  baseTransactionMockFactory,
+  buildMockTransaction,
   KeyringMockWithSignTransaction,
   KeyringMockWithUserOp,
 } from './test';
@@ -873,8 +873,11 @@ describe('KeyringController', () => {
       stubKeyringClassWithAccount(BaseKeyringMock, mockAccount);
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [keyringBuilderFactory(BaseKeyringMock)],
+        },
       });
-      await keyringController.addNewKeyring('Keyring Mock');
+      await keyringController.addNewKeyring(BaseKeyringMock.type);
 
       await expect(
         keyringController.removeAccount(mockAccount),
@@ -1122,7 +1125,7 @@ describe('KeyringController', () => {
       ]);
     });
 
-    it('should throw error if keyring for account does not support getAppKeyAddress', async () => {
+    it('throws error if keyring for account does not support getAppKeyAddress', async () => {
       const address = '0x01560cd3bac62cc6d7e6380600d9317363400896';
       stubKeyringClassWithAccount(BaseKeyringMock, address);
       const keyringController = await initializeKeyringController({
@@ -1162,7 +1165,7 @@ describe('KeyringController', () => {
       expect(privateAppKey).not.toBe(privateKey);
     });
 
-    it('should throw error if keyring for account does not support exportAppKeyForAddress', async () => {
+    it('throws error if keyring for account does not support exportAppKeyForAddress', async () => {
       const address = '0x01560cd3bac62cc6d7e6380600d9317363400896';
       stubKeyringClassWithAccount(BaseKeyringMock, address);
       const keyringController = await initializeKeyringController({
@@ -1293,7 +1296,7 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(1);
     });
 
-    it('should not load keyrings when invalid encryptionKey format', async () => {
+    it('does not load keyrings when invalid encryptionKey format', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
         constructorOptions: {
@@ -1312,7 +1315,7 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(0);
     });
 
-    it('should not load keyrings when encryptionKey is expired', async () => {
+    it('does not load keyrings when encryptionKey is expired', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
         constructorOptions: {
@@ -1451,8 +1454,8 @@ describe('KeyringController', () => {
   });
 
   describe('signTransaction', () => {
-    it('should throw if the address is invalid', async () => {
-      const mockTransaction = baseTransactionMockFactory();
+    it('throws error if the address is invalid', async () => {
+      const mockTransaction = buildMockTransaction();
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
       });
@@ -1466,8 +1469,8 @@ describe('KeyringController', () => {
       );
     });
 
-    it('should throw if keyring for the given address does not support signTransaction', async () => {
-      const mockTransaction = baseTransactionMockFactory();
+    it('throws error if keyring for the given address does not support signTransaction', async () => {
+      const mockTransaction = buildMockTransaction();
       const address = '0x5aC6d462f054690A373Fabf8cc28E161003aEB19';
       stubKeyringClassWithAccount(BaseKeyringMock, address);
       const keyringController = await initializeKeyringController({
@@ -1483,8 +1486,8 @@ describe('KeyringController', () => {
       ).rejects.toThrow(KeyringControllerError.UnsupportedSignTransaction);
     });
 
-    it('should forward the transaction to the keyring for signing', async () => {
-      const mockTransaction = baseTransactionMockFactory();
+    it('forwards the transaction to the keyring for signing', async () => {
+      const mockTransaction = buildMockTransaction();
       const address = '0x5ac6d462f054690a373fabf8cc28e161003aeb19';
       stubKeyringClassWithAccount(KeyringMockWithSignTransaction, address);
       const keyringController = await initializeKeyringController({
@@ -1551,7 +1554,7 @@ describe('KeyringController', () => {
   });
 
   describe('prepareUserOperation', () => {
-    it('prepares a base UserOperation', async () => {
+    it('converts a base transaction to a base UserOperation', async () => {
       const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
       stubKeyringClassWithAccount(KeyringMockWithUserOp, sender);
       const baseTxs = [
@@ -1618,7 +1621,7 @@ describe('KeyringController', () => {
   });
 
   describe('patchUserOperation', () => {
-    it('patches an UserOperation', async () => {
+    it('uses the patchUserOperation method on the keyring to patch properties of a UserOperation', async () => {
       const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
       stubKeyringClassWithAccount(KeyringMockWithUserOp, sender);
       const keyringController = await initializeKeyringController({
@@ -1685,7 +1688,7 @@ describe('KeyringController', () => {
   });
 
   describe('signUserOperation', () => {
-    it('signs an UserOperation', async () => {
+    it('calls the signUserOperation method on the keyring, returning its result', async () => {
       const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
       stubKeyringClassWithAccount(KeyringMockWithUserOp, sender);
       const keyringController = await initializeKeyringController({
