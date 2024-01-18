@@ -7,10 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [17.0.0]
-### Uncategorized
-- Increase unit test coverage ([#309](https://github.com/MetaMask/KeyringController/pull/309))
-- feat!: create new vault with any keyring ([#329](https://github.com/MetaMask/KeyringController/pull/329))
-- chore(deps): bump @metamask/utils from 8.2.1 to 8.3.0 ([#335](https://github.com/MetaMask/KeyringController/pull/335))
+### Changed
+- **BREAKING**: Unify `createNewVaultAndKeychain` and `createNewVaultAndRestore` into new method `createNewVaultWithKeyring`. `createNewVaultWithKeyring` accepts a `password` and a `keyring` object provided by the client and returns the `KeyringControllerState` ([#329](https://github.com/MetaMask/KeyringController/pull/329))
+- Bump @metamask/utils from 8.2.1 to 8.3.0 ([#335](https://github.com/MetaMask/KeyringController/pull/335))
 
 ## [16.0.0]
 ### Changed
