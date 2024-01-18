@@ -1,7 +1,7 @@
 import { Wallet } from '@ethereumjs/wallet';
 import HdKeyring from '@metamask/eth-hd-keyring';
 import { normalize as normalizeAddress } from '@metamask/eth-sig-util';
-import type { Hex } from '@metamask/utils';
+import type { Hex, Json, KeyringClass } from '@metamask/utils';
 import { bytesToHex } from '@metamask/utils';
 import { strict as assert } from 'assert';
 import * as sinon from 'sinon';
@@ -14,6 +14,11 @@ import {
   PASSWORD,
   MOCK_HARDCODED_KEY,
   MOCK_ENCRYPTION_SALT,
+  BaseKeyringMock,
+  KeyringMockWithDestroy,
+  buildMockTransaction,
+  KeyringMockWithSignTransaction,
+  KeyringMockWithUserOp,
 } from './test';
 import type { KeyringControllerArgs } from './types';
 
@@ -60,7 +65,7 @@ async function initializeKeyringController({
   const keyringController = new KeyringController({
     encryptor: new MockEncryptor(),
     cacheEncryptionKey: false,
-    keyringBuilders: [keyringBuilderFactory(KeyringMockWithInit)],
+    keyringBuilders: [keyringBuilderFactory(BaseKeyringMock)],
     ...constructorOptions,
   });
 
@@ -93,6 +98,25 @@ function deleteEncryptionKeyAndSalt(keyringController: KeyringController) {
   delete keyringControllerState.encryptionKey;
   delete keyringControllerState.encryptionSalt;
   keyringController.memStore.updateState(keyringControllerState);
+}
+
+/**
+ * Stub the `getAccounts` and `addAccounts` methods of the given keyring class to return the given
+ * account.
+ *
+ * @param keyringClass - The keyring class to stub.
+ * @param account - The account to return.
+ */
+function stubKeyringClassWithAccount(
+  keyringClass: KeyringClass<Json>,
+  account: string,
+) {
+  sinon
+    .stub(keyringClass.prototype, 'getAccounts')
+    .returns(Promise.resolve([account]));
+  sinon
+    .stub(keyringClass.prototype, 'addAccounts')
+    .returns(Promise.resolve([account]));
 }
 
 describe('KeyringController', () => {
@@ -152,9 +176,12 @@ describe('KeyringController', () => {
     it('calls keyring optional destroy function', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [keyringBuilderFactory(KeyringMockWithDestroy)],
+        },
       });
-      const destroy = sinon.spy(KeyringMockWithInit.prototype, 'destroy');
-      await keyringController.addNewKeyring('Keyring Mock With Init');
+      const destroy = sinon.spy(KeyringMockWithDestroy.prototype, 'destroy');
+      await keyringController.addNewKeyring('Keyring Mock With Destroy');
 
       await keyringController.setLocked();
 
@@ -631,6 +658,9 @@ describe('KeyringController', () => {
     it('should call init method if available', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [keyringBuilderFactory(KeyringMockWithInit)],
+        },
       });
       const initSpy = sinon.spy(KeyringMockWithInit.prototype, 'init');
 
@@ -801,10 +831,13 @@ describe('KeyringController', () => {
     it('calls keyring optional destroy function', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [keyringBuilderFactory(KeyringMockWithDestroy)],
+        },
       });
-      const destroy = sinon.spy(KeyringMockWithInit.prototype, 'destroy');
+      const destroy = sinon.spy(KeyringMockWithDestroy.prototype, 'destroy');
       const keyring = await keyringController.addNewKeyring(
-        'Keyring Mock With Init',
+        'Keyring Mock With Destroy',
       );
       sinon.stub(keyringController, 'getKeyringForAccount').resolves(keyring);
 
@@ -833,6 +866,22 @@ describe('KeyringController', () => {
       // Check that the newly added keyring was not removed after
       // removing the account since it still has an account left
       expect(keyringController.keyrings).toHaveLength(2);
+    });
+
+    it('throws an error if the keyring for the given account does not support account removal', async () => {
+      const mockAccount = '0x5aC6d462f054690A373Fabf8cc28E161003aEB19';
+      stubKeyringClassWithAccount(BaseKeyringMock, mockAccount);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [keyringBuilderFactory(BaseKeyringMock)],
+        },
+      });
+      await keyringController.addNewKeyring(BaseKeyringMock.type);
+
+      await expect(
+        keyringController.removeAccount(mockAccount),
+      ).rejects.toThrow(KeyringControllerError.UnsupportedRemoveAccount);
     });
   });
 
@@ -1075,6 +1124,19 @@ describe('KeyringController', () => {
         'someapp.origin.io',
       ]);
     });
+
+    it('throws error if keyring for account does not support getAppKeyAddress', async () => {
+      const address = '0x01560cd3bac62cc6d7e6380600d9317363400896';
+      stubKeyringClassWithAccount(BaseKeyringMock, address);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+      });
+      await keyringController.addNewKeyring(BaseKeyringMock.type);
+
+      await expect(
+        keyringController.getAppKeyAddress(address, 'someapp.origin.io'),
+      ).rejects.toThrow(KeyringControllerError.UnsupportedGetAppKeyAddress);
+    });
   });
 
   describe('exportAppKeyForAddress', () => {
@@ -1101,6 +1163,21 @@ describe('KeyringController', () => {
 
       expect(recoveredAddress).toBe(appKeyAddress);
       expect(privateAppKey).not.toBe(privateKey);
+    });
+
+    it('throws error if keyring for account does not support exportAppKeyForAddress', async () => {
+      const address = '0x01560cd3bac62cc6d7e6380600d9317363400896';
+      stubKeyringClassWithAccount(BaseKeyringMock, address);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+      });
+      await keyringController.addNewKeyring(BaseKeyringMock.type);
+
+      await expect(
+        keyringController.exportAppKeyForAddress(address, 'someapp.origin.io'),
+      ).rejects.toThrow(
+        KeyringControllerError.UnsupportedExportAppKeyForAddress,
+      );
     });
   });
 
@@ -1219,7 +1296,7 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(1);
     });
 
-    it('should not load keyrings when invalid encryptionKey format', async () => {
+    it('does not load keyrings when invalid encryptionKey format', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
         constructorOptions: {
@@ -1238,7 +1315,7 @@ describe('KeyringController', () => {
       expect(keyringController.keyrings).toHaveLength(0);
     });
 
-    it('should not load keyrings when encryptionKey is expired', async () => {
+    it('does not load keyrings when encryptionKey is expired', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
         constructorOptions: {
@@ -1356,10 +1433,91 @@ describe('KeyringController', () => {
       );
       expect(privateKey).toStrictEqual(walletOnePrivateKey[0]);
     });
+
+    it('throws an error if the keyring type does not support export', async () => {
+      const mockAccount = '0x5aC6d462f054690A373Fabf8cc28E161003aEB19';
+      stubKeyringClassWithAccount(KeyringMockWithInit, mockAccount);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [keyringBuilderFactory(KeyringMockWithInit)],
+        },
+      });
+      await keyringController.addNewKeyring(KeyringMockWithInit.type);
+
+      await expect(
+        keyringController.exportAccount(
+          '0x5aC6d462f054690A373Fabf8cc28E161003aEB19',
+        ),
+      ).rejects.toThrow(KeyringControllerError.UnsupportedExportAccount);
+    });
   });
 
-  describe('signing methods', () => {
-    it('signMessage', async () => {
+  describe('signTransaction', () => {
+    it('throws error if the address is invalid', async () => {
+      const mockTransaction = buildMockTransaction();
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+      });
+
+      await expect(
+        keyringController.signTransaction(mockTransaction, '0x0'),
+      ).rejects.toThrow(
+        new Error(
+          `${KeyringControllerError.NoKeyring}. Error info: The address passed in is invalid/empty`,
+        ),
+      );
+    });
+
+    it('throws error if keyring for the given address does not support signTransaction', async () => {
+      const mockTransaction = buildMockTransaction();
+      const address = '0x5aC6d462f054690A373Fabf8cc28E161003aEB19';
+      stubKeyringClassWithAccount(BaseKeyringMock, address);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [keyringBuilderFactory(BaseKeyringMock)],
+        },
+      });
+      await keyringController.addNewKeyring(BaseKeyringMock.type);
+
+      await expect(
+        keyringController.signTransaction(mockTransaction, address),
+      ).rejects.toThrow(KeyringControllerError.UnsupportedSignTransaction);
+    });
+
+    it('forwards the transaction to the keyring for signing', async () => {
+      const mockTransaction = buildMockTransaction();
+      const address = '0x5ac6d462f054690a373fabf8cc28e161003aeb19';
+      stubKeyringClassWithAccount(KeyringMockWithSignTransaction, address);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [
+            keyringBuilderFactory(KeyringMockWithSignTransaction),
+          ],
+        },
+      });
+      const signTransactionSpy = sinon.spy(
+        KeyringMockWithSignTransaction.prototype,
+        'signTransaction',
+      );
+      await keyringController.addNewKeyring(
+        KeyringMockWithSignTransaction.type,
+      );
+
+      await keyringController.signTransaction(mockTransaction, address);
+
+      expect(signTransactionSpy.calledOnce).toBe(true);
+      expect(signTransactionSpy.getCall(0).args[0]).toStrictEqual(address);
+      expect(signTransactionSpy.getCall(0).args[1]).toStrictEqual(
+        mockTransaction,
+      );
+    });
+  });
+
+  describe('signMessage', () => {
+    it('should sign message', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
         seedPhrase: walletOneSeedWords,
@@ -1376,13 +1534,29 @@ describe('KeyringController', () => {
       );
     });
 
-    it('prepares a base UserOperation', async () => {
+    it('should throw if the keyring for the given address does not support signMessage', async () => {
+      const address = '0x5aC6d462f054690A373Fabf8cc28E161003aEB19';
+      stubKeyringClassWithAccount(BaseKeyringMock, address);
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
       });
+      await keyringController.addNewKeyring(BaseKeyringMock.type);
+      const inputParams = {
+        from: address,
+        data: '0x879a053d4800c6354e76c7985a865d2922c82fb5b3f4577b2fe08b998954f2e0',
+        origin: 'https://metamask.github.io',
+      };
 
-      await keyringController.addNewKeyring('Keyring Mock With Init');
+      await expect(keyringController.signMessage(inputParams)).rejects.toThrow(
+        KeyringControllerError.UnsupportedSignMessage,
+      );
+    });
+  });
+
+  describe('prepareUserOperation', () => {
+    it('converts a base transaction to a base UserOperation', async () => {
       const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
+      stubKeyringClassWithAccount(KeyringMockWithUserOp, sender);
       const baseTxs = [
         {
           to: '0x8cBC0EA145491fe83104abA9ef916f8632367227',
@@ -1390,7 +1564,6 @@ describe('KeyringController', () => {
           data: '0x',
         },
       ];
-
       const baseUserOp = {
         callData: '0x7064',
         initCode: '0x22ff',
@@ -1404,13 +1577,15 @@ describe('KeyringController', () => {
         dummyPaymasterAndData: '0x',
         bundlerUrl: 'https://bundler.example.com/rpc',
       };
-
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [keyringBuilderFactory(KeyringMockWithUserOp)],
+        },
+      });
+      await keyringController.addNewKeyring(KeyringMockWithUserOp.type);
       jest
-        .spyOn(KeyringMockWithInit.prototype, 'getAccounts')
-        .mockResolvedValueOnce([sender]);
-
-      jest
-        .spyOn(KeyringMockWithInit.prototype, 'prepareUserOperation')
+        .spyOn(KeyringMockWithUserOp.prototype, 'prepareUserOperation')
         .mockResolvedValueOnce(baseUserOp);
 
       const result = await keyringController.prepareUserOperation(
@@ -1421,84 +1596,11 @@ describe('KeyringController', () => {
       expect(result).toStrictEqual(baseUserOp);
     });
 
-    it('patches an UserOperation', async () => {
-      const keyringController = await initializeKeyringController({
-        password: PASSWORD,
-      });
-
-      await keyringController.addNewKeyring('Keyring Mock With Init');
-      const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
-      const userOp = {
-        sender: '0x4584d2B4905087A100420AFfCe1b2d73fC69B8E4',
-        nonce: '0x1',
-        initCode: '0x',
-        callData: '0x7064',
-        callGasLimit: '0x58a83',
-        verificationGasLimit: '0xe8c4',
-        preVerificationGas: '0xc57c',
-        maxFeePerGas: '0x87f0878c0',
-        maxPriorityFeePerGas: '0x1dcd6500',
-        paymasterAndData: '0x',
-        signature: '0x',
-      };
-
-      const patch = {
-        paymasterAndData: '0x1234',
-      };
-
-      jest
-        .spyOn(KeyringMockWithInit.prototype, 'getAccounts')
-        .mockResolvedValueOnce([sender]);
-
-      jest
-        .spyOn(KeyringMockWithInit.prototype, 'patchUserOperation')
-        .mockResolvedValueOnce(patch);
-
-      const result = await keyringController.patchUserOperation(sender, userOp);
-      expect(result).toStrictEqual(patch);
-    });
-
-    it('signs an UserOperation', async () => {
-      const keyringController = await initializeKeyringController({
-        password: PASSWORD,
-      });
-
-      await keyringController.addNewKeyring('Keyring Mock With Init');
-      const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
-      const userOp = {
-        sender: '0x4584d2B4905087A100420AFfCe1b2d73fC69B8E4',
-        nonce: '0x1',
-        initCode: '0x',
-        callData: '0x7064',
-        callGasLimit: '0x58a83',
-        verificationGasLimit: '0xe8c4',
-        preVerificationGas: '0xc57c',
-        maxFeePerGas: '0x87f0878c0',
-        maxPriorityFeePerGas: '0x1dcd6500',
-        paymasterAndData: '0x',
-        signature: '0x',
-      };
-
-      const signature = '0x1234';
-
-      jest
-        .spyOn(KeyringMockWithInit.prototype, 'getAccounts')
-        .mockResolvedValueOnce([sender]);
-
-      jest
-        .spyOn(KeyringMockWithInit.prototype, 'signUserOperation')
-        .mockResolvedValueOnce(signature);
-
-      const result = await keyringController.signUserOperation(sender, userOp);
-      expect(result).toStrictEqual(signature);
-    });
-
     it("throws when the keyring doesn't implement prepareUserOperation", async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
         seedPhrase: walletOneSeedWords,
       });
-
       const txs = [
         {
           to: '0x8cBC0EA145491fe83104abA9ef916f8632367227',
@@ -1515,6 +1617,43 @@ describe('KeyringController', () => {
       await expect(result).rejects.toThrow(
         'KeyringController - The keyring for the current address does not support the method prepareUserOperation.',
       );
+    });
+  });
+
+  describe('patchUserOperation', () => {
+    it('uses the patchUserOperation method on the keyring to patch properties of a UserOperation', async () => {
+      const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
+      stubKeyringClassWithAccount(KeyringMockWithUserOp, sender);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [keyringBuilderFactory(KeyringMockWithUserOp)],
+        },
+      });
+      await keyringController.addNewKeyring(KeyringMockWithUserOp.type);
+      const userOp = {
+        sender: '0x4584d2B4905087A100420AFfCe1b2d73fC69B8E4',
+        nonce: '0x1',
+        initCode: '0x',
+        callData: '0x7064',
+        callGasLimit: '0x58a83',
+        verificationGasLimit: '0xe8c4',
+        preVerificationGas: '0xc57c',
+        maxFeePerGas: '0x87f0878c0',
+        maxPriorityFeePerGas: '0x1dcd6500',
+        paymasterAndData: '0x',
+        signature: '0x',
+      };
+      const patch = {
+        paymasterAndData: '0x1234',
+      };
+      jest
+        .spyOn(KeyringMockWithUserOp.prototype, 'patchUserOperation')
+        .mockResolvedValueOnce(patch);
+
+      const result = await keyringController.patchUserOperation(sender, userOp);
+
+      expect(result).toStrictEqual(patch);
     });
 
     it("throws when the keyring doesn't implement patchUserOperation", async () => {
@@ -1546,13 +1685,47 @@ describe('KeyringController', () => {
         'KeyringController - The keyring for the current address does not support the method patchUserOperation.',
       );
     });
+  });
+
+  describe('signUserOperation', () => {
+    it('calls the signUserOperation method on the keyring, returning its result', async () => {
+      const sender = '0x998B3FBB8159aF51a827DBf43A8054A5A3A28c95';
+      stubKeyringClassWithAccount(KeyringMockWithUserOp, sender);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        constructorOptions: {
+          keyringBuilders: [keyringBuilderFactory(KeyringMockWithUserOp)],
+        },
+      });
+      await keyringController.addNewKeyring(KeyringMockWithUserOp.type);
+      const userOp = {
+        sender: '0x4584d2B4905087A100420AFfCe1b2d73fC69B8E4',
+        nonce: '0x1',
+        initCode: '0x',
+        callData: '0x7064',
+        callGasLimit: '0x58a83',
+        verificationGasLimit: '0xe8c4',
+        preVerificationGas: '0xc57c',
+        maxFeePerGas: '0x87f0878c0',
+        maxPriorityFeePerGas: '0x1dcd6500',
+        paymasterAndData: '0x',
+        signature: '0x',
+      };
+      const signature = '0x1234';
+      jest
+        .spyOn(KeyringMockWithUserOp.prototype, 'signUserOperation')
+        .mockResolvedValueOnce(signature);
+
+      const result = await keyringController.signUserOperation(sender, userOp);
+
+      expect(result).toStrictEqual(signature);
+    });
 
     it("throws when the keyring doesn't implement signUserOperation", async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
         seedPhrase: walletOneSeedWords,
       });
-
       const userOp = {
         sender: '0x4584d2B4905087A100420AFfCe1b2d73fC69B8E4',
         nonce: '0x1',
@@ -1576,7 +1749,9 @@ describe('KeyringController', () => {
         'KeyringController - The keyring for the current address does not support the method signUserOperation.',
       );
     });
+  });
 
+  describe('signPersonalMessage', () => {
     it('signPersonalMessage', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
@@ -1594,7 +1769,27 @@ describe('KeyringController', () => {
       );
     });
 
-    it('getEncryptionPublicKey', async () => {
+    it('should throw if the keyring for the given address does not support signPersonalMessage', async () => {
+      const address = '0x5aC6d462f054690A373Fabf8cc28E161003aEB19';
+      stubKeyringClassWithAccount(BaseKeyringMock, address);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+      });
+      await keyringController.addNewKeyring(BaseKeyringMock.type);
+      const inputParams = {
+        from: address,
+        data: '0x879a053d4800c6354e76c7985a865d2922c82fb5b3f4577b2fe08b998954f2e0',
+        origin: 'https://metamask.github.io',
+      };
+
+      await expect(
+        keyringController.signPersonalMessage(inputParams),
+      ).rejects.toThrow(KeyringControllerError.UnsupportedSignPersonalMessage);
+    });
+  });
+
+  describe('getEncryptionPublicKey', () => {
+    it('should get the correct encryption public key', async () => {
       const keyringController = await initializeKeyringController({
         password: PASSWORD,
         seedPhrase: walletOneSeedWords,
@@ -1606,177 +1801,265 @@ describe('KeyringController', () => {
       expect(result).toBe('SR6bQ1m3OTHvI1FLwcGzm+Uk6hffoFPxsQ0DTOeKMEc=');
     });
 
-    describe('signTypedMessage', () => {
-      it('signs a v1 typed message if no version is provided', async () => {
-        const keyringController = await initializeKeyringController({
-          password: PASSWORD,
-          seedPhrase: walletOneSeedWords,
-        });
-        const inputParams = {
-          from: mockAddress,
-          data: [
-            {
-              type: 'string',
-              name: 'Message',
-              value: 'Hi, Alice!',
-            },
-            {
-              type: 'uint32',
-              name: 'A number',
-              value: '1337',
-            },
-          ],
-          origin: 'https://metamask.github.io',
-        };
-        const result = await keyringController.signTypedMessage(inputParams);
-        expect(result).toMatchInlineSnapshot(
-          `"0x089bb031f5bf2b2cbdf49eb2bb37d6071ab71f950b9dc49e398ca2ba984aca3c189b3b8de6c14c56461460dd9f59443340f1b144aeeff73275ace41ac184e54f1c"`,
-        );
+    it('should throw if the keyring for the given address does not support getEncryptionPublicKey', async () => {
+      const address = '0x5aC6d462f054690A373Fabf8cc28E161003aEB19';
+      stubKeyringClassWithAccount(BaseKeyringMock, address);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
       });
+      await keyringController.addNewKeyring(BaseKeyringMock.type);
 
-      it('signs a v1 typed message', async () => {
-        const keyringController = await initializeKeyringController({
-          password: PASSWORD,
-          seedPhrase: walletOneSeedWords,
-        });
-        const inputParams = {
-          from: mockAddress,
-          data: [
-            {
-              type: 'string',
-              name: 'Message',
-              value: 'Hi, Alice!',
-            },
-            {
-              type: 'uint32',
-              name: 'A number',
-              value: '1337',
-            },
-          ],
-          origin: 'https://metamask.github.io',
-        };
-        const result = await keyringController.signTypedMessage(inputParams, {
-          version: 'V1',
-        });
-        expect(result).toMatchInlineSnapshot(
-          `"0x089bb031f5bf2b2cbdf49eb2bb37d6071ab71f950b9dc49e398ca2ba984aca3c189b3b8de6c14c56461460dd9f59443340f1b144aeeff73275ace41ac184e54f1c"`,
-        );
+      await expect(
+        keyringController.getEncryptionPublicKey(address),
+      ).rejects.toThrow(
+        KeyringControllerError.UnsupportedGetEncryptionPublicKey,
+      );
+    });
+  });
+
+  describe('decryptMessage', () => {
+    it('should decrypt a message encrypted with the encryption public key', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        seedPhrase: walletOneSeedWords,
       });
+      const inputParams = {
+        from: walletOneAddresses[0] as string,
+        data: {
+          ciphertext: 'piu57JEMwAp/Q6+SA7eTels+YoeUAdcu+68FMgKEir80pxT34Luq',
+          ephemPublicKey: 'BRI699kE0tSMq5IRjCYmFAVDDEbL3bKz7/NMHFoev1w=',
+          nonce: 'oJqpL0ObAh+NVggV67bO+BTmCGmV//rz',
+          version: 'x25519-xsalsa20-poly1305',
+        },
+      };
 
-      it('signs a v3 typed message', async () => {
-        const keyringController = await initializeKeyringController({
-          password: PASSWORD,
-          seedPhrase: walletOneSeedWords,
-        });
-        const typedData = {
-          types: {
-            EIP712Domain: [
-              { name: 'name', type: 'string' },
-              { name: 'version', type: 'string' },
-              { name: 'chainId', type: 'uint256' },
-              { name: 'verifyingContract', type: 'address' },
-            ],
-            Person: [
-              { name: 'name', type: 'string' },
-              { name: 'wallet', type: 'address' },
-            ],
-            Mail: [
-              { name: 'from', type: 'Person' },
-              { name: 'to', type: 'Person' },
-              { name: 'contents', type: 'string' },
+      const result = await keyringController.decryptMessage(inputParams);
+
+      expect(result).toBe('Hello, encrypted world!');
+    });
+
+    it('should throw if the keyring for the given address does not support decryptMessage', async () => {
+      const address = '0x5aC6d462f054690A373Fabf8cc28E161003aEB19';
+      stubKeyringClassWithAccount(BaseKeyringMock, address);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+      });
+      await keyringController.addNewKeyring(BaseKeyringMock.type);
+      const inputParams = {
+        from: address,
+        data: {
+          ciphertext: 'piu57JEMwAp/Q6+SA7eTels+YoeUAdcu+68FMgKEir80pxT34Luq',
+          ephemPublicKey: 'BRI699kE0tSMq5IRjCYmFAVDDEbL3bKz7/NMHFoev1w=',
+          nonce: 'oJqpL0ObAh+NVggV67bO+BTmCGmV//rz',
+          version: 'x25519-xsalsa20-poly1305',
+        },
+      };
+
+      await expect(
+        keyringController.decryptMessage(inputParams),
+      ).rejects.toThrow(KeyringControllerError.UnsupportedDecryptMessage);
+    });
+  });
+
+  describe('signTypedMessage', () => {
+    it('should sign a v1 typed message if no version is provided', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        seedPhrase: walletOneSeedWords,
+      });
+      const inputParams = {
+        from: mockAddress,
+        data: [
+          {
+            type: 'string',
+            name: 'Message',
+            value: 'Hi, Alice!',
+          },
+          {
+            type: 'uint32',
+            name: 'A number',
+            value: '1337',
+          },
+        ],
+        origin: 'https://metamask.github.io',
+      };
+      const result = await keyringController.signTypedMessage(inputParams);
+      expect(result).toMatchInlineSnapshot(
+        `"0x089bb031f5bf2b2cbdf49eb2bb37d6071ab71f950b9dc49e398ca2ba984aca3c189b3b8de6c14c56461460dd9f59443340f1b144aeeff73275ace41ac184e54f1c"`,
+      );
+    });
+
+    it('should sign a v1 typed message', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        seedPhrase: walletOneSeedWords,
+      });
+      const inputParams = {
+        from: mockAddress,
+        data: [
+          {
+            type: 'string',
+            name: 'Message',
+            value: 'Hi, Alice!',
+          },
+          {
+            type: 'uint32',
+            name: 'A number',
+            value: '1337',
+          },
+        ],
+        origin: 'https://metamask.github.io',
+      };
+      const result = await keyringController.signTypedMessage(inputParams, {
+        version: 'V1',
+      });
+      expect(result).toMatchInlineSnapshot(
+        `"0x089bb031f5bf2b2cbdf49eb2bb37d6071ab71f950b9dc49e398ca2ba984aca3c189b3b8de6c14c56461460dd9f59443340f1b144aeeff73275ace41ac184e54f1c"`,
+      );
+    });
+
+    it('should sign a v3 typed message', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        seedPhrase: walletOneSeedWords,
+      });
+      const typedData = {
+        types: {
+          EIP712Domain: [
+            { name: 'name', type: 'string' },
+            { name: 'version', type: 'string' },
+            { name: 'chainId', type: 'uint256' },
+            { name: 'verifyingContract', type: 'address' },
+          ],
+          Person: [
+            { name: 'name', type: 'string' },
+            { name: 'wallet', type: 'address' },
+          ],
+          Mail: [
+            { name: 'from', type: 'Person' },
+            { name: 'to', type: 'Person' },
+            { name: 'contents', type: 'string' },
+          ],
+        },
+        primaryType: 'Mail' as const,
+        domain: {
+          name: 'Ether Mail',
+          version: '1',
+          chainId: 1,
+          verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+        },
+        message: {
+          from: {
+            name: 'Cow',
+            wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+          },
+          to: {
+            name: 'Bob',
+            wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+          },
+          contents: 'Hello, Bob!',
+        },
+      };
+      const inputParams = {
+        from: mockAddress,
+        data: typedData,
+        origin: 'https://metamask.github.io',
+      };
+      const result = await keyringController.signTypedMessage(inputParams, {
+        version: 'V3',
+      });
+      expect(result).toMatchInlineSnapshot(
+        `"0x1c496cc9f42fc8f8a30bef731b20a1b8722569473643c0cd92e3e494be9c62725043275475ca81d9691c6c31e188dfbd5884b4352ba21bd99f38e6d357c738b81b"`,
+      );
+    });
+
+    it('should sign a v4 typed message', async () => {
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
+        seedPhrase: walletOneSeedWords,
+      });
+      const typedData = {
+        types: {
+          EIP712Domain: [
+            { name: 'name', type: 'string' },
+            { name: 'version', type: 'string' },
+            { name: 'chainId', type: 'uint256' },
+            { name: 'verifyingContract', type: 'address' },
+          ],
+          Person: [
+            { name: 'name', type: 'string' },
+            { name: 'wallet', type: 'address[]' },
+          ],
+          Mail: [
+            { name: 'from', type: 'Person' },
+            { name: 'to', type: 'Person[]' },
+            { name: 'contents', type: 'string' },
+          ],
+        },
+        primaryType: 'Mail' as const,
+        domain: {
+          name: 'Ether Mail',
+          version: '1',
+          chainId: 1,
+          verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+        },
+        message: {
+          from: {
+            name: 'Cow',
+            wallet: [
+              '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+              '0xDD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
             ],
           },
-          primaryType: 'Mail' as const,
-          domain: {
-            name: 'Ether Mail',
-            version: '1',
-            chainId: 1,
-            verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
-          },
-          message: {
-            from: {
-              name: 'Cow',
-              wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
-            },
-            to: {
+          to: [
+            {
               name: 'Bob',
-              wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+              wallet: ['0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'],
             },
-            contents: 'Hello, Bob!',
-          },
-        };
-        const inputParams = {
-          from: mockAddress,
-          data: typedData,
-          origin: 'https://metamask.github.io',
-        };
-        const result = await keyringController.signTypedMessage(inputParams, {
-          version: 'V3',
-        });
-        expect(result).toMatchInlineSnapshot(
-          `"0x1c496cc9f42fc8f8a30bef731b20a1b8722569473643c0cd92e3e494be9c62725043275475ca81d9691c6c31e188dfbd5884b4352ba21bd99f38e6d357c738b81b"`,
-        );
+          ],
+          contents: 'Hello, Bob!',
+        },
+      };
+      const inputParams = {
+        from: mockAddress,
+        data: typedData,
+        origin: 'https://metamask.github.io',
+      };
+      const result = await keyringController.signTypedMessage(inputParams, {
+        version: 'V4',
       });
+      expect(result).toMatchInlineSnapshot(
+        `"0xe8d6baed58a611bbe247aecf2a8cbe0e3877bf1828c6bd9402749ce9e16f557a5669102bd05f0c3e33c200ff965abf07dab9299cb4bcdc504c9a695205240b321c"`,
+      );
+    });
 
-      it('signs a v4 typed message', async () => {
-        const keyringController = await initializeKeyringController({
-          password: PASSWORD,
-          seedPhrase: walletOneSeedWords,
-        });
-        const typedData = {
-          types: {
-            EIP712Domain: [
-              { name: 'name', type: 'string' },
-              { name: 'version', type: 'string' },
-              { name: 'chainId', type: 'uint256' },
-              { name: 'verifyingContract', type: 'address' },
-            ],
-            Person: [
-              { name: 'name', type: 'string' },
-              { name: 'wallet', type: 'address[]' },
-            ],
-            Mail: [
-              { name: 'from', type: 'Person' },
-              { name: 'to', type: 'Person[]' },
-              { name: 'contents', type: 'string' },
-            ],
-          },
-          primaryType: 'Mail' as const,
-          domain: {
-            name: 'Ether Mail',
-            version: '1',
-            chainId: 1,
-            verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
-          },
-          message: {
-            from: {
-              name: 'Cow',
-              wallet: [
-                '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
-                '0xDD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
-              ],
-            },
-            to: [
-              {
-                name: 'Bob',
-                wallet: ['0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'],
-              },
-            ],
-            contents: 'Hello, Bob!',
-          },
-        };
-        const inputParams = {
-          from: mockAddress,
-          data: typedData,
-          origin: 'https://metamask.github.io',
-        };
-        const result = await keyringController.signTypedMessage(inputParams, {
-          version: 'V4',
-        });
-        expect(result).toMatchInlineSnapshot(
-          `"0xe8d6baed58a611bbe247aecf2a8cbe0e3877bf1828c6bd9402749ce9e16f557a5669102bd05f0c3e33c200ff965abf07dab9299cb4bcdc504c9a695205240b321c"`,
-        );
+    it('should throw if the keyring for the given address does not support signTypedMessage', async () => {
+      const address = '0x5aC6d462f054690A373Fabf8cc28E161003aEB19';
+      stubKeyringClassWithAccount(BaseKeyringMock, address);
+      const keyringController = await initializeKeyringController({
+        password: PASSWORD,
       });
+      await keyringController.addNewKeyring(BaseKeyringMock.type);
+      const inputParams = {
+        from: address,
+        data: [
+          {
+            type: 'string',
+            name: 'Message',
+            value: 'Hi, Alice!',
+          },
+          {
+            type: 'uint32',
+            name: 'A number',
+            value: '1337',
+          },
+        ],
+        origin: 'https://metamask.github.io',
+      };
+
+      await expect(
+        keyringController.signTypedMessage(inputParams),
+      ).rejects.toThrow(KeyringControllerError.UnsupportedSignTypedMessage);
     });
   });
 });
