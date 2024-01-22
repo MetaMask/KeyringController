@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [17.0.1]
-### Uncategorized
-- chore: bump `@metamask/keyring-api` to ^3.0.0 ([#344](https://github.com/MetaMask/KeyringController/pull/344))
+### Changed
+- Bump `@metamask/keyring-api` to ^3.0.0 ([#344](https://github.com/MetaMask/KeyringController/pull/344))
 
 ## [17.0.0]
 ### Changed
