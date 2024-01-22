@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [17.0.1]
+### Changed
+- Bump `@metamask/keyring-api` to ^3.0.0 ([#344](https://github.com/MetaMask/KeyringController/pull/344))
+
 ## [17.0.0]
 ### Changed
 - **BREAKING**: Unify `createNewVaultAndKeychain` and `createNewVaultAndRestore` into new method `createNewVaultWithKeyring`. `createNewVaultWithKeyring` accepts a `password` and a `keyring` object provided by the client and returns the `KeyringControllerState` ([#329](https://github.com/MetaMask/KeyringController/pull/329))
@@ -204,7 +208,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate user imported seedphrase across all bip39 wordlists ([#77](https://github.com/MetaMask/KeyringController/pull/77))
 
 
-[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v17.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/KeyringController/compare/v17.0.1...HEAD
+[17.0.1]: https://github.com/MetaMask/KeyringController/compare/v17.0.0...v17.0.1
 [17.0.0]: https://github.com/MetaMask/KeyringController/compare/v16.0.0...v17.0.0
 [16.0.0]: https://github.com/MetaMask/KeyringController/compare/v15.1.0...v16.0.0
 [15.1.0]: https://github.com/MetaMask/KeyringController/compare/v15.0.0...v15.1.0
