@@ -50,7 +50,7 @@ this.keyringController.on('removedAccount', handleThat);
 
 ## Methods
 
-Currently the methods are heavily commented in [the source code](./index.js), so it's the best place to look until we aggregate it here as well.
+Currently the methods are heavily commented in [the source code](./src/KeyringController.ts), so it's the best place to look until we aggregate it here as well.
 
 ## Contributing
 
