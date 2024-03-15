@@ -48,7 +48,7 @@
     "@metamask/eth-hd-keyring": "^7.0.1",
     "@metamask/eth-sig-util": "^7.0.0",
     "@metamask/eth-simple-keyring": "^6.0.1",
-    "@metamask/keyring-api": "^3.0.0",
+    "@metamask/keyring-api": "^5.0.0",
     "@metamask/obs-store": "^9.0.0",
     "@metamask/utils": "^8.2.0"
   },
