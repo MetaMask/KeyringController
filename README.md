@@ -1,8 +1,8 @@
 # Eth Keyring Controller
 
 > [!WARNING]
-> This package has been merged with [`@metamask/keyring-controller`](https://github.com/MetaMask/core/tree/main/packages/keyring-controller).
-> This repository is in maintenance mode and PRs will no longer be accepted, with the exception of security changes.
+> This package has been merged into [`@metamask/keyring-controller`](https://github.com/MetaMask/core/tree/main/packages/keyring-controller).
+> This repository is no longer in use, and pull requests will no longer be accepted.
 
 A module for managing groups of Ethereum accounts called "Keyrings", defined originally for MetaMask's multiple-account-type feature.
 
